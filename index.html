@@ -629,7 +629,9 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <ul>
       <li>قبل ما ننشرو أي كامبانيا، نعملو الخطة هنا: كم Ad set، أنا angle، أنا فيديو، والسكريبت.</li>
       <li>كل واحد يقرا الخطة ويكتب ملاحظاتو في <b>Review</b>.</li>
-      <li>اكتب اسمك وانزل على <b>Approve plan</b>. كي نوافقو الزوز، تولّي Approved، وتوّا ننشروها في Ads Manager.</li>
+      <li>اللي عمل الخطة يكتب اسمو في Review ويضغط <b>Send for review</b>. هذا يتحسب موافقتو.</li>
+      <li>الآخر يقرا الخطة، يكتب ملاحظاتو، ويضغط <b>Approve plan</b>. كي يوافق، الخطة تولّي <b>Approved</b>.</li>
+      <li>كي تولّي Approved، ننشروها في Ads Manager بنفس الأسماء، ومبعد نضغطو <b>Mark as live</b>.</li>
       <li>علّم على <b>Ready</b> كي الإعلان يكون حاضر.</li>
     </ul>
 
@@ -1412,7 +1414,11 @@ function renderPlanView(){
   $("meName").onchange=e=>{setMe(e.target.value.trim());renderPlanView()};
   $("pvEdit").onclick=()=>editPlan(c);
   const st=(status,extra={})=>async()=>{const r=await sb.from("campaigns").update({status,...extra}).eq("id",c.id);if(r.error)return toast("Couldn't update");toast(C_STATUS[status]);refreshPlans()};
-  if($("pvReview"))$("pvReview").onclick=st("review");
+  // Sending for review counts as the sender's approval, so the partner's approval is enough to go live.
+  if($("pvReview"))$("pvReview").onclick=async()=>{
+    const n=me();if(!n){toast("Write your name in Review first");$("meName").focus();$("meName").scrollIntoView({block:"center"});return}
+    await st("review",{approved_by:[...new Set([...(c.approved_by||[]),n])]})();
+  };
   if($("pvLive"))$("pvLive").onclick=st("live");
   if($("pvDone"))$("pvDone").onclick=st("done");
   if($("pvApprove"))$("pvApprove").onclick=async()=>{
