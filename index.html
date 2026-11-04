@@ -127,6 +127,27 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .contact div{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .contact span{overflow-wrap:anywhere}
 
+/* Tasks */
+.badge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--action);color:#0c0a08;font-size:11px;font-weight:500;margin-left:4px}
+.tadd{display:grid;grid-template-columns:minmax(0,1fr) 140px 190px 150px auto;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:16px}
+.tadd input,.tadd select{min-width:0;width:100%;height:42px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:0 12px}
+.tadd .tt{border-color:transparent;font-size:16px}
+.tlist{display:flex;flex-direction:column;gap:8px}
+.task{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.task input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:#0c0a08;cursor:pointer}
+.task .tb{min-width:0;flex:1}
+.task .ti{margin:0;overflow-wrap:anywhere}
+.task .tm{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;font-size:12px;color:var(--muted)}
+.task .tm span{background:var(--canvas);border-radius:6px;padding:1px 8px}
+.task .tm .late{background:var(--bad-bg);color:var(--bad)}
+.task .tm .today{background:var(--warn-bg);color:var(--warn)}
+.task.done .ti{text-decoration:line-through;color:var(--muted)}
+.task .del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:6px}
+.task .del:hover{background:var(--canvas);color:var(--bad)}
+.tdone{margin-top:20px}
+.tdone summary{cursor:pointer;color:var(--muted);font-size:14px;margin-bottom:10px}
+@media (max-width:760px){.tadd{grid-template-columns:1fr 1fr}.tadd .tt,.tadd .btn{grid-column:1/-1}.nav button{padding:8px 10px}.brand span{display:none}}
+
 /* Form modal */
 dialog{width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink)}
 dialog::backdrop{background:rgba(12,10,8,.45);backdrop-filter:blur(6px)}
@@ -167,10 +188,11 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 <body>
 
 <div class="top"><div class="wrap">
-  <div class="brand"><i></i>Product Lab</div>
+  <div class="brand"><i></i><span>Product Lab</span></div>
   <nav class="nav" role="tablist">
     <button role="tab" id="tab-products" aria-selected="true">Products</button>
     <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
+    <button role="tab" id="tab-tasks" aria-selected="false">Tasks <span id="taskBadge" class="badge" hidden></span></button>
   </nav>
   <div class="sync"><b id="dot"></b><span id="syncText">Connecting…</span></div>
 </div></div>
@@ -206,6 +228,24 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="search"><input id="sSearch" type="search" placeholder="Search suppliers" aria-label="Search suppliers"></div>
     </div>
     <div class="slist" id="sList"><div class="empty">Loading suppliers…</div></div>
+  </section>
+
+  <!-- TASKS -->
+  <section id="view-tasks" hidden>
+    <div class="headrow">
+      <div><h1>Tasks</h1><p class="sub">Who does what, and by when.</p></div>
+    </div>
+    <form class="tadd" id="tForm" autocomplete="off">
+      <input id="t-title" class="tt" maxlength="200" placeholder="New task, e.g. Call Sotufab Plast" aria-label="Task">
+      <input id="t-who" list="people" maxlength="40" placeholder="Who" aria-label="Who">
+      <select id="t-product" aria-label="Product"></select>
+      <input id="t-due" type="date" aria-label="Due date">
+      <button class="btn primary" type="submit">Add task</button>
+    </form>
+    <datalist id="people"></datalist>
+    <div class="tools"><div class="chips" id="tChips"></div></div>
+    <div class="tlist" id="tList"><div class="empty">Loading tasks…</div></div>
+    <details class="tdone" id="tDoneWrap" hidden><summary id="tDoneSum"></summary><div class="tlist" id="tDone"></div></details>
   </section>
 </main>
 
@@ -291,7 +331,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const num=v=>v===""||v==null||isNaN(+v)?null:+v;
 const fmt=(v,d=2)=>v==null?"—":(+v).toLocaleString("en",{maximumFractionDigits:d});
 const isUrl=u=>/^https?:\/\//.test(u||"");
-let sb=null,products=[],suppliers=[],pFilter="all",sFilter="all",current=null,editingP=null,editingS=null,pImage=null;
+let sb=null,products=[],suppliers=[],tasks=[],tFilter="all",pFilter="all",sFilter="all",current=null,editingP=null,editingS=null,pImage=null;
 
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
 function sync(t,c){$("syncText").textContent=t;$("dot").style.background=c}
@@ -439,6 +479,65 @@ $("sForm").onsubmit=async e=>{
   $("sDlg").close();toast(editingS?"Supplier updated":"Supplier added");await loadAll();
 };
 
+/* ---------- Tasks ---------- */
+const today=()=>new Date().toISOString().slice(0,10);
+function dueLabel(d){
+  if(!d)return"";const t=today();
+  if(d<t)return`<span class="late">Late · ${fmtDate(d)}</span>`;
+  if(d===t)return`<span class="today">Today</span>`;
+  return`<span>Due ${fmtDate(d)}</span>`;
+}
+const fmtDate=d=>new Date(d+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+function taskRow(t){
+  const prod=products.find(p=>p.id===t.product_id);
+  const el=document.createElement("div");el.className="task"+(t.done?" done":"");
+  el.innerHTML=`<input type="checkbox" ${t.done?"checked":""} aria-label="Done">
+    <div class="tb"><p class="ti">${esc(t.title)}</p><div class="tm">${t.who?`<span>${esc(t.who)}</span>`:""}${prod?`<span>${esc(prod.name)}</span>`:""}${t.done?"":dueLabel(t.due)}</div></div>
+    <button class="del" aria-label="Delete task" title="Delete">✕</button>`;
+  el.querySelector("input").onchange=async e=>{
+    const r=await sb.from("tasks").update({done:e.target.checked}).eq("id",t.id);
+    if(r.error){toast("Couldn't update");e.target.checked=!e.target.checked;return}
+    t.done=e.target.checked;renderTasks();toast(t.done?"Done ✓":"Moved back to to-do");
+  };
+  const del=el.querySelector(".del");
+  del.onclick=async()=>{
+    if(del.dataset.sure!=="1"){del.dataset.sure="1";del.textContent="Delete?";setTimeout(()=>{del.dataset.sure="";del.textContent="✕"},3000);return}
+    const r=await sb.from("tasks").delete().eq("id",t.id);
+    if(r.error){toast("Couldn't delete");return}
+    tasks=tasks.filter(x=>x.id!==t.id);renderTasks();
+  };
+  return el;
+}
+function renderTasks(){
+  const open=tasks.filter(t=>!t.done),done=tasks.filter(t=>t.done);
+  const late=open.filter(t=>t.due&&t.due<=today()).length;
+  $("taskBadge").hidden=!open.length;$("taskBadge").textContent=open.length;
+  const people=[...new Set(tasks.map(t=>t.who).filter(Boolean))];
+  $("people").innerHTML=people.map(p=>`<option value="${esc(p)}">`).join("");
+  const c=$("tChips");c.innerHTML="";
+  [["all","Everyone",open.length],...people.map(p=>[p,p,open.filter(t=>t.who===p).length]),["none","Not assigned",open.filter(t=>!t.who).length]].forEach(([k,l,n])=>{
+    if(k==="none"&&!n)return;
+    const b=document.createElement("button");b.className="chip";b.setAttribute("aria-pressed",k===tFilter);
+    b.innerHTML=`${esc(l)} <span>${n}</span>`;b.onclick=()=>{tFilter=k;renderTasks()};c.append(b);
+  });
+  const pick=t=>tFilter==="all"||(tFilter==="none"?!t.who:t.who===tFilter);
+  const sorted=open.filter(pick).sort((a,b)=>(a.due||"9999").localeCompare(b.due||"9999"));
+  const L=$("tList");L.innerHTML="";
+  if(!sorted.length)L.innerHTML=`<div class="empty">${open.length?"Nothing for this person.":"All done. Add the next task above."}</div>`;
+  sorted.forEach(t=>L.append(taskRow(t)));
+  const D=$("tDone");D.innerHTML="";done.filter(pick).forEach(t=>D.append(taskRow(t)));
+  $("tDoneWrap").hidden=!done.length;$("tDoneSum").textContent=`Done (${done.length})`;
+  $("t-product").innerHTML=`<option value="">No product</option>`+products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+}
+$("tForm").onsubmit=async e=>{
+  e.preventDefault();const title=$("t-title").value.trim();
+  if(!title){$("t-title").focus();return}
+  const d={title,who:$("t-who").value.trim()||null,product_id:$("t-product").value||null,due:$("t-due").value||null};
+  const r=await sb.from("tasks").insert(d).select().single();
+  if(r.error){toast("Couldn't add: "+r.error.message);return}
+  tasks.unshift(r.data);$("t-title").value="";$("t-due").value="";$("t-title").focus();renderTasks();toast("Task added");
+};
+
 /* ---------- Shared UI ---------- */
 function chips(el,map,rows,active,onPick){
   const c=$(el);c.innerHTML="";
@@ -469,20 +568,22 @@ Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
 function setTab(t){
-  for(const x of["products","suppliers"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
+  for(const x of["products","suppliers","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
-$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");
-try{if(localStorage.getItem("pl_tab")==="suppliers")setTab("suppliers")}catch(e){}
+$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");
+try{const t=localStorage.getItem("pl_tab");if(t==="suppliers"||t==="tasks")setTab(t)}catch(e){}
 
 /* ---------- Data ---------- */
 async function loadAll(){
-  const [p,s]=await Promise.all([
+  const [p,s,t]=await Promise.all([
     sb.from("products").select("*").order("updated_at",{ascending:false}),
-    sb.from("suppliers").select("*").order("updated_at",{ascending:false})]);
+    sb.from("suppliers").select("*").order("updated_at",{ascending:false}),
+    sb.from("tasks").select("*").order("created_at",{ascending:false})]);
+  if(!t.error){tasks=t.data}
   if(p.error||s.error){sync("Offline","var(--bad)");const m=`<div class="empty">Couldn't load data. Check your internet and reload.</div>`;$("pGrid").innerHTML=m;$("sList").innerHTML=m;return}
   products=p.data;suppliers=s.data;sync("Saved · live","var(--good)");
-  renderProducts();renderSuppliers();
+  renderProducts();renderSuppliers();renderTasks();
   if(current&&!$("side").hidden)current.kind==="p"?openProduct(current.id):openSupplier(current.id);
 }
 if(window.supabase?.createClient){
@@ -490,7 +591,8 @@ if(window.supabase?.createClient){
   loadAll();
   let t;const again=()=>{clearTimeout(t);t=setTimeout(loadAll,300)};
   sb.channel("lab").on("postgres_changes",{event:"*",schema:"public",table:"products"},again)
-    .on("postgres_changes",{event:"*",schema:"public",table:"suppliers"},again).subscribe();
+    .on("postgres_changes",{event:"*",schema:"public",table:"suppliers"},again)
+    .on("postgres_changes",{event:"*",schema:"public",table:"tasks"},again).subscribe();
 }else{sync("Offline","var(--bad)");$("pGrid").innerHTML=`<div class="empty">Couldn't load. Check your internet and reload.</div>`}
 </script>
 </body>
