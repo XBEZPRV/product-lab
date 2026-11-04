@@ -725,7 +725,10 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <li>كل فكرة تاخذ نقطة على 6 قواعد: رخيص (10 د.ت ولا أقل)، خفيف (500 غرام ولا أقل)، ربح 3 مرات السوم، ما يتكسّرش، فيديو ساهل في 5 ثواني، وما يتلقاش رخيص في تونس.</li>
       <li>الثلاثة الأولين يتحسبو وحدهم من الأرقام. الثلاثة الأخرين جاوب عليهم بـ Yes ولا No.</li>
       <li>اكتب اسمك وصوّت <b>👍 Test it</b> ولا <b>👎 Skip</b>. كي نصوّتو الزوز نفس الحاجة، الفكرة تتبدّل وحدها.</li>
-      <li>كي نقرّرو نجرّبوها، اضغط <b>Move to Products</b> وتولّي منتوج.</li>
+      <li><b>Price</b>: يحسب السوم متاع المنافسين (من تاب Competitors) ويعطيك <b>Suggested</b>: على الأقل 3 مرات الكلفة، وشوية تحت متوسط السوق. اضغط <b>Use … DT</b> باش تاخذو.</li>
+      <li>كان السوم متاعنا أغلى من السوق، يطلع <b>⚠</b> أحمر (كيف LISSA: 89 د.ت والسوق 23–40).</li>
+      <li><b>Ready to test? /4</b>: قبل ما نجرّبو، لازم: شفنا المنافسين، لقينا مورّد، عندنا فكرة الفيديو، وقرّرنا السوم.</li>
+      <li>كي نقرّرو نجرّبوها، اضغط <b>Move to Products</b> وتولّي منتوج. كان مازال ناقص حاجة من الـ 4، يسألك مرة أخرى.</li>
     </ul>
 
     <h3>Ideas ← 🔎 Where to look — وين نلقاو المنتوجات</h3>
@@ -1487,15 +1490,43 @@ function renderIdeas(){
   if(!list.length){G.innerHTML=ideas.length?`<div class="empty">No ideas here.</div>`:`<div class="empty">No ideas yet.<br><button class="btn primary" onclick="editIdea()">+ Add your first idea</button></div>`;return}
   G.innerHTML=list.map(i=>{const s=scoreOf(i),R=rules(i);const v=Object.entries(i.votes||{});
     return `<button class="pcard" data-id="${i.id}">
-      <div class="pimg">${isUrl(i.image)?`<img src="${esc(i.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s)}">${s}/6</span></div>
+      <div class="pimg">${isUrl(i.image)?`<img src="${esc(i.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s)}">${s}/6</span>${priceAdvice(i).warn?`<span class="score s-lo" style="top:auto;bottom:10px">⚠ price</span>`:""}</div>
       <div class="pbody"><div><p class="pname">${esc(i.name)}</p><p class="ptype">${esc(srcName(i))}</p></div>
         <div class="rules6">${R.map(r=>`<span class="${r.v===true?"y":r.v===false?"n":""}">${r.v===true?"✓":r.v===false?"✗":"?"} ${r.l}</span>`).join("")}</div>
+        <div class="votes"><span>Ready ${checksDone(i)}/4</span>${market(i).n?`<span>· ${market(i).n} competitor${market(i).n>1?"s":""}${market(i).avg!=null?" ~"+fmt(market(i).avg,0)+" DT":""}</span>`:""}</div>
         <div class="votes">${v.length?v.map(([n,x])=>`<span>${esc(n)}: <b>${x==="test"?"Test":"Skip"}</b></span>`).join(" · "):"No votes yet"}</div>
       </div></button>`}).join("");
   G.querySelectorAll(".pcard").forEach(b=>b.onclick=()=>openIdea(b.dataset.id));
 }
 async function patchIdea(id,patch){const r=await sb.from("ideas").update(patch).eq("id",id);if(r.error){toast("Couldn't save: "+r.error.message);return false}
   Object.assign(ideas.find(x=>x.id===id),patch);renderIdeas();openIdea(id);return true}
+/* Market price from linked competitor ads, and a suggested price.
+   Rule of thumb: sell for at least 3× cost; stay at or a bit under what competitors charge. */
+function market(i){
+  const cs=comps.filter(c=>c.idea_id===i.id||(i.product_id&&c.product_id===i.product_id));
+  const ps=cs.map(c=>num(c.price)).filter(v=>v!=null);
+  const hot=cs.filter(c=>{const d=daysRunning(c);return d!=null&&d>=30}).length;
+  return{n:cs.length,hot,min:ps.length?Math.min(...ps):null,max:ps.length?Math.max(...ps):null,avg:ps.length?ps.reduce((a,b)=>a+b,0)/ps.length:null};
+}
+function priceAdvice(i){
+  const cost=num(i.cost),price=num(i.price),m=market(i);
+  const floor=cost!=null?cost*3:null;
+  let suggest=null,tone="idle",msg="";
+  if(m.avg!=null&&floor!=null){
+    if(floor>m.max){tone="bad";msg=`Hard to compete: 3× your cost is ${fmt(floor,0)} DT, but competitors sell for ${fmt(m.min,0)}–${fmt(m.max,0)} DT. Find a cheaper supplier, sell a bigger pack, or skip.`}
+    else{suggest=Math.max(floor,Math.round(Math.min(m.avg,m.max)*0.95));tone="good";msg=`Price at about ${fmt(suggest,0)} DT: at least 3× your cost, and just under the market average (${fmt(m.avg,0)} DT).`}
+  }else if(floor!=null){suggest=Math.ceil(floor);msg=`At least ${fmt(floor,0)} DT (3× cost). Add competitor ads to check the market price.`}
+  else if(m.avg!=null){msg=`Competitors charge about ${fmt(m.avg,0)} DT. Add your cost to get a suggested price.`}
+  else msg="Add your cost, and some competitor ads, to get a suggested price.";
+  let warn=null;
+  if(price!=null&&m.max!=null&&price>m.max)warn=`Your price (${fmt(price,0)} DT) is above every competitor (${fmt(m.min,0)}–${fmt(m.max,0)} DT). People will buy from them.`;
+  else if(price!=null&&m.avg!=null&&price>m.avg*1.15)warn=`Your price (${fmt(price,0)} DT) is more than 15% above the market average (${fmt(m.avg,0)} DT).`;
+  else if(price!=null&&floor!=null&&price<floor)warn=`Your price is under 3× your cost (${fmt(floor,0)} DT), so there's little room for ads.`;
+  return{m,floor,suggest,tone,msg,warn};
+}
+const CHECKS=[["chk_competitors","Competitors checked","Searched the Ad Library and added their ads"],["chk_supplier","Supplier found","Real price and delivery time confirmed"],["chk_video","Video idea ready","We know what the first ad will show"],["chk_price","Price decided","Checked against the market price"]];
+const checksDone=i=>CHECKS.filter(([k])=>i[k]).length;
+
 function openIdea(id){
   const i=ideas.find(x=>x.id===id);if(!i)return;current={kind:"i",id};
   const R=rules(i),s=scoreOf(i),name=me(),myVote=name?i.votes?.[name]:null;
@@ -1507,10 +1538,14 @@ function openIdea(id){
     <div><label class="btn ghost sm" style="cursor:pointer">${isUrl(i.image)?"Change photo":"Add photo"}<input type="file" accept="image/*" id="iPhoto" hidden></label></div>
     ${(()=>{const sx=sources.find(x=>x.id===i.source_id);return sx?`<div class="sec"><h3>Found on</h3><div class="mini"><a href="${esc(sx.url||"#")}" target="_blank" rel="noopener"><span>${esc(sx.name)}</span><span>Open ↗</span></a></div></div>`:i.found_on?`<div class="sec"><h3>Found on</h3><p class="text">${esc(i.found_on)}</p></div>`:""})()}
     ${i.why?`<div class="sec"><h3>Why it could sell</h3><p class="text">${esc(i.why)}</p></div>`:""}
-    <div class="sec"><h3>Numbers (DT)</h3><div class="money">
-      <div><span>Cost</span><b>${fmt(num(i.cost))}</b></div><div><span>Sell for</span><b>${fmt(num(i.price))}</b></div>
-      <div><span>Margin after delivery</span><b class="${margin==null?"":margin>0?"pos":"neg"}">${fmt(margin,1)}</b></div></div>
-      <p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${margin!=null?`You could pay up to ${fmt(margin,0)} DT in ads per order and still break even.`:"Add cost and selling price with Edit."}</p></div>
+    ${(()=>{const A=priceAdvice(i),m=A.m;const tc={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",idle:"var(--idle-bg);color:var(--idle)"}[A.tone];
+      return `<div class="sec"><h3>Price (DT)</h3><div class="money">
+      <div><span>Cost</span><b>${fmt(num(i.cost))}</b></div><div><span>Our price</span><b>${fmt(num(i.price))}</b></div><div><span>Margin after delivery</span><b class="${margin==null?"":margin>0?"pos":"neg"}">${fmt(margin,1)}</b></div>
+      <div><span>Competitors</span><b>${m.n}${m.hot?` · 🔥${m.hot}`:""}</b></div><div><span>Market price</span><b>${m.min!=null?(m.min===m.max?fmt(m.min,0):fmt(m.min,0)+"–"+fmt(m.max,0)):"—"}</b></div><div><span>Suggested</span><b class="pos">${A.suggest!=null?fmt(A.suggest,0):"—"}</b></div></div>
+      ${A.warn?`<p class="verdict" style="margin:8px 0 0;background:var(--bad-bg);color:var(--bad)">⚠ ${esc(A.warn)}</p>`:""}
+      <p class="verdict" style="margin:8px 0 0;background:${tc}">${esc(A.msg)}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${A.suggest!=null&&A.suggest!==num(i.price)?`<button class="btn ghost sm" id="iUsePrice">Use ${fmt(A.suggest,0)} DT</button>`:""}<button class="btn ghost sm" id="iAddComp">+ Add a competitor ad</button></div>
+      <p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${margin!=null?`At our price, you could pay up to ${fmt(margin,0)} DT in ads per order and still break even.`:"Add cost and price with Edit."}</p></div>`})()}
     <div class="sec"><h3>The 6 rules</h3><div class="rlist">${R.map(r=>`<div class="rrow"><span>${r.l}<small>${r.h}${r.auto?" · from the numbers":""}</small></span>
       ${r.auto?`<span class="auto ${r.v===true?"pos":r.v===false?"neg":""}">${r.v===true?"✓ Yes":r.v===false?"✗ No":"Add numbers"}</span>`
         :`<span class="tri" data-rule="${r.k}">${[["true","Yes"],["false","No"],["","?"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${String(r.v??"")===v}">${l}</button>`).join("")}</span>`}</div>`).join("")}</div></div>
@@ -1519,7 +1554,8 @@ function openIdea(id){
         <button class="btn ${myVote==="test"?"primary":"ghost"} sm" id="vTest">👍 Test it</button><button class="btn ${myVote==="skip"?"primary":"ghost"} sm" id="vSkip">👎 Skip</button></div>
       <p class="votes" style="margin-top:8px">${Object.entries(i.votes||{}).map(([n,x])=>`${esc(n)}: <b>${x==="test"?"Test it":"Skip"}</b>`).join(" · ")||"No votes yet"}</p></div>
     ${isUrl(i.link)?`<div class="sec"><h3>Link</h3><div class="mini"><a href="${esc(i.link)}" target="_blank" rel="noopener"><span>${esc(i.link.replace(/^https?:\/\/(www\.)?/,"").slice(0,48))}</span><span>Open ↗</span></a></div></div>`:""}
-    <div class="sec">${i.status==="moved"?`<p class="text">This idea is now in Products.</p>`:`<button class="btn primary" id="iMove">Move to Products and start testing</button>`}</div>`;
+    <div class="sec"><h3>Ready to test? ${checksDone(i)}/4</h3><div class="rlist">${CHECKS.map(([k,l,h])=>`<label class="rrow" style="cursor:pointer"><span>${l}<small>${h}${k==="chk_competitors"&&market(i).n?` · ${market(i).n} added`:""}</small></span><input type="checkbox" data-chk="${k}" ${i[k]?"checked":""} style="width:20px;height:20px;accent-color:#0c0a08"></label>`).join("")}</div></div>
+    <div class="sec">${i.status==="moved"?`<p class="text">This idea is now in Products.</p>`:`<button class="btn ${checksDone(i)===4?"primary":"ghost"}" id="iMove">${checksDone(i)===4?"Move to Products and start testing":`Move to Products (${checksDone(i)}/4 ready)`}</button>`}</div>`;
   $("sideBody").querySelectorAll("[data-rule]").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>patchIdea(i.id,{[g.dataset.rule]:b.dataset.v===""?null:b.dataset.v==="true"})));
   $("iMe").onchange=e=>{setMe(e.target.value.trim());openIdea(i.id)};
   const vote=async x=>{const n=me()||$("iMe").value.trim();if(!n){toast("Write your name first");$("iMe").focus();return}setMe(n);
@@ -1530,7 +1566,11 @@ function openIdea(id){
   $("iPhoto").onchange=async e=>{const f=e.target.files[0];if(!f)return;toast("Uploading photo…");
     const path="idea-"+Date.now()+"-"+f.name.replace(/[^\w.-]+/g,"_");const up=await sb.storage.from("product-images").upload(path,f,{contentType:f.type});
     if(up.error)return toast("Couldn't upload");patchIdea(i.id,{image:sb.storage.from("product-images").getPublicUrl(path).data.publicUrl})};
+  $("sideBody").querySelectorAll("[data-chk]").forEach(c=>c.onchange=()=>patchIdea(i.id,{[c.dataset.chk]:c.checked}));
+  const up=$("iUsePrice");if(up)up.onclick=()=>patchIdea(i.id,{price:priceAdvice(i).suggest}).then(()=>toast("Price updated"));
+  $("iAddComp").onclick=()=>{hideSide();editComp(null);setTimeout(()=>{const s=$("g-for");if(s)s.value="i"+i.id},0)};
   const mv=$("iMove");if(mv)mv.onclick=async()=>{
+    if(checksDone(i)<4&&mv.dataset.sure!=="1"){mv.dataset.sure="1";mv.textContent=`Only ${checksDone(i)}/4 ready. Click again to move anyway`;return}
     const r=await sb.from("products").insert({name:i.name,status:"sourcing",cost:num(i.cost),price:num(i.price),image:i.image,source:i.link,problem:null,notes:i.why,updated_at:new Date().toISOString()}).select().single();
     if(r.error)return toast("Couldn't move: "+r.error.message);
     await patchIdea(i.id,{status:"moved",product_id:r.data.id});await loadAll();toast("Added to Products");
