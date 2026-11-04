@@ -205,6 +205,11 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 @media (max-width:760px){.funnel{grid-template-columns:repeat(2,1fr)}.dnums{grid-template-columns:repeat(2,1fr)}}
 
 .syncbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:12px;font-size:14px;color:var(--muted)}
+.tv-sec{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:4px}
+.r-c .pill{margin-left:6px}
+.addrow{display:block;width:100%;text-align:left;border:0;border-top:1px dashed var(--line);background:none;padding:9px 14px;font-size:13px;color:var(--muted);cursor:pointer}
+.addrow:hover{color:var(--ink);background:var(--canvas)}
+.addrow.l2{padding-left:30px}.addrow.l3{padding-left:48px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:none}
 .seg button{border:0;background:var(--card);padding:7px 12px;cursor:pointer;font-size:13px;color:var(--muted)}
 .seg button[aria-pressed=true]{background:var(--ink);color:#fff}
@@ -426,14 +431,14 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
   <section id="view-ads" hidden>
     <div class="headrow">
       <div><h1>Ad library</h1><p class="sub">Every ad we made, its angle, and how it did.</p></div>
-      <button class="btn primary" id="addAd">+ Add ad</button>
+      <button class="btn ghost" id="addAd">+ Upload video / image</button>
     </div>
     <div class="tools">
       <div class="chips" id="aProd"></div>
       <div class="search"><select id="aStatus" aria-label="Filter by result" style="width:100%;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:0 10px"></select></div>
     </div>
     <div class="syncbar"><span class="seg" role="tablist"><button id="vTree" aria-pressed="true">📁 By campaign</button><button id="vLib" aria-pressed="false">▦ Library</button></span><span id="syncInfo">Results come from Meta automatically.</span><button class="btn ghost sm" id="syncAds">↻ Sync</button></div>
-    <div id="treeView" class="tv"><div class="tv-l" id="tree"><div class="empty">Loading campaigns from Meta…</div></div><aside class="tv-r" id="treeSide"><div class="empty">Click an ad to see its video and results.</div></aside></div>
+    <div id="treeView" class="tv"><div class="tv-l"><div class="tv-sec"><span class="sth" style="margin:0">Planned · not live yet</span><button class="btn primary sm" id="newCamp">+ New campaign</button></div><div id="planTree"></div><div class="tv-sec"><span class="sth" style="margin:0">Live on Meta</span></div><div id="tree" style="display:flex;flex-direction:column;gap:10px"><div class="empty">Loading campaigns from Meta…</div></div></div><aside class="tv-r" id="treeSide"><div class="empty">Click an ad to see its video and results.</div></aside></div>
     <div id="libView" hidden>
     <div id="unlinked"></div>
     <div id="aAngles"></div>
@@ -1006,7 +1011,7 @@ function renderTree(){
       ${so?s.ads.map(m=>{const lib=libFor(m.ad_id);const th=lib&&(lib.poster||(lib.format==="image"?lib.media:""));
         return `<button class="row r-a" data-ad="${m.ad_id}" aria-current="${selMeta===m.ad_id}"><span class="nm">${isUrl(th)?`<img class="th" src="${esc(th)}" alt="">`:`<span class="th">${lib?"✓":"?"}</span>`}<span>${esc(m.ad_name)}</span></span>${cells(sumRows([m]))}</button>`}).join(""):""}`}).join(""):""}</div>`}).join("");
   T.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{const k=b.dataset.f;openFolders.has(k)?openFolders.delete(k):openFolders.add(k);renderTree()});
-  T.querySelectorAll("[data-ad]").forEach(b=>b.onclick=()=>{selMeta=b.dataset.ad;renderTree();renderTreeSide()});
+  T.querySelectorAll("[data-ad]").forEach(b=>b.onclick=()=>{selMeta=b.dataset.ad;selPlan=null;renderPlanTree();renderTree();renderTreeSide()});
   if(selMeta)renderTreeSide();
 }
 function renderTreeSide(){
@@ -1033,6 +1038,74 @@ function renderTreeSide(){
   if($("tvNew"))$("tvNew").onclick=async()=>{const q=await sb.from("ads").insert({name:m.ad_name,product_id:pid,format:"video",status:"paused",meta_ad_ids:[m.ad_id]}).select().single();
     if(q.error)return toast("Couldn't add");ads.unshift(q.data);toast("Added. Open it to upload the video.");syncAds()};
 }
+/* Planned campaigns (from Plans) in the same folder view: build here, review here, then publish on Meta */
+let selPlan=null; // {kind:"c"|"a", id}
+function renderPlanTree(){
+  const P=$("planTree");if(!P)return;
+  const list=campaigns.filter(c=>c.status!=="live"&&c.status!=="done");
+  if(!list.length){P.innerHTML=`<div class="empty" style="padding:18px">No planned campaigns. Click <b>+ New campaign</b> to plan one before publishing.</div>`;return}
+  P.innerHTML=list.map(c=>{
+    const sets=adsets.filter(s=>s.campaign_id===c.id);const co=openFolders.has("p"+c.id);
+    const pa=planAds.filter(a=>sets.some(s=>s.id===a.adset_id));
+    return `<div class="cf"><button class="row r-c" data-pc="${c.id}" aria-expanded="${co}" aria-current="${selPlan?.kind==="c"&&selPlan.id===c.id}"><span class="nm"><span class="car">▶</span>📁 <span>${esc(c.name)}</span><span class="pill p-${c.status}">${C_STATUS[c.status]}</span></span><span class="n">${c.daily_budget!=null?fmt(c.daily_budget,0)+"/day":""}</span><span class="n">${pa.filter(a=>a.ready).length}/${pa.length}</span><span class="n">ready</span></button>
+    ${co?sets.map(s=>{const so=openFolders.has("p"+s.id);const sa=pa.filter(a=>a.adset_id===s.id);
+      return `<button class="row r-s" data-ps="${s.id}" aria-expanded="${so}"><span class="nm"><span class="car">▶</span>📂 <span>${esc(s.name)}</span></span><span class="n">${s.daily_budget!=null?fmt(s.daily_budget,0)+"/day":""}</span><span class="n">${sa.length} ad${sa.length===1?"":"s"}</span><span class="n"></span></button>
+      ${so?sa.map(a=>{const lib=ads.find(x=>x.id===a.ad_id);const th=lib&&(lib.poster||(lib.format==="image"?lib.media:""));
+        return `<button class="row r-a" data-pa="${a.id}" aria-current="${selPlan?.kind==="a"&&selPlan.id===a.id}"><span class="nm">${isUrl(th)?`<img class="th" src="${esc(th)}" alt="">`:`<span class="th">new</span>`}<span>${esc(a.name)}</span></span><span class="n"></span><span class="n">${a.ready?"✓ ready":"to do"}</span><span class="n"></span></button>`}).join("")+`<button class="addrow l3" data-addpa="${s.id}" data-c="${c.id}">+ Add ad</button>`:""}`}).join("")+`<button class="addrow l2" data-addps="${c.id}">+ Add ad set</button>`:""}</div>`}).join("");
+  const tog=k=>{openFolders.has(k)?openFolders.delete(k):openFolders.add(k)};
+  P.querySelectorAll("[data-pc]").forEach(b=>b.onclick=()=>{tog("p"+b.dataset.pc);selPlan={kind:"c",id:b.dataset.pc};renderPlanTree();renderPlanSide()});
+  P.querySelectorAll("[data-ps]").forEach(b=>b.onclick=()=>{tog("p"+b.dataset.ps);renderPlanTree()});
+  P.querySelectorAll("[data-pa]").forEach(b=>b.onclick=()=>{selPlan={kind:"a",id:b.dataset.pa};renderPlanTree();renderPlanSide()});
+  P.querySelectorAll("[data-addps]").forEach(b=>b.onclick=()=>{const c=campaigns.find(x=>x.id===b.dataset.addps);editSet(c,null,adsets.filter(s=>s.campaign_id===c.id).length)});
+  P.querySelectorAll("[data-addpa]").forEach(b=>b.onclick=()=>editPlanAd(b.dataset.addpa,null,campaigns.find(x=>x.id===b.dataset.c)));
+}
+function renderPlanSide(){
+  const S=$("treeSide");selMeta=null;
+  if(selPlan?.kind==="a"){
+    const a=planAds.find(x=>x.id===selPlan.id);if(!a){S.innerHTML="";return}
+    const s=adsets.find(x=>x.id===a.adset_id),c=campaigns.find(x=>x.id===s?.campaign_id),lib=ads.find(x=>x.id===a.ad_id);
+    const media=lib&&isUrl(lib.media)?(lib.format==="video"?`<video class="player" src="${esc(lib.media)}" ${isUrl(lib.poster)?`poster="${esc(lib.poster)}"`:""} controls playsinline preload="metadata"></video>`:`<img class="hero" src="${esc(lib.media)}" alt="">`):"";
+    S.innerHTML=`<div><p class="sth" style="margin:0 0 2px">${esc(c?.name||"")} › ${esc(s?.name||"")}</p><h2 style="font-weight:500;font-size:20px;margin:0">${esc(a.name)}</h2></div>
+      ${media||`<div class="nolink">No video picked yet${a.visual?". To make: "+esc(a.visual):"."}</div>`}
+      ${a.script?`<div class="sec"><h3>Primary text</h3><p class="script" dir="auto">${esc(a.script)}</p></div>`:""}
+      ${a.headline?`<div class="sec"><h3>Headline</h3><p class="text" dir="auto">${esc(a.headline)}</p></div>`:""}
+      <div class="sec"><h3>Button</h3><p class="text">${esc(a.cta||"—")}</p></div>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pReady" ${a.ready?"checked":""}> Ready to publish</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary sm" id="pEditAd">Edit ad</button><button class="btn danger sm" id="pDelAd">Delete</button></div>`;
+    $("pReady").onchange=async e=>{await sb.from("plan_ads").update({ready:e.target.checked}).eq("id",a.id);await refreshPlans();renderPlanTree()};
+    $("pEditAd").onclick=()=>editPlanAd(a.adset_id,a,c);
+    $("pDelAd").onclick=async e=>{if(e.target.dataset.sure!=="1"){e.target.dataset.sure="1";e.target.textContent="Click again";return}await sb.from("plan_ads").delete().eq("id",a.id);selPlan=null;S.innerHTML="";await refreshPlans();renderPlanTree()};
+    return;
+  }
+  const c=campaigns.find(x=>x.id===selPlan?.id);if(!c){S.innerHTML=`<div class="empty">Click an ad to see its video and results.</div>`;return}
+  const sets=adsets.filter(s=>s.campaign_id===c.id),pa=planAds.filter(a=>sets.some(s=>s.id===a.adset_id));
+  const name=me(),mine=name&&c.approved_by?.includes(name),cm=comments.filter(x=>x.campaign_id===c.id);
+  const step=c.status==="draft"?"1. Finish the ad sets and ads, then send it for review.":c.status==="review"?"2. Waiting for your partner to check and approve.":"3. Approved: publish it in Ads Manager with these names, then mark it live.";
+  S.innerHTML=`<div><h2 style="font-weight:500;font-size:20px;margin:0 0 6px">${esc(c.name)}</h2><span class="pill p-${c.status}">${C_STATUS[c.status]}</span></div>
+    <p class="nolink" style="margin:0">${step}</p>
+    <div class="money"><div><span>Budget / day</span><b>${fmt(c.daily_budget)} DT</b></div><div><span>Ad sets</span><b>${sets.length}</b></div><div><span>Ads ready</span><b>${pa.filter(a=>a.ready).length} / ${pa.length}</b></div></div>
+    ${c.rules?`<div class="sec"><h3>Rules</h3><p class="text">${esc(c.rules)}</p></div>`:""}
+    <div class="sec"><h3>Review</h3>
+      <div class="vote">Your name: <input id="pvName" value="${esc(name)}" placeholder="e.g. Karim" maxlength="30" style="height:34px;border:1px solid var(--line);border-radius:8px;padding:0 10px;width:140px"></div>
+      <p class="votes" style="margin:8px 0">${c.approved_by?.length?"✓ Approved by "+esc(c.approved_by.join(", ")):"No approvals yet"}</p>
+      <div class="cmts">${cm.map(x=>`<div class="cmt"><small>${esc(x.who||"Someone")}</small><span dir="auto" style="white-space:pre-wrap">${esc(x.body)}</span></div>`).join("")}</div>
+      <form class="cform" id="pvCmt"><textarea id="pvBody" placeholder="Comment, e.g. change the hook in ad 2" dir="auto" maxlength="1000"></textarea><button class="btn ghost" type="submit">Send</button></form></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${c.status==="draft"?`<button class="btn primary sm" id="pvSend">Send for review</button>`:""}
+      ${c.status==="review"||c.status==="approved"?`<button class="btn ${mine?"ghost":"primary"} sm" id="pvOk">${mine?"Remove my approval":"Approve"}</button>`:""}
+      ${c.status==="approved"?`<button class="btn primary sm" id="pvGo">Published on Meta: mark live</button>`:""}
+      <button class="btn ghost sm" id="pvEditC">Edit campaign</button></div>`;
+  $("pvName").onchange=e=>{setMe(e.target.value.trim());renderPlanSide()};
+  const up=async patch=>{const r=await sb.from("campaigns").update(patch).eq("id",c.id);if(r.error)return toast("Couldn't update");await refreshPlans();renderPlanTree();renderPlanSide()};
+  const need=()=>{const n=me()||$("pvName").value.trim();if(!n){toast("Write your name first");$("pvName").focus();return null}setMe(n);return n};
+  if($("pvSend"))$("pvSend").onclick=()=>{const n=need();if(n)up({status:"review",approved_by:[...new Set([...(c.approved_by||[]),n])]}).then(()=>toast("Sent for review"))};
+  if($("pvOk"))$("pvOk").onclick=()=>{const n=need();if(!n)return;const L=new Set(c.approved_by||[]);mine?L.delete(n):L.add(n);const arr=[...L];up({approved_by:arr,status:arr.length>=2?"approved":"review"}).then(()=>toast(arr.length>=2?"Approved: ready to publish":"Approval saved"))};
+  if($("pvGo"))$("pvGo").onclick=()=>up({status:"live"}).then(()=>{toast("Marked live");selPlan=null;$("treeSide").innerHTML=`<div class="empty">It will appear under Live on Meta once it spends.</div>`});
+  $("pvEditC").onclick=()=>editPlan(c);
+  $("pvCmt").onsubmit=async e=>{e.preventDefault();const body=$("pvBody").value.trim();if(!body)return;await sb.from("plan_comments").insert({campaign_id:c.id,who:me()||null,body});await refreshPlans();renderPlanSide()};
+}
+$("newCamp").onclick=()=>editPlan(null);
+
 function setAdsView(v){$("vTree").setAttribute("aria-pressed",v==="tree");$("vLib").setAttribute("aria-pressed",v==="lib");$("treeView").hidden=v!=="tree";$("libView").hidden=v!=="lib";
   try{localStorage.setItem("pl_adsview",v)}catch(e){}}
 $("vTree").onclick=()=>setAdsView("tree");$("vLib").onclick=()=>setAdsView("lib");
@@ -1454,7 +1527,8 @@ function editPlan(c){
       d.product_id=d.product_id||null;
       const r=c?await sb.from("campaigns").update(d).eq("id",c.id):await sb.from("campaigns").insert(d).select().single();
       if(r.error)return r.error.message;
-      if(!c)openPlan=r.data.id;await refreshPlans();if(!c)showPlan(r.data.id);
+      if(!c){openFolders.add("p"+r.data.id);selPlan={kind:"c",id:r.data.id}}
+      await refreshPlans();if(!c&&!$("view-plans").hidden)showPlan(r.data.id);if(!c&&!$("view-ads").hidden)renderPlanSide();
     });
 }
 function editSet(c,s,pos){
@@ -1484,7 +1558,7 @@ function editPlanAd(setId,a,c){
       if(r.error)return r.error.message;refreshPlans();
     });
 }
-async function refreshPlans(){await loadPlans();renderPlans()}
+async function refreshPlans(){await loadPlans();renderPlans();if(typeof renderPlanTree==="function"){renderPlanTree();if(selPlan&&!$("treeSide").contains(document.activeElement))renderPlanSide()}}
 $("addPlan").onclick=newPlan;
 
 /* ---------- Tasks ---------- */
@@ -1598,7 +1672,7 @@ async function loadAll(){
   await Promise.all([loadPlans(),loadSettings(),loadIdeas()]);
   if(p.error||s.error){sync("Offline","var(--bad)");const m=`<div class="empty">Couldn't load data. Check your internet and reload.</div>`;$("pGrid").innerHTML=m;$("sList").innerHTML=m;return}
   products=p.data;suppliers=s.data;sync("Saved · live","var(--good)");
-  renderProducts();renderSuppliers();renderTasks();renderAds();renderIdeas();
+  renderProducts();renderSuppliers();renderTasks();renderAds();renderIdeas();renderPlanTree();
   if(!(openPlan&&document.activeElement?.closest?.("#planView")&&document.activeElement.matches("input,textarea")))renderPlans();
   if(current&&!$("side").hidden&&current.kind!=="a")({p:openProduct,s:openSupplier,a:openAd,i:openIdea})[current.kind](current.id);
 }
