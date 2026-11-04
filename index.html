@@ -263,6 +263,29 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .unl .r small{color:var(--muted)}
 .unl select{height:32px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 6px;max-width:220px}
 
+/* Home */
+.home{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+.hcol{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.hcard h2{font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.hmuted{color:var(--muted);margin:0;font-size:14px}
+.att{display:flex;gap:12px;align-items:center;padding:11px 0;border-top:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left;color:var(--ink)}
+.att:first-child{border-top:0;padding-top:0}
+.att:hover .at{text-decoration:underline}
+.att .ai{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:16px;background:var(--canvas)}
+.att .ai.bad{background:var(--bad-bg)}.att .ai.good{background:var(--good-bg)}.att .ai.warn{background:var(--warn-bg)}.att .ai.info{background:var(--info-bg)}
+.att .at{font-size:15px;min-width:0}
+.att small{display:block;color:var(--muted);font-size:13px}
+.allgood{display:flex;gap:10px;align-items:center;color:var(--good);font-size:15px}
+.big{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.big div{background:var(--card);padding:12px 14px}
+.big span{display:block;font-size:12px;color:var(--muted)}
+.big b{font-weight:400;font-size:24px;font-variant-numeric:tabular-nums}
+.big em{font-style:normal;font-size:12px;color:var(--muted);display:block}
+.hrow{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14px;align-items:center}
+.hrow:first-child{border-top:0}
+@media (max-width:860px){.home{grid-template-columns:1fr}}
+
 /* Ideas */
 .score{position:absolute;right:10px;top:10px;font-weight:500;font-size:13px;border-radius:6px;padding:3px 9px}
 .s-hi{background:var(--good-bg);color:var(--good)}.s-mid{background:var(--warn-bg);color:var(--warn)}.s-lo{background:var(--bad-bg);color:var(--bad)}
@@ -392,6 +415,8 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 <div class="top"><div class="wrap">
   <div class="brand"><i></i><span>Product Lab</span></div>
   <nav class="nav" role="tablist">
+    <button role="tab" id="tab-home" aria-selected="false">Home</button>
+    <i class="sep" aria-hidden="true"></i>
     <button role="tab" id="tab-ideas" aria-selected="false">Ideas</button>
     <button role="tab" id="tab-comp" aria-selected="false">Competitors</button>
     <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
@@ -434,6 +459,22 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="search"><input id="pSearch" type="search" placeholder="Search products" aria-label="Search products"></div>
     </div>
     <div class="grid" id="pGrid"><div class="empty">Loading products…</div></div>
+  </section>
+
+  <!-- HOME -->
+  <section id="view-home" hidden>
+    <div class="headrow"><div><h1 id="hHello">Hello</h1><p class="sub" id="hDate"></p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" id="hIdea">+ Idea</button><button class="btn ghost sm" id="hTask">+ Task</button><button class="btn primary sm" id="hCamp">+ Campaign</button></div></div>
+    <div class="home">
+      <div class="hcol">
+        <section class="hcard"><h2>Needs your attention</h2><div id="hAttn"><p class="hmuted">Checking…</p></div></section>
+        <section class="hcard"><h2>Ads · last 7 days</h2><div id="hAds"><p class="hmuted">Loading from Meta…</p></div></section>
+      </div>
+      <div class="hcol">
+        <section class="hcard"><h2>Today</h2><div id="hToday"><p class="hmuted">Loading…</p></div></section>
+        <section class="hcard"><h2>Recent activity</h2><div id="hAct"><p class="hmuted">Loading…</p></div><button class="btn ghost sm" id="hMoreAct" style="margin-top:10px">See all activity</button></section>
+      </div>
+    </div>
   </section>
 
   <!-- IDEAS -->
@@ -640,6 +681,13 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <h3>شنوّة هذا؟</h3>
     <p>هذا المكان اللي نخدمو فيه أنا وانت مع بعضنا. كل حاجة تبدّلها توصل للآخر في ثانية. ما فمّاش login، أما ما تبعث الرابط لحتّى حد آخر.</p>
     <p>كي تشوف <b>Saved · live</b> الفوق معناها كل شي مسجّل.</p>
+
+    <h3>Home — الصفحة الأولى</h3>
+    <ul>
+      <li>أول ما تدخل، تلقى <b>Needs your attention</b>: الحاجات اللي تستناك انت: خطة تستنى موافقتك، كامبانيا لازم توقفها (🔴) ولا تكبّرها (🚀)، أفكار ما صوّتّش عليها، ومهام فات وقتها.</li>
+      <li>اضغط على أي سطر يهزّك طول للبلاصة الصحيحة.</li>
+      <li>على اليمين: أرقام اليوم من Meta، وآخر الحاجات اللي تعملت وشكون عملها.</li>
+    </ul>
 
     <h3>الدخول والسجل</h3>
     <ul>
@@ -1545,6 +1593,61 @@ function editComp(c){
 }
 $("addComp").onclick=()=>editComp();
 
+/* ---------- Home ---------- */
+let homeStats=null;
+async function metaCall(body){try{return await fetch(SB_URL+"/functions/v1/meta-stats",{method:"POST",headers:{"Content-Type":"application/json","apikey":SB_KEY},body:JSON.stringify(body)}).then(r=>r.json())}catch(e){return{error:"offline"}}}
+function attItem(icon,cls,title,sub,go){return{icon,cls,title,sub,go}}
+async function renderHome(){
+  const name=me()||"";const h=new Date().getHours();
+  $("hHello").textContent=(h<12?"Good morning":h<18?"Good afternoon":"Good evening")+(name?", "+name:"");
+  $("hDate").textContent=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  const items=[];
+  // plans waiting for my approval
+  for(const c of campaigns.filter(c=>c.status==="review"&&!(c.approved_by||[]).includes(name)))
+    items.push(attItem("📝","warn",`Review the plan "${c.name}"`,`Sent by ${(c.approved_by||[]).join(", ")||"your partner"}. Approve it or comment.`,()=>{setTab("ads");setAdsView("tree");selPlan={kind:"c",id:c.id};openFolders.add("p"+c.id);renderPlanTree();renderPlanSide()}));
+  for(const c of campaigns.filter(c=>c.status==="approved"))
+    items.push(attItem("🚀","good",`Publish "${c.name}" on Meta`,"Approved by both of you. Publish it, then mark it live.",()=>{setTab("ads");setAdsView("tree");selPlan={kind:"c",id:c.id};renderPlanTree();renderPlanSide()}));
+  // ideas waiting for my vote
+  const iv=ideas.filter(i=>i.status==="new"&&name&&!(i.votes||{})[name]);
+  if(iv.length)items.push(attItem("💡","info",`Vote on ${iv.length} idea${iv.length>1?"s":""}`,iv.slice(0,3).map(i=>i.name).join(", ")+(iv.length>3?"…":""),()=>{setTab("ideas");openIdea(iv[0].id)}));
+  // tasks late or due today, mine or unassigned
+  const t0=today();const my=tasks.filter(t=>!t.done&&t.due&&t.due<=t0&&(!t.who||t.who.toLowerCase()===name.toLowerCase()));
+  for(const t of my.slice(0,4))items.push(attItem(t.due<t0?"⏰":"📌",t.due<t0?"bad":"warn",t.title,t.due<t0?`Late since ${fmtDate(t.due)}`:"Due today",()=>setTab("tasks")));
+  // products testing without numbers
+  for(const p of products.filter(p=>p.status==="testing"&&(num(p.cost)==null||num(p.price)==null)))
+    items.push(attItem("✏️","info",`Add cost and price for "${p.name}"`,"Needed so Stats can tell you to stop or scale.",()=>{setTab("products");openProduct(p.id)}));
+  const A=$("hAttn");
+  const draw=()=>{A.innerHTML=items.length?items.map((x,i)=>`<button class="att" data-i="${i}"><span class="ai ${x.cls}">${x.icon}</span><span class="at">${esc(x.title)}<small>${esc(x.sub)}</small></span></button>`).join(""):`<p class="allgood">✓ Nothing waiting for you. Good time to add new ideas.</p>`;
+    A.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>items[+b.dataset.i].go())};
+  draw();
+  // recent activity
+  const ra=await sb.from("activity").select("*").order("at",{ascending:false}).limit(7);
+  const when=t=>{const m=(Date.now()-new Date(t))/60000;return m<1?"now":m<60?Math.floor(m)+"m":m<1440?Math.floor(m/60)+"h":Math.floor(m/1440)+"d"};
+  $("hAct").innerHTML=ra.data?.length?ra.data.map(a=>`<div class="aitem" style="padding:8px 0"><span class="av ${a.who==="Azer"?"az":""}">${esc((a.who||"?")[0])}</span><div style="font-size:14px"><b>${esc(a.who||"Someone")}</b> ${ACT_VERB[a.action]||a.action} ${TBL_LABEL[a.tbl]||a.tbl} <span dir="auto">${esc(a.item||"")}</span>${a.detail?` · ${esc(a.detail)}`:""}<small>${when(a.at)} ago</small></div></div>`).join(""):`<p class="hmuted">No activity yet.</p>`;
+  // Meta numbers
+  if(!settings.act){$("hToday").innerHTML=$("hAds").innerHTML=`<p class="hmuted">Add your ad account in ⚙ Settings to see ad numbers.</p>`;return}
+  if(!homeStats){const [d1,d7]=await Promise.all([metaCall({act:settings.act,days:1}),metaCall({act:settings.act,days:7})]);homeStats={d1,d7}}
+  const{d1,d7}=homeStats;const toDT=(v,c)=>c==="USD"?v*3:v;
+  const pur=a=>a?(act(a.actions,PURCHASE)??act(a.actions,"omni_purchase")??0):0;
+  const T=d1.account,tSp=T?toDT(+T.spend,d1.currency):0,tO=pur(T);
+  $("hToday").innerHTML=d1.error&&d1.error!=="not_configured"?`<p class="hmuted">Couldn't load Meta numbers.</p>`:`<div class="big"><div><span>Ad spend</span><b>${fmt(tSp,0)} DT</b></div><div><span>Orders (Meta)</span><b>${tO}</b></div><div><span>Ads per order</span><b>${tO?fmt(tSp/tO,0)+" DT":"—"}</b></div><div><span>Link clicks</span><b>${fmt(T?+T.inline_link_clicks:0,0)}</b></div></div>`;
+  await loadLinks();
+  const C=d7.campaigns||[];
+  if(!C.length){$("hAds").innerHTML=`<p class="hmuted">No ads ran in the last 7 days.</p>`;return}
+  const rows=C.map(c=>{const L=links[c.campaign_name]||{};const pid=L.product_id!==undefined?L.product_id:guessProduct(c.campaign_name);const p=products.find(x=>x.id===pid);
+    const o=(act(c.actions,PURCHASE)??act(c.actions,"omni_purchase")??0)+(L.extra_orders||0);const sp=toDT(+c.spend||0,d7.currency);
+    const be=p&&num(p.price)!=null&&num(p.cost)!=null?num(p.price)-num(p.cost)-DELIVERY:null;return{c,o,sp,f:decide(sp,o,be,+c.impressions||0,+c.inline_link_click_ctr||0)}});
+  const col={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",warn:"var(--warn-bg);color:var(--warn)",idle:"var(--idle-bg);color:var(--idle)"};
+  $("hAds").innerHTML=rows.map(r=>`<div class="hrow"><span><b style="font-weight:500">${esc(r.c.campaign_name)}</b><small style="display:block;color:var(--muted);font-size:12px">${fmt(r.sp,0)} DT · ${r.o} order${r.o===1?"":"s"}</small></span><span class="flag" style="background:${col[r.f.c]}">${r.f.l}</span></div>`).join("")+`<button class="btn ghost sm" style="margin-top:10px" onclick="setTab('stats')">Open Stats</button>`;
+  // add Stop / Scale flags to attention
+  for(const r of rows.filter(r=>r.f.k==="stop"||r.f.k==="scale"))items.unshift(attItem(r.f.k==="stop"?"🔴":"🚀",r.f.k==="stop"?"bad":"good",`${r.f.l}: ${r.c.campaign_name}`,r.f.t,()=>setTab("stats")));
+  draw();
+}
+$("hIdea").onclick=()=>{setTab("ideas");editIdea()};
+$("hTask").onclick=()=>{setTab("tasks");$("t-title").focus()};
+$("hCamp").onclick=()=>{setTab("ads");setAdsView("tree");editPlan(null)};
+$("hMoreAct").onclick=openActivity;
+
 /* ---------- Generic form ---------- */
 let gSave=null;
 function gForm(title,fields,vals,onSave){
@@ -1814,13 +1917,14 @@ Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
 function setTab(t){
-  for(const x of["ideas","products","suppliers","comp","ads","plans","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
+  for(const x of["home","ideas","products","suppliers","comp","ads","plans","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
   if(t==="stats"&&!stLoaded&&sb)loadStats();
+  if(t==="home"&&sb)renderHome();
   if(t==="ads"&&!adsSynced&&sb)syncAds();
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
-$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");$("tab-comp").onclick=()=>setTab("comp");
-let startTab="products";try{const t=localStorage.getItem("pl_tab");if(["ideas","suppliers","comp","ads","plans","stats","tasks"].includes(t))startTab=t}catch(e){}
+$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");$("tab-home").onclick=()=>setTab("home");$("tab-comp").onclick=()=>setTab("comp");
+let startTab="home";try{const t=localStorage.getItem("pl_tab");if(["products","ideas","suppliers","comp","ads","plans","stats","tasks"].includes(t))startTab=t}catch(e){}
 
 /* ---------- Data ---------- */
 async function loadAll(){
