@@ -127,6 +127,28 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .contact div{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .contact span{overflow-wrap:anywhere}
 
+/* Ads */
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.acard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;padding:0;text-align:left;display:flex;flex-direction:column;transition:border-color .2s ease-out}
+.acard:hover{border-color:var(--ink)}
+.athumb{aspect-ratio:4/5;background:var(--panel);position:relative;overflow:hidden}
+.athumb img{width:100%;height:100%;object-fit:cover;display:block}
+.athumb .fmt{position:absolute;right:8px;top:8px;background:rgba(12,10,8,.7);color:#fff;font-size:11px;border-radius:6px;padding:2px 7px}
+.athumb .pill{position:absolute;left:8px;top:8px}
+.abody{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px}
+.abody .an{font-weight:500;font-size:14px;margin:0;line-height:1.3}
+.abody .aa{font-size:12px;color:var(--muted);margin:0}
+.abody .ar{display:flex;gap:10px;font-size:12px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.abody .ar b{color:var(--ink);font-weight:500}
+.p-draft{color:var(--idle);background:var(--idle-bg)}.p-live{color:var(--info);background:var(--info-bg)}.p-paused{color:var(--warn);background:var(--warn-bg)}.p-loser{color:var(--bad);background:var(--bad-bg)}
+.angles{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:16px}
+.angles h3{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.angles table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.angles th{text-align:left;font-weight:400;color:var(--muted);font-size:12px;padding:4px 8px 6px 0}
+.angles td{padding:6px 8px 6px 0;border-top:1px solid var(--line)}
+.angles .wrapt{overflow-x:auto}
+.player{width:100%;max-height:62vh;border-radius:12px;background:#000;display:block}
+
 /* Tasks */
 .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--action);color:#0c0a08;font-size:11px;font-weight:500;margin-left:4px}
 .tadd{display:grid;grid-template-columns:minmax(0,1fr) 140px 190px 150px auto;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:16px}
@@ -192,6 +214,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
   <nav class="nav" role="tablist">
     <button role="tab" id="tab-products" aria-selected="true">Products</button>
     <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
+    <button role="tab" id="tab-ads" aria-selected="false">Ads</button>
     <button role="tab" id="tab-tasks" aria-selected="false">Tasks <span id="taskBadge" class="badge" hidden></span></button>
   </nav>
   <div class="sync"><b id="dot"></b><span id="syncText">Connecting…</span></div>
@@ -228,6 +251,20 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="search"><input id="sSearch" type="search" placeholder="Search suppliers" aria-label="Search suppliers"></div>
     </div>
     <div class="slist" id="sList"><div class="empty">Loading suppliers…</div></div>
+  </section>
+
+  <!-- ADS -->
+  <section id="view-ads" hidden>
+    <div class="headrow">
+      <div><h1>Ad library</h1><p class="sub">Every ad we made, its angle, and how it did.</p></div>
+      <button class="btn primary" id="addAd">+ Add ad</button>
+    </div>
+    <div class="tools">
+      <div class="chips" id="aProd"></div>
+      <div class="search"><select id="aStatus" aria-label="Filter by result" style="width:100%;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:0 10px"></select></div>
+    </div>
+    <div id="aAngles"></div>
+    <div class="agrid" id="aGrid"><div class="empty">Loading ads…</div></div>
   </section>
 
   <!-- TASKS -->
@@ -319,6 +356,29 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
   <div class="df"><span class="msg" id="sMsg"></span><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary">Save supplier</button></div>
 </form></dialog>
 
+<!-- Ad form -->
+<dialog id="aDlg" aria-labelledby="aDlgTitle"><form id="aForm" novalidate>
+  <div class="dh"><h2 id="aDlgTitle">Add ad</h2><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <div class="db">
+    <fieldset><legend>The ad</legend>
+      <div class="f full"><label for="a-name">Ad name</label><input id="a-name" required maxlength="80" placeholder="V1 · Car spill"></div>
+      <div class="f"><label for="a-product">Product</label><select id="a-product"></select></div>
+      <div class="f"><label for="a-status">Result</label><select id="a-status"></select></div>
+      <div class="f full"><label for="a-angle">Angle</label><input id="a-angle" maxlength="80" list="angleList" placeholder="Problem: soup spills in the car"><small>The idea that sells: a problem, a story, a demo, a gift, an offer…</small></div>
+      <div class="f full"><label for="a-file">Video or image</label><div class="imgpick"><img id="a-preview" alt="" hidden><input id="a-file" type="file" accept="video/*,image/*"></div><small>Up to 50 MB</small></div>
+      <div class="f full"><label for="a-hook">Hook (first line or first 3 seconds)</label><input id="a-hook" maxlength="200" dir="auto"></div>
+    </fieldset>
+    <fieldset><legend>Results (from Ads Manager)</legend>
+      <div class="f"><label for="a-spend">Spend (DT)</label><input id="a-spend" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="f"><label for="a-orders">Orders</label><input id="a-orders" type="number" step="1" min="0" inputmode="numeric"></div>
+      <div class="f"><label for="a-ctr">Link CTR (%)</label><input id="a-ctr" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="f full"><label for="a-notes">What we learned</label><textarea id="a-notes" maxlength="2000" placeholder="Good clicks but no orders, hook too slow, comments asked about price…"></textarea></div>
+    </fieldset>
+    <datalist id="angleList"></datalist>
+  </div>
+  <div class="df"><span class="msg" id="aMsg"></span><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary" id="aSave">Save ad</button></div>
+</form></dialog>
+
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -331,6 +391,8 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const num=v=>v===""||v==null||isNaN(+v)?null:+v;
 const fmt=(v,d=2)=>v==null?"—":(+v).toLocaleString("en",{maximumFractionDigits:d});
 const isUrl=u=>/^https?:\/\//.test(u||"");
+const A_STATUS={draft:"Draft",live:"Live",paused:"Tested",winner:"Winner",loser:"Didn't work"};
+let ads=[],aProd="all",editingA=null,aMedia=null,aPoster=null;
 let sb=null,products=[],suppliers=[],tasks=[],tFilter="all",pFilter="all",sFilter="all",current=null,editingP=null,editingS=null,pImage=null;
 
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
@@ -479,6 +541,94 @@ $("sForm").onsubmit=async e=>{
   $("sDlg").close();toast(editingS?"Supplier updated":"Supplier added");await loadAll();
 };
 
+/* ---------- Ads ---------- */
+const aCalc=a=>{const s=num(a.spend),o=num(a.orders);return{s,o,cpo:s!=null&&o?s/o:null,ctr:num(a.ctr)}};
+function renderAds(){
+  const pn=id=>products.find(p=>p.id===id)?.name||"No product";
+  const c=$("aProd");c.innerHTML="";
+  const ids=[...new Set(ads.map(a=>a.product_id||""))];
+  [["all","All"],...ids.map(id=>[id,pn(id||null)])].forEach(([k,l])=>{
+    const n=k==="all"?ads.length:ads.filter(a=>(a.product_id||"")===k).length;
+    const b=document.createElement("button");b.className="chip";b.setAttribute("aria-pressed",k===aProd);
+    b.innerHTML=`${esc(l)} <span>${n}</span>`;b.onclick=()=>{aProd=k;renderAds()};c.append(b);
+  });
+  const st=$("aStatus").value;
+  const list=ads.filter(a=>(aProd==="all"||(a.product_id||"")===aProd)&&(!st||a.status===st));
+  // angle scoreboard: only rows with numbers
+  const by={};for(const a of list){const k=a.angle||"No angle";(by[k]??={n:0,s:0,o:0,ctr:[]});const m=aCalc(a);by[k].n++;by[k].s+=m.s||0;by[k].o+=m.o||0;if(m.ctr!=null)by[k].ctr.push(m.ctr)}
+  const rows=Object.entries(by).filter(([,v])=>v.s||v.o||v.ctr.length).sort((x,y)=>{const cx=x[1].o?x[1].s/x[1].o:1e9,cy=y[1].o?y[1].s/y[1].o:1e9;return cx-cy});
+  $("aAngles").innerHTML=rows.length?`<div class="angles"><h3>Which angles work</h3><div class="wrapt"><table><thead><tr><th>Angle</th><th>Ads</th><th>Spend</th><th>Orders</th><th>Cost/order</th><th>Avg CTR</th></tr></thead><tbody>${rows.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v.n}</td><td>${fmt(v.s,0)}</td><td>${v.o}</td><td><b class="${v.o?"":"neg"}">${v.o?fmt(v.s/v.o,1):"No orders"}</b></td><td>${v.ctr.length?fmt(v.ctr.reduce((a,b)=>a+b,0)/v.ctr.length,1)+"%":"—"}</td></tr>`).join("")}</tbody></table></div></div>`:"";
+  $("angleList").innerHTML=[...new Set(ads.map(a=>a.angle).filter(Boolean))].map(a=>`<option value="${esc(a)}">`).join("");
+  const G=$("aGrid");
+  if(!list.length){G.innerHTML=ads.length?`<div class="empty">No ads match.</div>`:`<div class="empty">No ads yet.<br><button class="btn primary" onclick="openAForm()">+ Add your first ad</button></div>`;return}
+  G.innerHTML=list.map(a=>{const m=aCalc(a);const th=a.poster||(a.format==="image"?a.media:"");
+    return `<button class="acard" data-id="${a.id}"><div class="athumb">${isUrl(th)?`<img src="${esc(th)}" alt="" loading="lazy">`:""}<span class="pill p-${a.status}">${A_STATUS[a.status]}</span><span class="fmt">${a.format==="video"?"▶ Video":"Image"}</span></div>
+    <div class="abody"><p class="an">${esc(a.name)}</p><p class="aa">${esc(a.angle||"")}</p>
+    <div class="ar"><span>Spend <b>${fmt(m.s,0)}</b></span><span>Orders <b>${fmt(m.o,0)}</b></span>${m.ctr!=null?`<span>CTR <b>${fmt(m.ctr,1)}%</b></span>`:""}</div></div></button>`}).join("");
+  G.querySelectorAll(".acard").forEach(b=>b.onclick=()=>openAd(b.dataset.id));
+}
+function openAd(id){
+  const a=ads.find(x=>x.id===id);if(!a)return;current={kind:"a",id};const m=aCalc(a);
+  const prod=products.find(p=>p.id===a.product_id);
+  $("sideTitle").textContent=a.name;
+  $("sideMeta").innerHTML=`<span class="pill p-${a.status}">${A_STATUS[a.status]}</span>${prod?`<span>${esc(prod.name)}</span>`:""}`;
+  $("sideBody").innerHTML=`
+    ${isUrl(a.media)?(a.format==="video"?`<video class="player" src="${esc(a.media)}" ${isUrl(a.poster)?`poster="${esc(a.poster)}"`:""} controls playsinline preload="metadata"></video>`:`<img class="hero" style="aspect-ratio:auto" src="${esc(a.media)}" alt="">`):""}
+    ${isUrl(a.media)?`<div><a class="btn ghost sm" href="${esc(a.media)}" target="_blank" rel="noopener">Open file ↗</a></div>`:""}
+    ${a.angle?`<div class="sec"><h3>Angle</h3><p class="text">${esc(a.angle)}</p></div>`:""}
+    ${a.hook?`<div class="sec"><h3>Hook</h3><p class="script" dir="auto">${esc(a.hook)}</p></div>`:""}
+    <div class="sec"><h3>Results</h3><div class="money"><div><span>Spend</span><b>${fmt(m.s)}</b></div><div><span>Orders</span><b>${fmt(m.o,0)}</b></div><div><span>Cost / order</span><b>${fmt(m.cpo,1)}</b></div><div><span>Link CTR</span><b>${m.ctr!=null?fmt(m.ctr,2)+"%":"—"}</b></div></div></div>
+    ${a.notes?`<div class="sec"><h3>What we learned</h3><p class="text">${esc(a.notes)}</p></div>`:""}`;
+  showSide();
+}
+function openAForm(a){
+  editingA=a?.id||null;aMedia=a?.media||null;aPoster=a?.poster||null;$("aMsg").textContent="";
+  $("aDlgTitle").textContent=a?"Edit ad":"Add ad";$("aSave").textContent=a?"Save changes":"Save ad";
+  $("a-product").innerHTML=`<option value="">No product</option>`+products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+  for(const k of["name","angle","hook","notes"])$("a-"+k).value=a?.[k]||"";
+  for(const k of["spend","orders","ctr"])$("a-"+k).value=a?.[k]??"";
+  $("a-status").value=a?.status||"draft";$("a-product").value=a?.product_id||(aProd!=="all"?aProd:"");$("a-file").value="";
+  const th=aPoster||(a?.format==="image"?aMedia:null);$("a-preview").hidden=!isUrl(th);if(isUrl(th))$("a-preview").src=th;
+  hideSide();$("aDlg").showModal();$("a-name").focus();
+}
+$("a-file").onchange=e=>{const f=e.target.files[0];if(!f)return;
+  if(f.type.startsWith("image/")){$("a-preview").src=URL.createObjectURL(f);$("a-preview").hidden=false}else{$("a-preview").hidden=true}};
+function grabFrame(file){return new Promise(res=>{
+  const v=document.createElement("video");v.muted=true;v.playsInline=true;v.preload="auto";v.src=URL.createObjectURL(file);
+  const done=b=>{URL.revokeObjectURL(v.src);res(b)};
+  v.onloadeddata=()=>{v.currentTime=Math.min(1.5,(v.duration||2)/2)};
+  v.onseeked=()=>{const c=document.createElement("canvas");const w=480;c.width=w;c.height=Math.round(w*v.videoHeight/v.videoWidth)||600;
+    c.getContext("2d").drawImage(v,0,0,c.width,c.height);c.toBlob(done,"image/jpeg",.8)};
+  v.onerror=()=>done(null);setTimeout(()=>done(null),8000);
+})}
+$("aForm").onsubmit=async e=>{
+  e.preventDefault();
+  if(!$("a-name").value.trim()){$("aMsg").textContent="Add an ad name.";$("a-name").focus();return}
+  const d={name:$("a-name").value.trim(),status:$("a-status").value,product_id:$("a-product").value||null,media:aMedia,poster:aPoster};
+  for(const k of["angle","hook","notes"])d[k]=$("a-"+k).value.trim()||null;
+  for(const k of["spend","orders","ctr"])d[k]=num($("a-"+k).value);
+  try{
+    const f=$("a-file").files[0];
+    if(f){
+      if(f.size>50*1024*1024)throw new Error("file is over 50 MB, compress it first");
+      $("aMsg").textContent="Uploading… keep this open";
+      const base=Date.now()+"-"+f.name.replace(/[^\w.-]+/g,"_");
+      const up=await sb.storage.from("ad-media").upload(base,f,{contentType:f.type});if(up.error)throw up.error;
+      d.media=sb.storage.from("ad-media").getPublicUrl(base).data.publicUrl;
+      d.format=f.type.startsWith("video/")?"video":"image";d.poster=null;
+      if(d.format==="video"){const blob=await grabFrame(f);if(blob){const pp=base+".jpg";const u2=await sb.storage.from("ad-media").upload(pp,blob,{contentType:"image/jpeg"});if(!u2.error)d.poster=sb.storage.from("ad-media").getPublicUrl(pp).data.publicUrl}}
+    }
+    $("aMsg").textContent="Saving…";
+    const r=editingA?await sb.from("ads").update(d).eq("id",editingA):await sb.from("ads").insert(d);
+    if(r.error)throw r.error;
+    $("aDlg").close();toast(editingA?"Ad updated":"Ad added");await loadAll();
+  }catch(err){$("aMsg").textContent="Couldn't save: "+(err.message||"check your internet")}
+};
+$("aStatus").innerHTML=`<option value="">All results</option>`+Object.entries(A_STATUS).map(([k,l])=>`<option value="${k}">${l}</option>`).join("");
+$("aStatus").onchange=renderAds;
+Object.entries(A_STATUS).forEach(([k,l])=>$("a-status").add(new Option(l,k)));
+$("addAd").onclick=()=>openAForm();
+
 /* ---------- Tasks ---------- */
 const today=()=>new Date().toISOString().slice(0,10);
 function dueLabel(d){
@@ -549,13 +699,14 @@ function chips(el,map,rows,active,onPick){
   });
 }
 function showSide(){$("shade").hidden=false;$("side").hidden=false;$("sideDel").textContent="Delete";$("sideDel").dataset.sure="";$("sideClose").focus()}
-function hideSide(){$("shade").hidden=true;$("side").hidden=true}
+function hideSide(){$("shade").hidden=true;$("side").hidden=true;$("side").querySelectorAll("video").forEach(v=>v.pause())}
 $("sideClose").onclick=$("shade").onclick=hideSide;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("side").hidden)hideSide()});
-$("sideEdit").onclick=()=>current.kind==="p"?openPForm(products.find(p=>p.id===current.id)):openSForm(suppliers.find(s=>s.id===current.id));
+const TABLE={p:"products",s:"suppliers",a:"ads"};
+$("sideEdit").onclick=()=>current.kind==="p"?openPForm(products.find(p=>p.id===current.id)):current.kind==="a"?openAForm(ads.find(a=>a.id===current.id)):openSForm(suppliers.find(s=>s.id===current.id));
 $("sideDel").onclick=async()=>{
   const b=$("sideDel");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Click again to delete";return}
-  const r=await sb.from(current.kind==="p"?"products":"suppliers").delete().eq("id",current.id);
+  const r=await sb.from(TABLE[current.kind]).delete().eq("id",current.id);
   if(r.error){toast("Couldn't delete: "+r.error.message);return}
   hideSide();toast("Deleted");loadAll();
 };
@@ -568,11 +719,11 @@ Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
 function setTab(t){
-  for(const x of["products","suppliers","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
+  for(const x of["products","suppliers","ads","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
-$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");
-try{const t=localStorage.getItem("pl_tab");if(t==="suppliers"||t==="tasks")setTab(t)}catch(e){}
+$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");
+try{const t=localStorage.getItem("pl_tab");if(["suppliers","ads","tasks"].includes(t))setTab(t)}catch(e){}
 
 /* ---------- Data ---------- */
 async function loadAll(){
@@ -581,10 +732,12 @@ async function loadAll(){
     sb.from("suppliers").select("*").order("updated_at",{ascending:false}),
     sb.from("tasks").select("*").order("created_at",{ascending:false})]);
   if(!t.error){tasks=t.data}
+  const ad=await sb.from("ads").select("*").order("created_at",{ascending:false});
+  if(!ad.error){ads=ad.data}
   if(p.error||s.error){sync("Offline","var(--bad)");const m=`<div class="empty">Couldn't load data. Check your internet and reload.</div>`;$("pGrid").innerHTML=m;$("sList").innerHTML=m;return}
   products=p.data;suppliers=s.data;sync("Saved · live","var(--good)");
-  renderProducts();renderSuppliers();renderTasks();
-  if(current&&!$("side").hidden)current.kind==="p"?openProduct(current.id):openSupplier(current.id);
+  renderProducts();renderSuppliers();renderTasks();renderAds();
+  if(current&&!$("side").hidden&&current.kind!=="a")({p:openProduct,s:openSupplier,a:openAd})[current.kind](current.id);
 }
 if(window.supabase?.createClient){
   sb=supabase.createClient(SB_URL,SB_KEY);
@@ -592,7 +745,8 @@ if(window.supabase?.createClient){
   let t;const again=()=>{clearTimeout(t);t=setTimeout(loadAll,300)};
   sb.channel("lab").on("postgres_changes",{event:"*",schema:"public",table:"products"},again)
     .on("postgres_changes",{event:"*",schema:"public",table:"suppliers"},again)
-    .on("postgres_changes",{event:"*",schema:"public",table:"tasks"},again).subscribe();
+    .on("postgres_changes",{event:"*",schema:"public",table:"tasks"},again)
+    .on("postgres_changes",{event:"*",schema:"public",table:"ads"},again).subscribe();
 }else{sync("Offline","var(--bad)");$("pGrid").innerHTML=`<div class="empty">Couldn't load. Check your internet and reload.</div>`}
 </script>
 </body>
