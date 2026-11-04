@@ -149,6 +149,16 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .angles .wrapt{overflow-x:auto}
 .player{width:100%;max-height:62vh;border-radius:12px;background:#000;display:block}
 
+.login{position:fixed;inset:0;z-index:100;background:var(--canvas);display:grid;place-items:center;padding:16px}
+.lbox{width:min(380px,100%);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.lbox .f input,.lbox .f select{height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--card)}
+.who-btn{flex:none;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;padding:0 12px;font-size:14px;font-weight:500}
+.who-btn:hover{border-color:var(--ink)}
+.alist{display:flex;flex-direction:column;gap:2px}
+.aitem{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.aitem .av{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:500;font-size:13px;background:var(--action);color:#0c0a08}
+.aitem .av.az{background:var(--info-bg);color:var(--info)}
+.aitem small{display:block;color:var(--muted);font-size:12px}
 .icon{flex:none;width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:16px;line-height:1}
 .icon:hover{border-color:var(--ink)}
 .nav{overflow-x:auto;scrollbar-width:none;min-width:0}
@@ -380,7 +390,9 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <button role="tab" id="tab-tasks" aria-selected="false">Tasks <span id="taskBadge" class="badge" hidden></span></button>
   </nav>
   <div class="sync"><b id="dot"></b><span id="syncText">Connecting…</span></div>
+  <button class="icon" id="actBtn" title="Activity" aria-label="Activity">🕘</button>
   <button class="icon" id="guideBtn" title="دليل الاستعمال" aria-label="Guide">؟</button>
+  <button class="who-btn" id="whoBtn" title="Sign out"></button>
   <button class="icon" id="setBtn" title="Settings" aria-label="Settings">⚙</button>
 </div></div>
 
@@ -599,6 +611,13 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <p>هذا المكان اللي نخدمو فيه أنا وانت مع بعضنا. كل حاجة تبدّلها توصل للآخر في ثانية. ما فمّاش login، أما ما تبعث الرابط لحتّى حد آخر.</p>
     <p>كي تشوف <b>Saved · live</b> الفوق معناها كل شي مسجّل.</p>
 
+    <h3>الدخول والسجل</h3>
+    <ul>
+      <li>كل واحد يدخل باسمو: <b>yassin</b> ولا <b>azer</b>. أول مرة، الكلمة السرّية اللي تكتبها تولّي متاعك (6 حروف ولا أكثر).</li>
+      <li>اسمك يبان الفوق على اليمين. اضغط عليه مرتين باش تخرج.</li>
+      <li>زر <b>🕘</b> يحلّ السجل: شكون زاد ولا بدّل ولا فسخ أي حاجة، ووقتاش (منتوج، فكرة، كامبانيا، موافقة، مهمة…).</li>
+    </ul>
+
     <h3>0. Ideas — أفكار المنتوجات</h3>
     <ul>
       <li>كل منتوج تلقاه (TikTok، AliExpress، حانوت…) زيدو هنا بـ <b>+ Add idea</b>، حتى قبل ما تعرف سومو.</li>
@@ -723,6 +742,18 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 </form></dialog>
 
 <div class="toast" id="toast" hidden></div>
+
+<!-- Login -->
+<div class="login" id="login" hidden>
+  <form class="lbox" id="loginForm" autocomplete="on">
+    <div class="brand" style="font-size:20px"><i></i><span>Product Lab</span></div>
+    <p style="margin:0;color:var(--muted)">Sign in to continue.</p>
+    <div class="f"><label for="lUser">Username</label><select id="lUser"><option value="yassin">yassin</option><option value="azer">azer</option></select></div>
+    <div class="f"><label for="lPass">Password</label><input id="lPass" type="password" autocomplete="current-password" minlength="6" required><small>First time? Type the password you want to use. It becomes your password.</small></div>
+    <button class="btn primary" type="submit">Sign in</button>
+    <p id="lMsg" style="margin:0;color:var(--bad);font-size:14px;min-height:1.2em"></p>
+  </form>
+</div>
 
 <script>
 const SB_URL="https://caajpoyjvmbxmyblmuun.supabase.co",SB_KEY="sb_publishable_L-Q_0wU-nZ6j9W9RrzlpFA_dfOK2dJS";
@@ -1702,8 +1733,41 @@ async function loadAll(){
   if(!(openPlan&&document.activeElement?.closest?.("#planView")&&document.activeElement.matches("input,textarea")))renderPlans();
   if(current&&!$("side").hidden&&current.kind!=="a")({p:openProduct,s:openSupplier,a:openAd,i:openIdea})[current.kind](current.id);
 }
-if(window.supabase?.createClient){
-  sb=supabase.createClient(SB_URL,SB_KEY);
+/* ---------- Login & activity ---------- */
+const getTok=()=>{try{return localStorage.getItem("pl_session")}catch(e){return null}};
+const TBL_LABEL={products:"product",suppliers:"supplier",ads:"ad",campaigns:"campaign",adsets:"ad set",plan_ads:"planned ad",plan_comments:"comment",tasks:"task",ideas:"idea"};
+const ACT_VERB={insert:"added",update:"changed",delete:"deleted"};
+async function openActivity(){
+  current={kind:"x"};$("sideTitle").textContent="Activity";$("sideMeta").innerHTML=`<span>Who did what, newest first</span>`;
+  $("sideBody").innerHTML=`<div class="empty">Loading…</div>`;showSide();$("sideEdit").hidden=$("sideDel").hidden=true;
+  const r=await sb.from("activity").select("*").order("at",{ascending:false}).limit(150);
+  if(r.error){$("sideBody").innerHTML=`<div class="empty">Couldn't load activity.</div>`;return}
+  const when=t=>{const d=new Date(t),m=(Date.now()-d)/60000;return m<1?"just now":m<60?Math.floor(m)+" min ago":m<1440?Math.floor(m/60)+" h ago":d.toLocaleDateString("en-GB",{day:"numeric",month:"short"})+" "+d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})};
+  $("sideBody").innerHTML=r.data.length?`<div class="alist">${r.data.map(a=>`<div class="aitem"><span class="av ${a.who==="Azer"?"az":""}">${esc((a.who||"?")[0])}</span><div><b>${esc(a.who||"Someone")}</b> ${ACT_VERB[a.action]||a.action} ${TBL_LABEL[a.tbl]||a.tbl} <b dir="auto">${esc(a.item||"")}</b>${a.detail?` · ${esc(a.detail)}`:""}<small>${when(a.at)}</small></div></div>`).join("")}</div>`:`<div class="empty">Nothing yet. Changes will show here with who made them.</div>`;
+}
+$("actBtn").onclick=openActivity;
+const _showSide=showSide;showSide=function(){$("sideEdit").hidden=$("sideDel").hidden=false;_showSide()};
+$("loginForm").onsubmit=async e=>{
+  e.preventDefault();$("lMsg").textContent="Signing in…";
+  const anon=supabase.createClient(SB_URL,SB_KEY);
+  const r=await anon.rpc("app_login",{u:$("lUser").value,p:$("lPass").value});
+  if(r.error){$("lMsg").textContent=r.error.message;return}
+  try{localStorage.setItem("pl_session",r.data.token)}catch(e){}
+  setMe(r.data.name);if(r.data.first)try{localStorage.setItem("pl_first","1")}catch(e){}
+  location.reload();
+};
+$("whoBtn").onclick=async()=>{const b=$("whoBtn");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Sign out?";setTimeout(()=>{b.dataset.sure="";b.textContent=me()},3000);return}
+  try{await sb.rpc("app_logout")}catch(e){}try{localStorage.removeItem("pl_session")}catch(e){}location.reload()};
+
+if(window.supabase?.createClient&&!getTok()){
+  $("login").hidden=false;try{$("lUser").value=(me()||"").toLowerCase()==="azer"?"azer":"yassin"}catch(e){}
+}else if(window.supabase?.createClient){
+  sb=supabase.createClient(SB_URL,SB_KEY,{global:{headers:{"x-session":getTok()}}});
+  sb.rpc("app_whoami").then(r=>{
+    if(!r.data){try{localStorage.removeItem("pl_session")}catch(e){}location.reload();return}
+    setMe(r.data);$("whoBtn").textContent=r.data;
+    try{if(localStorage.getItem("pl_first")){localStorage.removeItem("pl_first");toast("Welcome "+r.data+". Your password is saved.")}}catch(e){}
+  });
   loadAll().then(()=>setTab(startTab));
   let t;const again=()=>{clearTimeout(t);t=setTimeout(loadAll,300)};
   const ch=sb.channel("lab");ch.on("postgres_changes",{event:"*",schema:"public",table:"products"},again)
