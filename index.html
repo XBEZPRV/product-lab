@@ -1,259 +1,497 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Product Lab</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
-/* Layout: left-aligned editorial column on a warm paper canvas; white hairline cards; chartreuse only where you act. */
-[hidden]{display:none!important}
-*,*::before,*::after{box-sizing:border-box}
-input,select,textarea{min-width:0;width:100%}
-body{margin:0}
+/* Layout: sticky top bar with two tabs; products as a photo grid with a side panel for details; suppliers as a contact list. */
 :root{
-  --canvas:#f4f2f0;--card:#fff;--ink:#0c0a08;--panel:#1a1919;--muted:#6d6c6b;--line:#e5e7eb;--smoke:#d3d3d3;--action:#e4f222;
-  --green:#1f8a4c;--blue:#2563c9;--amber:#b7791f;--red:#c2410c;--dim:#9a9897;
-  --sans:Inter,"IBM Plex Sans",system-ui,-apple-system,sans-serif;
-  color-scheme:light
+  --canvas:#f4f2f0;--card:#fff;--ink:#0c0a08;--muted:#6d6c6b;--line:#e5e7eb;--soft:#ebe8e4;--action:#e4f222;--panel:#1a1919;
+  --good:#1f7a45;--good-bg:#e3f4ea;--warn:#8a5a00;--warn-bg:#fdf0d5;--info:#1d4ed8;--info-bg:#e4ecfd;--bad:#b42318;--bad-bg:#fde7e4;--idle:#57534e;--idle-bg:#eeebe7;
+  --sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:light
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--canvas:#121110;--card:#1a1919;--ink:#f4f2f0;--panel:#0c0a08;--muted:#a3a19f;--line:#2e2c2b;--smoke:#3a3837;--green:#4ade80;--blue:#7cb3ff;--amber:#f2c14e;--red:#ff8a65;--dim:#6d6c6b;color-scheme:dark}}
-:root[data-theme="dark"]{--canvas:#121110;--card:#1a1919;--ink:#f4f2f0;--panel:#0c0a08;--muted:#a3a19f;--line:#2e2c2b;--smoke:#3a3837;--green:#4ade80;--blue:#7cb3ff;--amber:#f2c14e;--red:#ff8a65;--dim:#6d6c6b;color-scheme:dark}
-body{background:var(--canvas);color:var(--ink);font:400 16px/1.5 var(--sans);font-feature-settings:"ss01"}
-*{font-weight:400}
-.wrap{max-width:1100px;margin:0 auto;padding-block:48px 128px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:32px}
-.pill{display:inline-flex;gap:8px;align-items:center;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--dim)}
-h1{font:400 clamp(44px,8vw,64px)/1 var(--sans);letter-spacing:-.02em;color:var(--ink);margin:12px 0 16px;text-wrap:balance}
-.lede{color:var(--muted);font-size:20px;line-height:1.3;max-width:52ch;margin:0}
-.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));background:var(--panel);border-radius:16px;color:#fff}
-.strip div{padding:20px 24px;border-left:1px solid #2e2c2b}
-.strip div:first-child{border-left:0}
-.strip b{display:block;font:400 32px/1.1 var(--sans);color:#fff;font-variant-numeric:tabular-nums}
-.strip div:nth-child(5) b{color:var(--action)}
-.strip span{font-size:10px;color:#a3a19f;letter-spacing:.05em;text-transform:uppercase}
-.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
-.tabs{display:flex;flex-wrap:wrap;gap:4px}
-button{font:400 14px var(--sans);color:var(--ink);background:transparent;border:1px solid var(--ink);border-radius:6px;padding:0 14px;height:40px;cursor:pointer;transition:background-color .3s ease-out,border-color .3s ease-out}
-button:hover{background:var(--card)}
-#newBtn,#saveBtn,.primary{background:var(--action);color:#0c0a08;border-color:var(--action);padding:0 20px;height:44px}
-#newBtn:hover,#saveBtn:hover,.primary:hover{filter:brightness(.96)}
-.tabs button{border-color:transparent;color:var(--muted);height:36px}
-.tabs button:hover{background:var(--card)}
-.tabs button[aria-pressed=true]{background:var(--card);border-color:var(--line);color:var(--ink)}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.list{display:grid;gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px 28px}
-.card>*{grid-column:2}
-.card .pic{grid-column:1;grid-row:1/span 7;width:150px;aspect-ratio:6/7;max-width:100%;border-radius:12px;object-fit:cover;background:var(--canvas)}
-.card .pic.none{display:grid;place-items:center;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
-.card h2{font:400 28px/1.14 var(--sans);color:var(--ink);margin:0;letter-spacing:-.01em}
-.status{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
-.tag{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--canvas);border-radius:6px;padding:2px 8px}
-.st-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:6px;padding:3px 10px}
-.problem{color:var(--muted);font-size:18px;line-height:1.33;margin:0}
-.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.nums div{background:var(--card);padding:12px 14px}
-.nums span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.nums b{font:400 20px var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
-.notes{color:var(--ink);margin:0;white-space:pre-wrap;min-width:0;overflow-wrap:anywhere;font-size:15px}
-details{border-top:1px solid var(--line);padding-top:12px}
-summary{cursor:pointer;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.script{white-space:pre-wrap;color:var(--ink);margin:12px 0 0;overflow-wrap:anywhere;unicode-bidi:plaintext;background:var(--canvas);border-radius:12px;padding:16px}
-.src{color:var(--ink);font-size:14px;overflow-wrap:anywhere;text-decoration:underline;text-decoration-color:var(--smoke);text-underline-offset:3px}
-.src:hover{text-decoration-color:var(--ink)}
-.foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
-.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.card .actions button{height:32px;font-size:13px;padding:0 12px;border-color:var(--line)}
-.card .actions button:hover{border-color:var(--ink)}
-.empty{background:var(--card);border:1px dashed var(--smoke);border-radius:16px;padding:40px 24px;color:var(--muted)}
-form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
-form .full{grid-column:1/-1}
-dialog{width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);overflow:auto}
-dialog::backdrop{background:rgba(12,10,8,.45);backdrop-filter:blur(8px)}
-dialog form{border:0;border-radius:0;padding:8px 24px 24px}
-.dlg-head{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:20px 24px 12px;background:var(--card);border-bottom:1px solid var(--line)}
-.dlg-head h3{font:400 24px/1.17 var(--sans);margin:0}
-.x{border-color:var(--line);width:36px;height:36px;padding:0}
-label{display:grid;gap:6px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-input,select,textarea{font:400 15px var(--sans);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:11px 14px;text-transform:none;letter-spacing:0}
-input[type=number]{font-variant-numeric:tabular-nums}
-textarea{min-height:90px;resize:vertical;unicode-bidi:plaintext}
-.msg{font-size:13px;color:var(--muted)}
-.s-idea{--c:var(--dim)}.s-sourcing{--c:var(--blue)}.s-testing{--c:var(--amber)}.s-winner{--c:var(--green)}.s-stopped{--c:var(--red)}
-.status .dot{background:var(--c)}
-@media (max-width:620px){.card{grid-template-columns:1fr}.card>*,.card .pic{grid-column:1;grid-row:auto}.card .pic{width:100%;max-width:320px}.strip div{border-left:0;border-top:1px solid #2e2c2b}.strip div:first-child{border-top:0}}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--canvas);color:var(--ink);font:400 15px/1.5 var(--sans)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Top bar */
+.top{position:sticky;top:0;z-index:20;background:rgba(244,242,240,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;height:64px}
+.brand{font-weight:500;font-size:17px;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand i{width:10px;height:10px;border-radius:3px;background:var(--action);box-shadow:0 0 0 1px rgba(0,0,0,.15) inset}
+.nav{display:flex;gap:4px}
+.nav button{border:0;background:transparent;padding:8px 14px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:15px}
+.nav button[aria-selected=true]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.sync{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.sync b{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+
+main{padding-block:28px 96px}
+.headrow{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
+h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacing:-.02em;margin:0}
+.sub{color:var(--muted);margin:6px 0 0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:42px;padding:0 18px;border-radius:6px;border:1px solid var(--ink);background:transparent;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--card)}
+.btn.primary{background:var(--action);border-color:var(--action);color:#0c0a08}
+.btn.primary:hover{filter:brightness(.95)}
+.btn.ghost{border-color:var(--line);background:var(--card);font-weight:400}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.danger{border-color:var(--line);background:var(--card);color:var(--bad);font-weight:400}
+.btn.sm{height:34px;padding:0 12px;font-size:14px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* Summary */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--panel);color:#fff;border-radius:16px;margin-bottom:20px}
+.stats div{padding:18px 22px;border-left:1px solid #2e2c2b}
+.stats div:first-child{border-left:0}
+.stats b{display:block;font-weight:400;font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#a3a19f}
+.stats .hi b{color:var(--action)}
+
+/* Filters */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:14px;display:inline-flex;gap:6px;align-items:center}
+.chip span{color:var(--muted);font-variant-numeric:tabular-nums}
+.chip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip[aria-pressed=true] span{color:#d3d3d3}
+.search{margin-left:auto;min-width:0;flex:0 1 260px}
+.search input{width:100%;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:0 12px}
+
+/* Status pill */
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:500;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-idea,.p-to_contact{color:var(--idle);background:var(--idle-bg)}
+.p-sourcing,.p-waiting{color:var(--info);background:var(--info-bg)}
+.p-testing,.p-quoted{color:var(--warn);background:var(--warn-bg)}
+.p-winner,.p-chosen{color:var(--good);background:var(--good-bg)}
+.p-stopped,.p-rejected{color:var(--bad);background:var(--bad-bg)}
+
+/* Product grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;padding:0;display:flex;flex-direction:column;transition:border-color .2s ease-out,transform .2s ease-out}
+.pcard:hover{border-color:var(--ink);transform:translateY(-2px)}
+.pimg{aspect-ratio:4/3;background:var(--soft);display:grid;place-items:center;color:var(--muted);font-size:13px;position:relative}
+.pimg img{width:100%;height:100%;object-fit:cover;display:block}
+.pimg .pill{position:absolute;top:10px;left:10px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.pbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+.pname{font-weight:500;font-size:17px;line-height:1.25;margin:0}
+.ptype{font-size:12px;color:var(--muted);margin:2px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+.kpis span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kpis b{font-weight:500;font-variant-numeric:tabular-nums}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.empty{background:var(--card);border:1px dashed #d3d3d3;border-radius:16px;padding:36px 24px;color:var(--muted);text-align:center}
+.empty .btn{margin-top:14px}
+
+/* Side panel */
+.shade{position:fixed;inset:0;background:rgba(12,10,8,.4);z-index:40}
+.side{position:fixed;top:0;right:0;bottom:0;z-index:41;width:min(560px,100%);background:var(--card);border-left:1px solid var(--line);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.side header{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 14px;padding-top:max(20px,env(safe-area-inset-top,0px));border-bottom:1px solid var(--line)}
+.side header h2{font-weight:500;font-size:22px;line-height:1.2;margin:0}
+.side header .meta{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.x{margin-left:auto;flex:none;width:36px;height:36px;border-radius:6px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:16px}
+.side .body{overflow:auto;padding:20px 22px 28px;display:flex;flex-direction:column;gap:22px}
+.side .hero{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:var(--soft)}
+.sec h3{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.money{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.money div{background:var(--card);padding:10px 12px}
+.money span{display:block;font-size:12px;color:var(--muted)}
+.money b{font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+.verdict{border-radius:12px;padding:12px 14px;font-size:14px}
+.text{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
+.script{background:var(--canvas);border-radius:12px;padding:14px;unicode-bidi:plaintext;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-size:15px;line-height:1.7}
+.side footer{display:flex;gap:8px;padding:14px 22px;border-top:1px solid var(--line)}
+.side footer .btn.danger{margin-left:auto}
+.mini{display:flex;flex-direction:column;gap:8px}
+.mini a{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-decoration:none}
+.mini a:hover{border-color:var(--ink)}
+
+/* Suppliers */
+.slist{display:flex;flex-direction:column;gap:10px}
+.srow{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto;gap:16px;align-items:center;cursor:pointer;text-align:left;width:100%}
+.srow:hover{border-color:var(--ink)}
+.srow .n{font-weight:500;font-size:16px;margin:0}
+.srow .k{font-size:13px;color:var(--muted);margin:2px 0 0}
+.srow .c{font-size:14px;overflow-wrap:anywhere}
+.srow .c small{display:block;color:var(--muted);font-size:12px}
+.contact{display:flex;flex-direction:column;gap:8px}
+.contact div{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.contact span{overflow-wrap:anywhere}
+
+/* Form modal */
+dialog{width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(12,10,8,.45);backdrop-filter:blur(6px)}
+dialog form{display:flex;flex-direction:column;max-height:calc(100dvh - 34px)}
+.dh{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.dh h2{font-weight:500;font-size:20px;margin:0}
+.db{overflow:auto;padding:6px 22px 22px}
+fieldset{border:0;margin:0;padding:18px 0 4px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;border-bottom:1px solid var(--line)}
+fieldset:last-child{border-bottom:0}
+legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0;margin-bottom:2px}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f.full{grid-column:1/-1}
+.f label{font-size:13px;font-weight:500}
+.f small{color:var(--muted);font-size:12px}
+.f input,.f select,.f textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:10px 12px}
+.f textarea{min-height:96px;resize:vertical;unicode-bidi:plaintext}
+.f input[type=number]{font-variant-numeric:tabular-nums}
+.imgpick{display:flex;gap:12px;align-items:center}
+.imgpick img{width:72px;height:54px;object-fit:cover;border-radius:8px;background:var(--soft)}
+.df{display:flex;gap:8px;align-items:center;padding:14px 22px;border-top:1px solid var(--line)}
+.df .msg{font-size:13px;color:var(--muted);margin-right:auto}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:60}
+
+@media (max-width:760px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stats div:nth-child(3){border-left:0}
+  .stats div:nth-child(n+3){border-top:1px solid #2e2c2b}
+  .srow{grid-template-columns:1fr auto}
+  .srow .c{display:none}
+  .search{flex-basis:100%;margin-left:0}
+  fieldset{grid-template-columns:1fr}
+  .sync span{display:none}
+  .top .wrap{gap:10px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-.auth{max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:14px}
-.auth h3{font:400 24px/1.17 var(--sans);margin:0}
-.auth p{margin:0;color:var(--muted);font-size:14px}
-.auth .err{color:var(--red)}
-.link{border:0;padding:0;height:auto;background:none;color:var(--muted);text-decoration:underline;font-size:13px}
-.link:hover{background:none;color:var(--ink)}
 </style>
-</head><body>
+</head>
+<body>
 
-<div class="wrap">
-  <header>
-    <span class="pill"><span class="dot" id="live"></span><span id="liveText">connecting</span></span>
-    <h1>Product Lab</h1>
-    <p class="lede">Every product we try, what it cost, what it sold, and whether we keep it. Numbers in Tunisian dinars.</p>
-  </header>
+<div class="top"><div class="wrap">
+  <div class="brand"><i></i>Product Lab</div>
+  <nav class="nav" role="tablist">
+    <button role="tab" id="tab-products" aria-selected="true">Products</button>
+    <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
+  </nav>
+  <div class="sync"><b id="dot"></b><span id="syncText">Connecting…</span></div>
+</div></div>
 
-  <div id="app" hidden style="display:contents">
-  <section class="strip" aria-label="Summary">
-    <div><b id="nAll">0</b><span>Products</span></div>
-    <div><b id="nTest">0</b><span>Testing</span></div>
-    <div><b id="nWin">0</b><span>Winners</span></div>
-    <div><b id="nSpend">0</b><span>Ad spend DT</span></div>
-    <div><b id="nOrders">0</b><span>Orders</span></div>
+<main class="wrap">
+  <!-- PRODUCTS -->
+  <section id="view-products">
+    <div class="headrow">
+      <div><h1>Products</h1><p class="sub">Every product we test, what it costs, and whether it makes money.</p></div>
+      <button class="btn primary" id="addProduct">+ Add product</button>
+    </div>
+    <div class="stats">
+      <div><b id="sTesting">0</b><span>Testing now</span></div>
+      <div><b id="sWinners">0</b><span>Winners</span></div>
+      <div><b id="sSpend">0</b><span>Total ad spend, DT</span></div>
+      <div class="hi"><b id="sOrders">0</b><span>Total orders</span></div>
+    </div>
+    <div class="tools">
+      <div class="chips" id="pChips"></div>
+      <div class="search"><input id="pSearch" type="search" placeholder="Search products" aria-label="Search products"></div>
+    </div>
+    <div class="grid" id="pGrid"><div class="empty">Loading products…</div></div>
   </section>
 
-  <div class="bar">
-    <div class="tabs" id="tabs"></div>
-    <button id="newBtn">+ Add product</button>
-  </div>
+  <!-- SUPPLIERS -->
+  <section id="view-suppliers" hidden>
+    <div class="headrow">
+      <div><h1>Suppliers</h1><p class="sub">Who we asked, what they quoted, and who to call next.</p></div>
+      <button class="btn primary" id="addSupplier">+ Add supplier</button>
+    </div>
+    <div class="tools">
+      <div class="chips" id="sChips"></div>
+      <div class="search"><input id="sSearch" type="search" placeholder="Search suppliers" aria-label="Search suppliers"></div>
+    </div>
+    <div class="slist" id="sList"><div class="empty">Loading suppliers…</div></div>
+  </section>
+</main>
 
-  <dialog id="dlg" aria-labelledby="dlgTitle"><div class="dlg-head"><h3 id="dlgTitle">Add product</h3><button type="button" class="x" id="closeBtn" aria-label="Close">✕</button></div>
-  <form id="form">
-    <label class="full">Product<input id="f-name" required maxlength="80" placeholder="Foldable cutting mat"></label>
-    <label>Status<select id="f-status"></select></label>
-    <label>Cost per unit (DT)<input id="f-cost" type="number" step="0.01" min="0"></label>
-    <label>Selling price (DT)<input id="f-price" type="number" step="0.01" min="0"></label>
-    <label>Ad spend (DT)<input id="f-spend" type="number" step="0.01" min="0"></label>
-    <label>Orders<input id="f-orders" type="number" step="1" min="0"></label>
-    <label>Type<input id="f-type" maxlength="40" list="types" placeholder="Kitchen"></label>
-    <label>Test stock (units)<input id="f-units" type="number" step="1" min="0"></label>
-    <label>Test budget (DT)<input id="f-budget" type="number" step="0.01" min="0"></label>
-    <label class="full">Problem it solves<input id="f-problem" maxlength="200" placeholder="Food falls off the board when you move it to the pot"></label>
-    <label class="full">Source / supplier link<input id="f-source" type="url" maxlength="500" placeholder="https://www.alibaba.com/…"></label>
-    <label class="full">Image<input id="f-image" type="file" accept="image/*"></label>
-    <label class="full">Ad script<textarea id="f-script" maxlength="4000" placeholder="Hook, problem, product, offer, call to action"></textarea></label>
-    <label class="full">Notes<textarea id="f-notes" maxlength="1500" placeholder="Supplier, offer, what worked, why we stopped"></textarea></label>
+<!-- Side panel -->
+<div class="shade" id="shade" hidden></div>
+<aside class="side" id="side" hidden aria-modal="true" role="dialog" aria-labelledby="sideTitle">
+  <header>
+    <div style="min-width:0"><h2 id="sideTitle"></h2><div class="meta" id="sideMeta"></div></div>
+    <button class="x" id="sideClose" aria-label="Close">✕</button>
+  </header>
+  <div class="body" id="sideBody"></div>
+  <footer><button class="btn primary sm" id="sideEdit">Edit</button><button class="btn danger sm" id="sideDel">Delete</button></footer>
+</aside>
+
+<!-- Product form -->
+<dialog id="pDlg" aria-labelledby="pDlgTitle"><form id="pForm" novalidate>
+  <div class="dh"><h2 id="pDlgTitle">Add product</h2><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <div class="db">
+    <fieldset><legend>Basics</legend>
+      <div class="f full"><label for="p-name">Product name</label><input id="p-name" required maxlength="80" placeholder="Foldable cutting mat"></div>
+      <div class="f"><label for="p-status">Status</label><select id="p-status"></select></div>
+      <div class="f"><label for="p-type">Type</label><input id="p-type" maxlength="40" list="types" placeholder="Kitchen"></div>
+      <div class="f full"><label for="p-image">Photo</label><div class="imgpick"><img id="p-preview" alt="" hidden><input id="p-image" type="file" accept="image/*"></div></div>
+    </fieldset>
+    <fieldset><legend>Money (DT)</legend>
+      <div class="f"><label for="p-cost">Cost per unit</label><input id="p-cost" type="number" step="0.01" min="0" inputmode="decimal"><small>What you pay the supplier, delivered</small></div>
+      <div class="f"><label for="p-price">Selling price</label><input id="p-price" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="f"><label for="p-budget">Test budget</label><input id="p-budget" type="number" step="0.01" min="0" inputmode="decimal"><small>Max ad money before you decide</small></div>
+      <div class="f"><label for="p-units">Test stock (units)</label><input id="p-units" type="number" step="1" min="0" inputmode="numeric"></div>
+    </fieldset>
+    <fieldset><legend>Test results</legend>
+      <div class="f"><label for="p-spend">Ad spend so far</label><input id="p-spend" type="number" step="0.01" min="0" inputmode="decimal"></div>
+      <div class="f"><label for="p-orders">Orders so far</label><input id="p-orders" type="number" step="1" min="0" inputmode="numeric"></div>
+    </fieldset>
+    <fieldset><legend>Marketing</legend>
+      <div class="f full"><label for="p-problem">Problem it solves</label><input id="p-problem" maxlength="200" placeholder="Food falls on the counter when you move it to the pot"></div>
+      <div class="f full"><label for="p-script">Ad script</label><textarea id="p-script" maxlength="4000" placeholder="Hook, problem, product, offer, call to action"></textarea></div>
+    </fieldset>
+    <fieldset><legend>Source & notes</legend>
+      <div class="f full"><label for="p-source">Store or supplier link</label><input id="p-source" type="url" maxlength="500" placeholder="https://…"></div>
+      <div class="f full"><label for="p-notes">Notes</label><textarea id="p-notes" maxlength="2000" placeholder="Offer, what worked, why we stopped"></textarea></div>
+    </fieldset>
     <datalist id="types"><option value="Kitchen"><option value="Beauty"><option value="Home storage"><option value="Fashion"><option value="Gadget"></datalist>
-    <div class="full actions"><button type="submit" id="saveBtn">Save product</button><button type="button" id="cancelBtn">Cancel</button><span class="msg" id="formMsg"></span></div>
-  </form></dialog>
-
-  <section class="list" id="list"><div class="empty">Loading products…</div></section>
-  <p class="foot" id="who"></p>
   </div>
-</div>
+  <div class="df"><span class="msg" id="pMsg"></span><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary" id="pSave">Save product</button></div>
+</form></dialog>
+
+<!-- Supplier form -->
+<dialog id="sDlg" aria-labelledby="sDlgTitle"><form id="sForm" novalidate>
+  <div class="dh"><h2 id="sDlgTitle">Add supplier</h2><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <div class="db">
+    <fieldset><legend>Who</legend>
+      <div class="f full"><label for="s-name">Supplier name</label><input id="s-name" required maxlength="100" placeholder="Sotufab Plast"></div>
+      <div class="f"><label for="s-kind">Type</label><input id="s-kind" maxlength="60" list="kinds" placeholder="Factory (China)"></div>
+      <div class="f"><label for="s-city">City</label><input id="s-city" maxlength="60"></div>
+      <div class="f"><label for="s-status">Status</label><select id="s-status"></select></div>
+      <div class="f"><label for="s-product">For product</label><select id="s-product"></select></div>
+    </fieldset>
+    <fieldset><legend>Contact</legend>
+      <div class="f"><label for="s-phone">Phone / WhatsApp</label><input id="s-phone" maxlength="80" inputmode="tel"></div>
+      <div class="f"><label for="s-email">Email</label><input id="s-email" type="email" maxlength="120"></div>
+      <div class="f full"><label for="s-link">Website or Alibaba link</label><input id="s-link" type="url" maxlength="500" placeholder="https://…"></div>
+    </fieldset>
+    <fieldset><legend>Quote</legend>
+      <div class="f"><label for="s-price">Price</label><input id="s-price" maxlength="80" placeholder="6.30 DT / box"></div>
+      <div class="f"><label for="s-moq">Minimum order</label><input id="s-moq" maxlength="40" placeholder="50"></div>
+      <div class="f full"><label for="s-notes">Notes</label><textarea id="s-notes" maxlength="2000" placeholder="What they said, shipping, next step"></textarea></div>
+    </fieldset>
+    <datalist id="kinds"><option value="Factory (China)"><option value="Plastic factory (Tunisia)"><option value="Wholesaler (Tunisia)"><option value="Plexiglass workshop"><option value="Shipping / groupage"></datalist>
+  </div>
+  <div class="df"><span class="msg" id="sMsg"></span><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary">Save supplier</button></div>
+</form></dialog>
+
+<div class="toast" id="toast" hidden></div>
 
 <script>
-const STATUS={idea:"Idea",sourcing:"Sourcing",testing:"Testing",winner:"Winner",stopped:"Stopped"};
+const SB_URL="https://caajpoyjvmbxmyblmuun.supabase.co",SB_KEY="sb_publishable_L-Q_0wU-nZ6j9W9RrzlpFA_dfOK2dJS";
+const DELIVERY=8; // DT courier cost per order, used for profit
+const P_STATUS={idea:"Idea",sourcing:"Sourcing",testing:"Testing",winner:"Winner",stopped:"Stopped"};
+const S_STATUS={to_contact:"To contact",waiting:"Waiting reply",quoted:"Quoted",chosen:"Chosen",rejected:"Rejected"};
 const $=id=>document.getElementById(id);
-let rows=[],filter="all",editing=null,editingImage=null,sb=null,canWrite=true;
-const NUMS=["cost","price","spend","orders","units","budget"],TEXTS=["type","problem","source","script","notes"];
-
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const num=v=>v===""||v==null||isNaN(+v)?null:+v;
-const fmt=v=>v==null?"—":(+v).toLocaleString("en",{maximumFractionDigits:2});
+const fmt=(v,d=2)=>v==null?"—":(+v).toLocaleString("en",{maximumFractionDigits:d});
+const isUrl=u=>/^https?:\/\//.test(u||"");
+let sb=null,products=[],suppliers=[],pFilter="all",sFilter="all",current=null,editingP=null,editingS=null,pImage=null;
 
-function tabs(){
-  $("tabs").innerHTML="";
-  [["all","All"],...Object.entries(STATUS)].forEach(([k,l])=>{
-    const b=document.createElement("button");b.textContent=l;b.setAttribute("aria-pressed",k===filter);
-    b.onclick=()=>{filter=k;tabs();render()};$("tabs").append(b);
+function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
+function sync(t,c){$("syncText").textContent=t;$("dot").style.background=c}
+
+/* math for one product */
+function calc(p){
+  const cost=num(p.cost),price=num(p.price),spend=num(p.spend),orders=num(p.orders);
+  const margin=price!=null&&cost!=null?price-cost-DELIVERY:null;
+  const cpo=spend!=null&&orders?spend/orders:null;
+  const profit=margin!=null&&cpo!=null?margin-cpo:null;
+  return{cost,price,spend,orders,margin,cpo,profit};
+}
+function verdict(p,m){
+  if(m.profit!=null)return m.profit>0
+    ?{c:"good",t:`Each order makes about ${fmt(m.profit,1)} DT after the product, delivery and ads.`}
+    :{c:"bad",t:`Each order loses about ${fmt(-m.profit,1)} DT after the product, delivery and ads.`};
+  if(m.spend&&!m.orders)return{c:"bad",t:`${fmt(m.spend)} DT spent with no orders yet.`};
+  if(m.margin!=null)return{c:"idle",t:`You can spend up to ${fmt(m.margin,1)} DT on ads per order and still break even (after ${DELIVERY} DT delivery).`};
+  return{c:"idle",t:"Add the cost and price to see if it can make money."};
+}
+
+/* ---------- Products ---------- */
+function renderProducts(){
+  const sum=k=>products.reduce((a,p)=>a+(num(p[k])||0),0);
+  $("sTesting").textContent=products.filter(p=>p.status==="testing").length;
+  $("sWinners").textContent=products.filter(p=>p.status==="winner").length;
+  $("sSpend").textContent=fmt(sum("spend"),0);
+  $("sOrders").textContent=fmt(sum("orders"),0);
+  chips("pChips",P_STATUS,products,pFilter,k=>{pFilter=k;renderProducts()});
+  const q=$("pSearch").value.trim().toLowerCase();
+  const list=products.filter(p=>(pFilter==="all"||p.status===pFilter)&&(!q||[p.name,p.type,p.problem,p.notes].join(" ").toLowerCase().includes(q)));
+  const G=$("pGrid");
+  if(!list.length){G.innerHTML=products.length?`<div class="empty">No products match.</div>`:`<div class="empty">No products yet.<br><button class="btn primary" onclick="openPForm()">+ Add your first product</button></div>`;return}
+  G.innerHTML=list.map(p=>{const m=calc(p);const pr=m.profit!=null?m.profit:m.margin;
+    return `<button class="pcard" data-id="${p.id}">
+      <div class="pimg">${isUrl(p.image)?`<img src="${esc(p.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${p.status}">${P_STATUS[p.status]}</span></div>
+      <div class="pbody"><div><p class="pname">${esc(p.name)}</p><p class="ptype">${esc(p.type||"")}</p></div>
+      <div class="kpis"><div><span>Cost</span><b>${fmt(m.cost)}</b></div><div><span>Price</span><b>${fmt(m.price)}</b></div>
+      <div><span>${m.profit!=null?"Profit/order":"Margin"}</span><b class="${pr==null?"":pr>0?"pos":"neg"}">${fmt(pr,1)}</b></div></div></div></button>`}).join("");
+  G.querySelectorAll(".pcard").forEach(b=>b.onclick=()=>openProduct(b.dataset.id));
+}
+function openProduct(id){
+  const p=products.find(x=>x.id===id);if(!p)return;current={kind:"p",id};
+  const m=calc(p),v=verdict(p,m);
+  $("sideTitle").textContent=p.name;
+  $("sideMeta").innerHTML=`<span class="pill p-${p.status}">${P_STATUS[p.status]}</span>${p.type?`<span>${esc(p.type)}</span>`:""}<span>Updated ${new Date(p.updated_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span>`;
+  const sups=suppliers.filter(s=>s.product_id===p.id);
+  const vc={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",idle:"var(--idle-bg);color:var(--idle)"}[v.c];
+  $("sideBody").innerHTML=`
+    ${isUrl(p.image)?`<img class="hero" src="${esc(p.image)}" alt="">`:""}
+    ${p.problem?`<div class="sec"><h3>Problem it solves</h3><p class="text">${esc(p.problem)}</p></div>`:""}
+    <div class="sec"><h3>Money</h3>
+      <div class="money">
+        <div><span>Cost</span><b>${fmt(m.cost)}</b></div><div><span>Price</span><b>${fmt(m.price)}</b></div><div><span>Margin after delivery</span><b>${fmt(m.margin,1)}</b></div>
+        <div><span>Ad spend</span><b>${fmt(m.spend)}</b></div><div><span>Orders</span><b>${fmt(m.orders,0)}</b></div><div><span>Ad cost / order</span><b>${fmt(m.cpo,1)}</b></div>
+        <div><span>Test budget</span><b>${fmt(num(p.budget))}</b></div><div><span>Test stock</span><b>${fmt(num(p.units),0)}</b></div><div><span>Profit / order</span><b class="${m.profit==null?"":m.profit>0?"pos":"neg"}">${fmt(m.profit,1)}</b></div>
+      </div>
+      <p class="verdict" style="margin:10px 0 0;background:${vc}">${esc(v.t)}</p>
+    </div>
+    ${p.script?`<div class="sec"><h3>Ad script</h3><p class="script" dir="auto">${esc(p.script)}</p><button class="btn ghost sm" style="margin-top:8px" id="copyScript">Copy script</button></div>`:""}
+    ${p.notes?`<div class="sec"><h3>Notes</h3><p class="text">${esc(p.notes)}</p></div>`:""}
+    ${isUrl(p.source)?`<div class="sec"><h3>Link</h3><div class="mini"><a href="${esc(p.source)}" target="_blank" rel="noopener"><span>${esc(p.source.replace(/^https?:\/\/(www\.)?/,"").slice(0,50))}</span><span>Open ↗</span></a></div></div>`:""}
+    <div class="sec"><h3>Suppliers (${sups.length})</h3>${sups.length?`<div class="mini">${sups.map(s=>`<a href="#" data-sid="${s.id}"><span>${esc(s.name)}</span><span class="pill p-${s.status}">${S_STATUS[s.status]}</span></a>`).join("")}</div>`:`<p class="text" style="color:var(--muted)">None yet. Add one in the Suppliers tab.</p>`}</div>`;
+  $("sideBody").querySelectorAll("[data-sid]").forEach(a=>a.onclick=e=>{e.preventDefault();openSupplier(a.dataset.sid)});
+  const cs=$("copyScript");if(cs)cs.onclick=()=>navigator.clipboard.writeText(p.script).then(()=>toast("Script copied"),()=>toast("Couldn't copy"));
+  showSide();
+}
+function openPForm(p){
+  editingP=p?.id||null;pImage=p?.image||null;$("pMsg").textContent="";
+  $("pDlgTitle").textContent=p?"Edit product":"Add product";$("pSave").textContent=p?"Save changes":"Save product";
+  for(const k of["name","type","problem","script","source","notes"])$("p-"+k).value=p?.[k]||"";
+  for(const k of["cost","price","budget","units","spend","orders"])$("p-"+k).value=p?.[k]??"";
+  $("p-status").value=p?.status||"idea";$("p-image").value="";
+  $("p-preview").hidden=!isUrl(pImage);if(isUrl(pImage))$("p-preview").src=pImage;
+  hideSide();$("pDlg").showModal();$("p-name").focus();
+}
+$("p-image").onchange=e=>{const f=e.target.files[0];if(f){$("p-preview").src=URL.createObjectURL(f);$("p-preview").hidden=false}};
+$("pForm").onsubmit=async e=>{
+  e.preventDefault();
+  if(!$("p-name").value.trim()){$("pMsg").textContent="Add a product name.";$("p-name").focus();return}
+  const d={name:$("p-name").value.trim(),status:$("p-status").value,image:pImage,updated_at:new Date().toISOString()};
+  for(const k of["type","problem","script","source","notes"])d[k]=$("p-"+k).value.trim()||null;
+  for(const k of["cost","price","budget","units","spend","orders"])d[k]=num($("p-"+k).value);
+  $("pMsg").textContent="Saving…";
+  try{
+    const f=$("p-image").files[0];
+    if(f){$("pMsg").textContent="Uploading photo…";const path=Date.now()+"-"+f.name.replace(/[^\w.-]+/g,"_");
+      const up=await sb.storage.from("product-images").upload(path,f,{contentType:f.type});if(up.error)throw up.error;
+      d.image=sb.storage.from("product-images").getPublicUrl(path).data.publicUrl}
+    const r=editingP?await sb.from("products").update(d).eq("id",editingP):await sb.from("products").insert(d);
+    if(r.error)throw r.error;
+    $("pDlg").close();toast(editingP?"Product updated":"Product added");await loadAll();
+  }catch(err){$("pMsg").textContent="Couldn't save: "+(err.message||"check your internet")}
+};
+
+/* ---------- Suppliers ---------- */
+function renderSuppliers(){
+  chips("sChips",S_STATUS,suppliers,sFilter,k=>{sFilter=k;renderSuppliers()});
+  const q=$("sSearch").value.trim().toLowerCase();
+  const pname=id=>products.find(p=>p.id===id)?.name||"";
+  const list=suppliers.filter(s=>(sFilter==="all"||s.status===sFilter)&&(!q||[s.name,s.kind,s.city,s.notes,pname(s.product_id)].join(" ").toLowerCase().includes(q)));
+  const L=$("sList");
+  if(!list.length){L.innerHTML=suppliers.length?`<div class="empty">No suppliers match.</div>`:`<div class="empty">No suppliers yet.<br><button class="btn primary" onclick="openSForm()">+ Add your first supplier</button></div>`;return}
+  L.innerHTML=list.map(s=>`<button class="srow" data-id="${s.id}">
+    <div><p class="n">${esc(s.name)}</p><p class="k">${esc([s.kind,s.city].filter(Boolean).join(" · "))}</p></div>
+    <div class="c"><small>For</small>${esc(pname(s.product_id)||"—")}</div>
+    <div class="c"><small>Price</small>${esc(s.price||"No quote yet")}</div>
+    <span class="pill p-${s.status}">${S_STATUS[s.status]}</span></button>`).join("");
+  L.querySelectorAll(".srow").forEach(b=>b.onclick=()=>openSupplier(b.dataset.id));
+}
+function openSupplier(id){
+  const s=suppliers.find(x=>x.id===id);if(!s)return;current={kind:"s",id};
+  const prod=products.find(p=>p.id===s.product_id);
+  $("sideTitle").textContent=s.name;
+  $("sideMeta").innerHTML=`<span class="pill p-${s.status}">${S_STATUS[s.status]}</span>${s.kind?`<span>${esc(s.kind)}</span>`:""}${s.city?`<span>${esc(s.city)}</span>`:""}`;
+  const row=(label,val,copy)=>val?`<div><span><small style="display:block;color:var(--muted);font-size:12px">${label}</small>${esc(val)}</span>${copy?`<button class="btn ghost sm" data-copy="${esc(val)}">Copy</button>`:""}</div>`:"";
+  $("sideBody").innerHTML=`
+    <div class="sec"><h3>Contact</h3><div class="contact">
+      ${row("Phone / WhatsApp",s.phone,true)}${row("Email",s.email,true)}
+      ${isUrl(s.link)?`<div><span><small style="display:block;color:var(--muted);font-size:12px">Website</small>${esc(s.link.replace(/^https?:\/\/(www\.)?/,"").slice(0,44))}</span><a class="btn ghost sm" href="${esc(s.link)}" target="_blank" rel="noopener">Open ↗</a></div>`:""}
+      ${!s.phone&&!s.email&&!isUrl(s.link)?`<p class="text" style="color:var(--muted)">No contact details yet.</p>`:""}
+    </div></div>
+    <div class="sec"><h3>Quote</h3><div class="money" style="grid-template-columns:repeat(2,1fr)"><div><span>Price</span><b style="font-size:15px">${esc(s.price||"—")}</b></div><div><span>Minimum order</span><b style="font-size:15px">${esc(s.moq||"—")}</b></div></div></div>
+    ${prod?`<div class="sec"><h3>For product</h3><div class="mini"><a href="#" id="toProd"><span>${esc(prod.name)}</span><span class="pill p-${prod.status}">${P_STATUS[prod.status]}</span></a></div></div>`:""}
+    ${s.notes?`<div class="sec"><h3>Notes</h3><p class="text">${esc(s.notes)}</p></div>`:""}`;
+  $("sideBody").querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>navigator.clipboard.writeText(b.dataset.copy).then(()=>toast("Copied"),()=>toast("Couldn't copy")));
+  const tp=$("toProd");if(tp)tp.onclick=e=>{e.preventDefault();openProduct(prod.id)};
+  showSide();
+}
+function openSForm(s){
+  editingS=s?.id||null;$("sMsg").textContent="";$("sDlgTitle").textContent=s?"Edit supplier":"Add supplier";
+  $("s-product").innerHTML=`<option value="">—</option>`+products.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+  for(const k of["name","kind","city","phone","email","link","price","moq","notes"])$("s-"+k).value=s?.[k]||"";
+  $("s-status").value=s?.status||"to_contact";$("s-product").value=s?.product_id||"";
+  hideSide();$("sDlg").showModal();$("s-name").focus();
+}
+$("sForm").onsubmit=async e=>{
+  e.preventDefault();
+  if(!$("s-name").value.trim()){$("sMsg").textContent="Add a supplier name.";$("s-name").focus();return}
+  const d={status:$("s-status").value,product_id:$("s-product").value||null,updated_at:new Date().toISOString()};
+  for(const k of["name","kind","city","phone","email","link","price","moq","notes"])d[k]=$("s-"+k).value.trim()||null;
+  $("sMsg").textContent="Saving…";
+  const r=editingS?await sb.from("suppliers").update(d).eq("id",editingS):await sb.from("suppliers").insert(d);
+  if(r.error){$("sMsg").textContent="Couldn't save: "+r.error.message;return}
+  $("sDlg").close();toast(editingS?"Supplier updated":"Supplier added");await loadAll();
+};
+
+/* ---------- Shared UI ---------- */
+function chips(el,map,rows,active,onPick){
+  const c=$(el);c.innerHTML="";
+  [["all","All"],...Object.entries(map)].forEach(([k,l])=>{
+    const n=k==="all"?rows.length:rows.filter(r=>r.status===k).length;
+    if(k!=="all"&&!n&&active!==k)return;
+    const b=document.createElement("button");b.className="chip";b.setAttribute("aria-pressed",k===active);
+    b.innerHTML=`${esc(l)} <span>${n}</span>`;b.onclick=()=>onPick(k);c.append(b);
   });
 }
-Object.entries(STATUS).forEach(([k,l])=>$("f-status").add(new Option(l,k)));
+function showSide(){$("shade").hidden=false;$("side").hidden=false;$("sideDel").textContent="Delete";$("sideDel").dataset.sure="";$("sideClose").focus()}
+function hideSide(){$("shade").hidden=true;$("side").hidden=true}
+$("sideClose").onclick=$("shade").onclick=hideSide;
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("side").hidden)hideSide()});
+$("sideEdit").onclick=()=>current.kind==="p"?openPForm(products.find(p=>p.id===current.id)):openSForm(suppliers.find(s=>s.id===current.id));
+$("sideDel").onclick=async()=>{
+  const b=$("sideDel");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Click again to delete";return}
+  const r=await sb.from(current.kind==="p"?"products":"suppliers").delete().eq("id",current.id);
+  if(r.error){toast("Couldn't delete: "+r.error.message);return}
+  hideSide();toast("Deleted");loadAll();
+};
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest("dialog").close());
+document.querySelectorAll("dialog").forEach(d=>d.addEventListener("click",e=>{if(e.target===d)d.close()}));
+$("addProduct").onclick=()=>openPForm();
+$("addSupplier").onclick=()=>openSForm();
+$("pSearch").oninput=renderProducts;$("sSearch").oninput=renderSuppliers;
+Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
+Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
-function render(){
-  const sum=(f)=>rows.reduce((a,r)=>a+(num(r[f])||0),0);
-  $("nAll").textContent=rows.length;
-  $("nTest").textContent=rows.filter(r=>r.status==="testing").length;
-  $("nWin").textContent=rows.filter(r=>r.status==="winner").length;
-  $("nSpend").textContent=fmt(sum("spend"));
-  $("nOrders").textContent=fmt(sum("orders"));
-  const shown=rows.filter(r=>filter==="all"||r.status===filter);
-  const L=$("list");L.innerHTML="";
-  if(!shown.length){L.innerHTML=`<div class="empty">${rows.length?"No products with this status.":"No products yet. Add the first one with “+ Add product”."}</div>`;return}
-  for(const r of shown){
-    const cost=num(r.cost),price=num(r.price),spend=num(r.spend),orders=num(r.orders);
-    const cpo=spend!=null&&orders?spend/orders:null;
-    const margin=price!=null&&cost!=null?price-cost:null;
-    const c=document.createElement("article");c.className="card s-"+(r.status||"idea");
-    c.innerHTML=`<div class="head"><h2></h2><span class="status"><span class="tag" hidden></span><span class="st-chip"><span class="dot"></span><span class="st"></span></span></span></div>
-      <p class="problem" hidden></p>
-      <div class="nums">
-        <div><span>Cost</span><b>${fmt(cost)}</b></div><div><span>Price</span><b>${fmt(price)}</b></div>
-        <div><span>Margin</span><b>${fmt(margin)}</b></div><div><span>Ad spend</span><b>${fmt(spend)}</b></div>
-        <div><span>Orders</span><b>${fmt(orders)}</b></div><div><span>Ad cost / order</span><b>${fmt(cpo)}</b></div>
-        <div><span>Test stock</span><b>${fmt(num(r.units))}</b></div><div><span>Test budget</span><b>${fmt(num(r.budget))}</b></div>
-      </div><p class="notes"></p>
-      <details hidden><summary>Ad script</summary><p class="script"></p></details>
-      <a class="src" target="_blank" rel="noopener" hidden></a>
-      <div class="foot"><span class="when"></span><span class="actions"><button class="e">Edit</button><button class="d">Delete</button></span></div>`;
-    let pic;
-    if(r.image&&/^https?:\/\//.test(r.image)){pic=document.createElement("img");pic.src=r.image;pic.alt=r.name||"";pic.loading="lazy"}
-    else{pic=document.createElement("div");pic.textContent="No image";pic.classList.add("none")}
-    pic.classList.add("pic");c.prepend(pic);
-    c.querySelector("h2").textContent=r.name||"Untitled";
-    if(r.type){const t=c.querySelector(".tag");t.textContent=r.type;t.hidden=false}
-    if(r.problem){const p=c.querySelector(".problem");p.textContent=r.problem;p.hidden=false}
-    if(r.script){c.querySelector(".script").textContent=r.script;c.querySelector("details").hidden=false}
-    if(r.source&&/^https?:\/\//.test(r.source)){const a=c.querySelector(".src");a.href=r.source;a.textContent="Source ↗ "+r.source.replace(/^https?:\/\/(www\.)?/,"").slice(0,48);a.hidden=false}
-    c.querySelector(".st").textContent=STATUS[r.status]||"Idea";
-    c.querySelector(".notes").textContent=r.notes||"";
-    c.querySelector(".when").textContent=r.updated_at?"Updated "+new Date(r.updated_at).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):"";
-    const d=c.querySelector(".d");
-    if(!canWrite)c.querySelector(".actions").hidden=true;
-    c.querySelector(".e").onclick=()=>openForm(r);
-    d.onclick=async()=>{
-      if(d.dataset.sure!=="1"){d.dataset.sure="1";d.textContent="Confirm delete";setTimeout(()=>{d.dataset.sure="";d.textContent="Delete"},4000);return}
-      const{error}=await sb.from("products").delete().eq("id",r.id);if(error)d.textContent="Couldn't delete";else load()
-    };
-    L.append(c);
-  }
+function setTab(t){
+  for(const x of["products","suppliers"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
+  try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
+$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");
+try{if(localStorage.getItem("pl_tab")==="suppliers")setTab("suppliers")}catch(e){}
 
-function openForm(r){
-  editing=r?r.id:null;$("formMsg").textContent="";$("dlgTitle").textContent=r?"Edit product":"Add product";
-  if(!$("dlg").open)$("dlg").showModal();
-  $("f-name").value=r?.name||"";$("f-status").value=r?.status||"idea";
-  for(const k of NUMS)$("f-"+k).value=r?.[k]??"";
-  for(const k of TEXTS)$("f-"+k).value=r?.[k]||"";
-  $("f-image").value="";editingImage=r?.image||null;$("saveBtn").textContent=r?"Save changes":"Save product";$("f-name").focus();
+/* ---------- Data ---------- */
+async function loadAll(){
+  const [p,s]=await Promise.all([
+    sb.from("products").select("*").order("updated_at",{ascending:false}),
+    sb.from("suppliers").select("*").order("updated_at",{ascending:false})]);
+  if(p.error||s.error){sync("Offline","var(--bad)");const m=`<div class="empty">Couldn't load data. Check your internet and reload.</div>`;$("pGrid").innerHTML=m;$("sList").innerHTML=m;return}
+  products=p.data;suppliers=s.data;sync("Saved · live","var(--good)");
+  renderProducts();renderSuppliers();
+  if(current&&!$("side").hidden)current.kind==="p"?openProduct(current.id):openSupplier(current.id);
 }
-$("newBtn").onclick=()=>openForm(null);
-$("cancelBtn").onclick=$("closeBtn").onclick=()=>$("dlg").close();
-$("dlg").addEventListener("click",e=>{if(e.target===$("dlg"))$("dlg").close()});
-$("form").addEventListener("submit",async e=>{
-  e.preventDefault();if(!sb){$("formMsg").textContent="Not connected yet.";return}
-  const data={name:$("f-name").value.trim(),status:$("f-status").value,updated_at:new Date().toISOString(),image:editingImage};
-  for(const k of NUMS)data[k]=num($("f-"+k).value);
-  for(const k of TEXTS)data[k]=$("f-"+k).value.trim()||null;
-  $("formMsg").textContent="Saving…";
-  try{
-    const f=$("f-image").files[0];
-    if(f){
-      $("formMsg").textContent="Uploading image…";
-      const path=Date.now()+"-"+f.name.replace(/[^\w.-]+/g,"_");
-      const up=await sb.storage.from("product-images").upload(path,f,{contentType:f.type});
-      if(up.error)throw up.error;
-      data.image=sb.storage.from("product-images").getPublicUrl(path).data.publicUrl;
-    }
-    const q=editing?sb.from("products").update(data).eq("id",editing):sb.from("products").insert(data);
-    const{error}=await q;if(error)throw error;
-    $("dlg").close();load();
-  }catch(err){$("formMsg").textContent="Couldn't save: "+(err?.message||"check your connection")}
-});
-
-function setLive(t,c){$("liveText").textContent=t;$("live").style.background=c}
-tabs();
-const SB_URL="https://caajpoyjvmbxmyblmuun.supabase.co",SB_KEY="sb_publishable_L-Q_0wU-nZ6j9W9RrzlpFA_dfOK2dJS";
-const show=id=>{for(const x of["app"])$(x).hidden=x!==id};
-
-async function load(){
-  const{data,error}=await sb.from("products").select("*").order("updated_at",{ascending:false});
-  if(error){setLive("error","var(--red)");$("list").innerHTML=`<div class="empty"></div>`;$("list").firstChild.textContent="Couldn't load products: "+error.message;return}
-  rows=data;setLive("live · shared","var(--green)");render();
-}
-let chan=null;
-show("app");
 if(window.supabase?.createClient){
   sb=supabase.createClient(SB_URL,SB_KEY);
-  load();
-  chan=sb.channel("products").on("postgres_changes",{event:"*",schema:"public",table:"products"},()=>load()).subscribe();
-}else{setLive("offline","var(--red)");$("list").innerHTML='<div class="empty">Couldn\'t load the Supabase library. Check your internet and reload.</div>'}
+  loadAll();
+  let t;const again=()=>{clearTimeout(t);t=setTimeout(loadAll,300)};
+  sb.channel("lab").on("postgres_changes",{event:"*",schema:"public",table:"products"},again)
+    .on("postgres_changes",{event:"*",schema:"public",table:"suppliers"},again).subscribe();
+}else{sync("Offline","var(--bad)");$("pGrid").innerHTML=`<div class="empty">Couldn't load. Check your internet and reload.</div>`}
 </script>
-</body></html>
+</body>
+</html>
