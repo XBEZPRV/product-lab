@@ -303,6 +303,23 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .auto{font-size:13px;font-weight:500;flex:none}
 .vote{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
+/* Sources */
+.srcgrp{margin-bottom:22px}
+.srcgrp h2{font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.srcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.src{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.src .sh{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.src .sn{font-weight:500;font-size:16px;text-decoration:none}
+.src .sn:hover{text-decoration:underline}
+.src .tag{font-size:11px;border-radius:6px;padding:2px 8px;background:var(--canvas);color:var(--muted);white-space:nowrap}
+.src .tag.paid{background:var(--warn-bg);color:var(--warn)}
+.src p{margin:0;font-size:13px;color:var(--muted)}
+.src .sf{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.src .sf b{color:var(--ink);font-weight:500}
+.src .sa{display:flex;gap:4px}
+.src .sa button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:6px}
+.src .sa button:hover{background:var(--canvas);color:var(--ink)}
+
 /* Plans */
 .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px}
@@ -480,11 +497,17 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
   <!-- IDEAS -->
   <section id="view-ideas" hidden>
     <div class="headrow">
-      <div><h1>Product ideas</h1><p class="sub">Score each idea on our 6 rules, vote together, then test the best ones.</p></div>
-      <button class="btn primary" id="addIdea">+ Add idea</button>
+      <div><h1>Product ideas</h1><p class="sub">Find products on our sources, score them on our 6 rules, vote together, then test the best ones.</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="seg"><button id="vIdeas" aria-pressed="true">💡 Ideas</button><button id="vSources" aria-pressed="false">🔎 Where to look</button></span><button class="btn primary" id="addIdea">+ Add idea</button></div>
     </div>
-    <div class="tools"><div class="chips" id="iChips"></div></div>
-    <div class="grid" id="iGrid"><div class="empty">Loading ideas…</div></div>
+    <div id="ideasView">
+      <div class="tools"><div class="chips" id="iChips"></div></div>
+      <div class="grid" id="iGrid"><div class="empty">Loading ideas…</div></div>
+    </div>
+    <div id="sourcesView" hidden>
+      <div class="tools" style="justify-content:space-between"><p class="sub" style="margin:0">Open a site, find a product, then add it as an idea with its source. The numbers show which sites give us ideas worth testing.</p><button class="btn ghost sm" id="addSource">+ Add source</button></div>
+      <div id="srcList"></div>
+    </div>
   </section>
 
   <!-- COMPETITORS -->
@@ -703,6 +726,14 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <li>الثلاثة الأولين يتحسبو وحدهم من الأرقام. الثلاثة الأخرين جاوب عليهم بـ Yes ولا No.</li>
       <li>اكتب اسمك وصوّت <b>👍 Test it</b> ولا <b>👎 Skip</b>. كي نصوّتو الزوز نفس الحاجة، الفكرة تتبدّل وحدها.</li>
       <li>كي نقرّرو نجرّبوها، اضغط <b>Move to Products</b> وتولّي منتوج.</li>
+    </ul>
+
+    <h3>Ideas ← 🔎 Where to look — وين نلقاو المنتوجات</h3>
+    <ul>
+      <li>في تاب Ideas، اضغط <b>🔎 Where to look</b>: تلقى برشا سيتات مقسّمين: أدوات التجسس (Ad Library، TikTok، Minea…)، سيتات الاختراعات، أسواق قريبة (Jumia، Noon…)، والموردين.</li>
+      <li>اضغط على اسم السيت يتحلّ. كي تلقى منتوج، ارجع واضغط <b>+ Idea</b> تحت نفس السيت، يتسجّل وحدو منين جا.</li>
+      <li>تحت كل سيت تلقى كم فكرة جات منو وكم وحدة قرّرنا نجرّبوها. هكا نعرفو أنا سيت يعطينا أفكار باهية.</li>
+      <li>سيت جديد (مثلا Spybox)؟ اضغط <b>+ Add source</b>.</li>
     </ul>
 
     <h3>Competitors — المنافسين</h3>
@@ -1457,7 +1488,7 @@ function renderIdeas(){
   G.innerHTML=list.map(i=>{const s=scoreOf(i),R=rules(i);const v=Object.entries(i.votes||{});
     return `<button class="pcard" data-id="${i.id}">
       <div class="pimg">${isUrl(i.image)?`<img src="${esc(i.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s)}">${s}/6</span></div>
-      <div class="pbody"><div><p class="pname">${esc(i.name)}</p><p class="ptype">${esc(i.found_on||"")}</p></div>
+      <div class="pbody"><div><p class="pname">${esc(i.name)}</p><p class="ptype">${esc(srcName(i))}</p></div>
         <div class="rules6">${R.map(r=>`<span class="${r.v===true?"y":r.v===false?"n":""}">${r.v===true?"✓":r.v===false?"✗":"?"} ${r.l}</span>`).join("")}</div>
         <div class="votes">${v.length?v.map(([n,x])=>`<span>${esc(n)}: <b>${x==="test"?"Test":"Skip"}</b></span>`).join(" · "):"No votes yet"}</div>
       </div></button>`}).join("");
@@ -1474,6 +1505,7 @@ function openIdea(id){
   $("sideBody").innerHTML=`
     ${isUrl(i.image)?`<img class="hero" src="${esc(i.image)}" alt="">`:""}
     <div><label class="btn ghost sm" style="cursor:pointer">${isUrl(i.image)?"Change photo":"Add photo"}<input type="file" accept="image/*" id="iPhoto" hidden></label></div>
+    ${(()=>{const sx=sources.find(x=>x.id===i.source_id);return sx?`<div class="sec"><h3>Found on</h3><div class="mini"><a href="${esc(sx.url||"#")}" target="_blank" rel="noopener"><span>${esc(sx.name)}</span><span>Open ↗</span></a></div></div>`:i.found_on?`<div class="sec"><h3>Found on</h3><p class="text">${esc(i.found_on)}</p></div>`:""})()}
     ${i.why?`<div class="sec"><h3>Why it could sell</h3><p class="text">${esc(i.why)}</p></div>`:""}
     <div class="sec"><h3>Numbers (DT)</h3><div class="money">
       <div><span>Cost</span><b>${fmt(num(i.cost))}</b></div><div><span>Sell for</span><b>${fmt(num(i.price))}</b></div>
@@ -1505,11 +1537,12 @@ function openIdea(id){
   };
   showSide();
 }
-function editIdea(i){
+function editIdea(i,srcId){
   const yn=[["","?"],["true","Yes"],["false","No"]];
+  const srcOpts=[["","—"],...sources.map(x=>[x.id,x.name])];
   gForm(i?"Edit idea":"New product idea",[
     {k:"name",label:"Product",req:true,ph:"Silicone stove gap cover"},
-    {k:"found_on",label:"Found on",full:false,ph:"TikTok, AliExpress, a shop…"},
+    {k:"source_id",label:"Found on",type:"select",opts:srcOpts,full:false,hint:"Not in the list? Add it in 🔎 Where to look"},
     {k:"link",label:"Link",full:false,ph:"https://…"},
     {k:"cost",label:"Cost per unit, delivered (DT)",type:"number",full:false},
     {k:"price",label:"We could sell for (DT)",type:"number",full:false},
@@ -1518,8 +1551,8 @@ function editIdea(i){
     {k:"easy_video",label:"Easy 5-second video?",type:"select",opts:yn,full:false},
     {k:"not_in_shops",label:"Hard to find cheap in Tunisia?",type:"select",opts:yn,full:false},
     {k:"why",label:"Why it could sell",type:"textarea",ph:"The problem it solves, who buys it, what you saw"}],
-    i?{...i,unbreakable:String(i.unbreakable??""),easy_video:String(i.easy_video??""),not_in_shops:String(i.not_in_shops??"")}:{},
-    async d=>{for(const k of["unbreakable","easy_video","not_in_shops"])d[k]=d[k]==null?null:d[k]==="true";
+    i?{...i,unbreakable:String(i.unbreakable??""),easy_video:String(i.easy_video??""),not_in_shops:String(i.not_in_shops??"")}:{source_id:srcId||""},
+    async d=>{d.source_id=d.source_id||null;for(const k of["unbreakable","easy_video","not_in_shops"])d[k]=d[k]==null?null:d[k]==="true";
       if(d.weight_g!=null)d.weight_g=Math.round(d.weight_g);
       const r=i?await sb.from("ideas").update(d).eq("id",i.id):await sb.from("ideas").insert(d).select().single();
       if(r.error)return r.error.message;await loadIdeas();renderIdeas();openIdea(i?i.id:r.data.id)});
@@ -1647,6 +1680,37 @@ $("hIdea").onclick=()=>{setTab("ideas");editIdea()};
 $("hTask").onclick=()=>{setTab("tasks");$("t-title").focus()};
 $("hCamp").onclick=()=>{setTab("ads");setAdsView("tree");editPlan(null)};
 $("hMoreAct").onclick=openActivity;
+
+/* ---------- Sources ---------- */
+let sources=[];
+const SRC_ORDER=["Spy tools","Discovery","Nearby markets","Home & baby","Sourcing"];
+async function loadSources(){const r=await sb.from("sources").select("*").order("name");if(!r.error)sources=r.data}
+const srcName=i=>sources.find(x=>x.id===i.source_id)?.name||i.found_on||"";
+function renderSources(){
+  const L=$("srcList");if(!L)return;
+  const cats=[...new Set([...SRC_ORDER,...sources.map(x=>x.category||"Other")])].filter(c=>sources.some(x=>(x.category||"Other")===c));
+  L.innerHTML=cats.map(c=>`<section class="srcgrp"><h2>${esc(c)}</h2><div class="srcgrid">${sources.filter(x=>(x.category||"Other")===c).map(x=>{
+      const found=ideas.filter(i=>i.source_id===x.id),tested=found.filter(i=>i.status==="test"||i.status==="moved").length;
+      return `<div class="src"><div class="sh">${isUrl(x.url)?`<a class="sn" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)} ↗</a>`:`<span class="sn">${esc(x.name)}</span>`}<span class="tag ${/paid/i.test(x.cost||"")?"paid":""}">${esc(x.cost||"Free")}</span></div>
+      ${x.notes?`<p>${esc(x.notes)}</p>`:""}
+      <div class="sf"><span><b>${found.length}</b> idea${found.length===1?"":"s"} · <b>${tested}</b> to test</span><span class="sa"><button data-addfrom="${x.id}">+ Idea</button><button data-esrc="${x.id}">Edit</button></span></div></div>`}).join("")}</div></section>`).join("")||`<div class="empty">No sources yet.</div>`;
+  L.querySelectorAll("[data-addfrom]").forEach(b=>b.onclick=()=>editIdea(null,b.dataset.addfrom));
+  L.querySelectorAll("[data-esrc]").forEach(b=>b.onclick=()=>editSource(sources.find(x=>x.id===b.dataset.esrc)));
+}
+function editSource(x){
+  gForm(x?"Edit source":"Add source",[
+    {k:"name",label:"Name",req:true,ph:"Spybox"},
+    {k:"url",label:"Link",ph:"https://…"},
+    {k:"category",label:"Group",type:"select",opts:[...SRC_ORDER,"Other"].map(c=>[c,c]),full:false},
+    {k:"cost",label:"Cost",type:"select",opts:[["Free","Free"],["Free plan","Free plan"],["Paid (free trial)","Paid (free trial)"],["Paid","Paid"]],full:false},
+    {k:"notes",label:"What it's good for",type:"textarea",max:500}],
+    x||{category:"Spy tools",cost:"Free"},async d=>{
+      const r=x?await sb.from("sources").update(d).eq("id",x.id):await sb.from("sources").insert(d);
+      if(r.error)return r.error.message.includes("duplicate")?"That source already exists":r.error.message;await loadSources();renderSources()});
+}
+$("addSource").onclick=()=>editSource();
+function setIdeasView(v){$("vIdeas").setAttribute("aria-pressed",v==="ideas");$("vSources").setAttribute("aria-pressed",v==="sources");$("ideasView").hidden=v!=="ideas";$("sourcesView").hidden=v!=="sources";if(v==="sources")renderSources()}
+$("vIdeas").onclick=()=>setIdeasView("ideas");$("vSources").onclick=()=>setIdeasView("sources");
 
 /* ---------- Generic form ---------- */
 let gSave=null;
@@ -1935,16 +1999,16 @@ async function loadAll(){
   if(!t.error){tasks=t.data}
   const ad=await sb.from("ads").select("*").order("created_at",{ascending:false});
   if(!ad.error){ads=ad.data}
-  await Promise.all([loadPlans(),loadSettings(),loadIdeas(),loadComps()]);
+  await Promise.all([loadPlans(),loadSettings(),loadIdeas(),loadComps(),loadSources()]);
   if(p.error||s.error){sync("Offline","var(--bad)");const m=`<div class="empty">Couldn't load data. Check your internet and reload.</div>`;$("pGrid").innerHTML=m;$("sList").innerHTML=m;return}
   products=p.data;suppliers=s.data;sync("Saved · live","var(--good)");
-  renderProducts();renderSuppliers();renderTasks();renderAds();renderIdeas();renderPlanTree();renderComps();
+  renderProducts();renderSuppliers();renderTasks();renderAds();renderIdeas();renderPlanTree();renderComps();if(!$("sourcesView").hidden)renderSources();
   if(!(openPlan&&document.activeElement?.closest?.("#planView")&&document.activeElement.matches("input,textarea")))renderPlans();
   if(current&&!$("side").hidden&&current.kind!=="a")({p:openProduct,s:openSupplier,a:openAd,i:openIdea,c:openComp})[current.kind](current.id);
 }
 /* ---------- Login & activity ---------- */
 const getTok=()=>{try{return localStorage.getItem("pl_session")}catch(e){return null}};
-const TBL_LABEL={competitors:"competitor ad",products:"product",suppliers:"supplier",ads:"ad",campaigns:"campaign",adsets:"ad set",plan_ads:"planned ad",plan_comments:"comment",tasks:"task",ideas:"idea"};
+const TBL_LABEL={sources:"source",competitors:"competitor ad",products:"product",suppliers:"supplier",ads:"ad",campaigns:"campaign",adsets:"ad set",plan_ads:"planned ad",plan_comments:"comment",tasks:"task",ideas:"idea"};
 const ACT_VERB={insert:"added",update:"changed",delete:"deleted"};
 async function openActivity(){
   current={kind:"x"};$("sideTitle").textContent="Activity";$("sideMeta").innerHTML=`<span>Who did what, newest first</span>`;
@@ -1988,7 +2052,7 @@ if(window.supabase?.createClient&&!getTok()){
     .on("postgres_changes",{event:"*",schema:"public",table:"suppliers"},again)
     .on("postgres_changes",{event:"*",schema:"public",table:"tasks"},again)
     .on("postgres_changes",{event:"*",schema:"public",table:"ads"},again);
-  for(const t of["campaigns","adsets","plan_ads","plan_comments","ideas","competitors"])ch.on("postgres_changes",{event:"*",schema:"public",table:t},again);
+  for(const t of["campaigns","adsets","plan_ads","plan_comments","ideas","competitors","sources"])ch.on("postgres_changes",{event:"*",schema:"public",table:t},again);
   ch.subscribe();
 }else{sync("Offline","var(--bad)");$("pGrid").innerHTML=`<div class="empty">Couldn't load. Check your internet and reload.</div>`}
 </script>
