@@ -885,7 +885,8 @@ async function loadStats(){
   let prev=null;
   const funnel=steps.map(([k,l],i)=>{const v=px[k]??0;const rate=prev?` <em>${fmt(v/prev*100,1)}% of previous</em>`:"";prev=v||prev;
     return `<div class="${i===4?"last":""}"><span>${l}</span><b>${fmt(v,0)}</b>${i?rate:""}</div>`}).join("");
-  const purchases=A?act(A.actions,PURCHASE):null,cpp=A?act(A.cost_per_action_type,PURCHASE):null;
+  const purchases=A?(act(A.actions,PURCHASE)??d.adFunnel?.Purchase??null):null;
+  const cpp=A?(act(A.cost_per_action_type,PURCHASE)??(purchases?+A.spend/purchases:null)):null;
   $("stBody").innerHTML=`
     ${d.pixelError&&!fromAds?`<div class="sterr">Pixel: ${esc(d.pixelError)}</div>`:""}
     ${d.adsError?`<div class="sterr">Ad account: ${esc(d.adsError)}</div>`:""}
@@ -902,7 +903,7 @@ async function loadStats(){
       <div><span>Cost / purchase</span><b class="${cpp?"":"neg"}">${cpp?fmt(cpp,2):"No purchases"}</b></div>
     </div><p class="stnote">Spend is in your ad account currency.</p>`:(d.adsError?"":`<div class="empty" style="margin-bottom:24px">No ad spend in this period.</div>`)}
     ${C.length?`<p class="sth">By campaign</p><div class="ctable"><table><thead><tr><th>Campaign</th><th>Spend</th><th>Link clicks</th><th>CTR</th><th>Purchases</th><th>Cost / purchase</th></tr></thead><tbody>
-      ${C.map(c=>{const p=act(c.actions,PURCHASE),cp=act(c.cost_per_action_type,PURCHASE);return `<tr><td>${esc(c.campaign_name)}</td><td>${fmt(c.spend)}</td><td>${fmt(+c.inline_link_clicks,0)}</td><td>${fmt(+c.inline_link_click_ctr,2)}%</td><td>${fmt(p,0)}</td><td class="${cp?"":"neg"}">${cp?fmt(cp,2):"—"}</td></tr>`}).join("")}
+      ${C.map(c=>{const p=act(c.actions,PURCHASE)??act(c.actions,"omni_purchase")??act(c.actions,"purchase"),cp=act(c.cost_per_action_type,PURCHASE)??(p?+c.spend/p:null);return `<tr><td>${esc(c.campaign_name)}</td><td>${fmt(c.spend)}</td><td>${fmt(+c.inline_link_clicks,0)}</td><td>${fmt(+c.inline_link_click_ctr,2)}%</td><td>${fmt(p,0)}</td><td class="${cp?"":"neg"}">${cp?fmt(cp,2):"—"}</td></tr>`}).join("")}
     </tbody></table></div>`:""}
     <p class="stnote">Updated ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</p>`;
 }
