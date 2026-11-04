@@ -159,6 +159,17 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .aitem .av{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:500;font-size:13px;background:var(--action);color:#0c0a08}
 .aitem .av.az{background:var(--info-bg);color:var(--info)}
 .aitem small{display:block;color:var(--muted);font-size:12px}
+.nav .sep{flex:none;width:1px;height:18px;background:var(--line);margin:0 6px;align-self:center}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.sync{margin-left:auto;width:20px;height:20px;display:grid;place-items:center;flex:none}
+.menuwrap{position:relative;flex:none}
+.avatar{width:36px;height:36px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-weight:500;font-size:15px;cursor:pointer}
+.avatar:hover{box-shadow:0 0 0 3px var(--line)}
+.menu{position:absolute;right:0;top:44px;min-width:210px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 8px 24px rgba(12,10,8,.12);display:flex;flex-direction:column;z-index:30}
+.menu button{border:0;background:none;text-align:left;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14px}
+.menu button:hover{background:var(--canvas)}
+.menu .out{color:var(--bad);border-top:1px solid var(--line);border-radius:0 0 8px 8px;margin-top:4px}
+.menu-name{margin:0;padding:8px 12px 6px;font-size:12px;color:var(--muted)}
 .icon{flex:none;width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:16px;line-height:1}
 .icon:hover{border-color:var(--ink)}
 .nav{overflow-x:auto;scrollbar-width:none;min-width:0}
@@ -382,19 +393,27 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
   <div class="brand"><i></i><span>Product Lab</span></div>
   <nav class="nav" role="tablist">
     <button role="tab" id="tab-ideas" aria-selected="false">Ideas</button>
-    <button role="tab" id="tab-products" aria-selected="true">Products</button>
-    <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
     <button role="tab" id="tab-comp" aria-selected="false">Competitors</button>
+    <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
+    <i class="sep" aria-hidden="true"></i>
+    <button role="tab" id="tab-products" aria-selected="true">Products</button>
     <button role="tab" id="tab-ads" aria-selected="false">Ads</button>
     <button role="tab" id="tab-plans" aria-selected="false">Plans</button>
+    <i class="sep" aria-hidden="true"></i>
     <button role="tab" id="tab-stats" aria-selected="false">Stats</button>
     <button role="tab" id="tab-tasks" aria-selected="false">Tasks <span id="taskBadge" class="badge" hidden></span></button>
   </nav>
-  <div class="sync"><b id="dot"></b><span id="syncText">Connecting…</span></div>
-  <button class="icon" id="actBtn" title="Activity" aria-label="Activity">🕘</button>
-  <button class="icon" id="guideBtn" title="دليل الاستعمال" aria-label="Guide">؟</button>
-  <button class="who-btn" id="whoBtn" title="Sign out"></button>
-  <button class="icon" id="setBtn" title="Settings" aria-label="Settings">⚙</button>
+  <div class="sync" title="Connecting…" id="syncWrap"><b id="dot"></b><span id="syncText" class="sr">Connecting…</span></div>
+  <div class="menuwrap">
+    <button class="avatar" id="whoBtn" aria-haspopup="true" aria-expanded="false" title="Menu">·</button>
+    <div class="menu" id="menu" hidden role="menu">
+      <p class="menu-name" id="menuName"></p>
+      <button role="menuitem" id="actBtn">🕘 Activity</button>
+      <button role="menuitem" id="guideBtn">؟ دليل الاستعمال</button>
+      <button role="menuitem" id="setBtn">⚙ Settings</button>
+      <button role="menuitem" id="outBtn" class="out">Sign out</button>
+    </div>
+  </div>
 </div></div>
 
 <main class="wrap">
@@ -625,8 +644,8 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <h3>الدخول والسجل</h3>
     <ul>
       <li>كل واحد يدخل باسمو: <b>yassin</b> ولا <b>azer</b>. أول مرة، الكلمة السرّية اللي تكتبها تولّي متاعك (6 حروف ولا أكثر).</li>
-      <li>اسمك يبان الفوق على اليمين. اضغط عليه مرتين باش تخرج.</li>
-      <li>زر <b>🕘</b> يحلّ السجل: شكون زاد ولا بدّل ولا فسخ أي حاجة، ووقتاش (منتوج، فكرة، كامبانيا، موافقة، مهمة…).</li>
+      <li>الدورة الكحلة الفوق على اليمين فيها أول حرف من اسمك. اضغط عليها تلقى: <b>🕘 Activity</b>، الدليل، <b>⚙ Settings</b>، و<b>Sign out</b>.</li>
+      <li><b>🕘 Activity</b> يحلّ السجل: شكون زاد ولا بدّل ولا فسخ أي حاجة، ووقتاش (منتوج، فكرة، كامبانيا، موافقة، مهمة…).</li>
     </ul>
 
     <h3>0. Ideas — أفكار المنتوجات</h3>
@@ -789,7 +808,7 @@ let ads=[],aProd="all",editingA=null,aMedia=null,aPoster=null;
 let sb=null,products=[],suppliers=[],tasks=[],tFilter="all",pFilter="all",sFilter="all",current=null,editingP=null,editingS=null,pImage=null;
 
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
-function sync(t,c){$("syncText").textContent=t;$("dot").style.background=c}
+function sync(t,c){$("syncText").textContent=t;$("syncWrap").title=t;$("dot").style.background=c}
 
 /* math for one product */
 function calc(p){
@@ -1842,7 +1861,12 @@ $("loginForm").onsubmit=async e=>{
   setMe(r.data.name);if(r.data.first)try{localStorage.setItem("pl_first","1")}catch(e){}
   location.reload();
 };
-$("whoBtn").onclick=async()=>{const b=$("whoBtn");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Sign out?";setTimeout(()=>{b.dataset.sure="";b.textContent=me()},3000);return}
+const toggleMenu=open=>{$("menu").hidden=!open;$("whoBtn").setAttribute("aria-expanded",open)};
+$("whoBtn").onclick=e=>{e.stopPropagation();toggleMenu($("menu").hidden)};
+document.addEventListener("click",e=>{if(!$("menu").hidden&&!e.target.closest(".menuwrap"))toggleMenu(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")toggleMenu(false)});
+$("menu").addEventListener("click",e=>{if(e.target.closest("button")&&e.target.id!=="outBtn")toggleMenu(false)});
+$("outBtn").onclick=async()=>{const b=$("outBtn");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Click again to sign out";return}
   try{await sb.rpc("app_logout")}catch(e){}try{localStorage.removeItem("pl_session")}catch(e){}location.reload()};
 
 if(window.supabase?.createClient&&!getTok()){
@@ -1851,7 +1875,7 @@ if(window.supabase?.createClient&&!getTok()){
   sb=supabase.createClient(SB_URL,SB_KEY,{global:{headers:{"x-session":getTok()}}});
   sb.rpc("app_whoami").then(r=>{
     if(!r.data){try{localStorage.removeItem("pl_session")}catch(e){}location.reload();return}
-    setMe(r.data);$("whoBtn").textContent=r.data;
+    setMe(r.data);$("whoBtn").textContent=r.data[0];$("menuName").textContent="Signed in as "+r.data;
     try{if(localStorage.getItem("pl_first")){localStorage.removeItem("pl_first");toast("Welcome "+r.data+". Your password is saved.")}}catch(e){}
   });
   loadAll().then(()=>setTab(startTab));
