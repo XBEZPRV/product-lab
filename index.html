@@ -876,18 +876,19 @@ async function loadStats(){
   if(d.error==="wrong_password"){try{localStorage.removeItem("pl_stats_pass")}catch(e){}$("stLogin").hidden=false;$("stLoginMsg").textContent="Wrong password.";$("stBody").innerHTML="";return}
   if(d.error==="not_configured"){$("stBody").innerHTML=`<div class="empty">No Meta token yet.<br>Open <b>⚙ Settings</b>, paste your access token, and save.<br><button class="btn primary" onclick="document.getElementById('setBtn').click()">Open Settings</button></div>`;return}
   stLoaded=true;
-  const px=d.pixel||{},A=d.account,C=d.campaigns||[];
+  const fromAds=!d.pixel&&!!d.adFunnel;
+  const px=d.pixel||d.adFunnel||{},A=d.account,C=d.campaigns||[];
   const steps=[["PageView","Page views"],["ViewContent","Product views"],["AddToCart","Add to cart"],["InitiateCheckout","Checkout started"],["Purchase","Purchases"]];
   let prev=null;
   const funnel=steps.map(([k,l],i)=>{const v=px[k]??0;const rate=prev?` <em>${fmt(v/prev*100,1)}% of previous</em>`:"";prev=v||prev;
     return `<div class="${i===4?"last":""}"><span>${l}</span><b>${fmt(v,0)}</b>${i?rate:""}</div>`}).join("");
   const purchases=A?act(A.actions,PURCHASE):null,cpp=A?act(A.cost_per_action_type,PURCHASE):null;
   $("stBody").innerHTML=`
-    ${d.pixelError?`<div class="sterr">Pixel: ${esc(d.pixelError)}</div>`:""}
+    ${d.pixelError&&!fromAds?`<div class="sterr">Pixel: ${esc(d.pixelError)}</div>`:""}
     ${d.adsError?`<div class="sterr">Ad account: ${esc(d.adsError)}</div>`:""}
-    <p class="sth">Pixel · all stores</p>
+    <p class="sth">${fromAds?"Funnel · from your ads":"Pixel · all stores"}</p>
     <div class="funnel">${funnel}</div>
-    <p class="stnote">Counts every event the pixel received, from ads and from other visits.</p>
+    <p class="stnote">${fromAds?"Pixel events counted by Meta for people who came from your ads. Page views = landing page views.":"Counts every event the pixel received, from ads and from other visits."}</p>
     ${A?`<p class="sth">Ad account · total</p>
     <div class="facts">
       <div><span>Spend</span><b>${fmt(A.spend)}</b></div>
