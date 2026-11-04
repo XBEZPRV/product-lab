@@ -204,6 +204,13 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .step b{min-width:28px;text-align:center;color:var(--ink);font-weight:500}
 @media (max-width:760px){.funnel{grid-template-columns:repeat(2,1fr)}.dnums{grid-template-columns:repeat(2,1fr)}}
 
+.syncbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:12px;font-size:14px;color:var(--muted)}
+.unl{background:var(--warn-bg);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:14px}
+.unl h3{font-size:13px;font-weight:500;margin:0 0 8px;color:#4a3600}
+.unl .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:var(--card);border-radius:10px;padding:8px 10px;margin-top:6px}
+.unl .r small{color:var(--muted)}
+.unl select{height:32px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 6px;max-width:220px}
+
 /* Ideas */
 .score{position:absolute;right:10px;top:10px;font-weight:500;font-size:13px;border-radius:6px;padding:3px 9px}
 .s-hi{background:var(--good-bg);color:var(--good)}.s-mid{background:var(--warn-bg);color:var(--warn)}.s-lo{background:var(--bad-bg);color:var(--bad)}
@@ -399,6 +406,8 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="chips" id="aProd"></div>
       <div class="search"><select id="aStatus" aria-label="Filter by result" style="width:100%;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:0 10px"></select></div>
     </div>
+    <div class="syncbar"><span id="syncInfo">Results come from Meta automatically.</span><button class="btn ghost sm" id="syncAds">↻ Sync results from Meta</button></div>
+    <div id="unlinked"></div>
     <div id="aAngles"></div>
     <div class="agrid" id="aGrid"><div class="empty">Loading ads…</div></div>
   </section>
@@ -900,6 +909,52 @@ $("aStatus").innerHTML=`<option value="">All results</option>`+Object.entries(A_
 $("aStatus").onchange=renderAds;
 Object.entries(A_STATUS).forEach(([k,l])=>$("a-status").add(new Option(l,k)));
 $("addAd").onclick=()=>openAForm();
+
+/* Sync ad results from Meta.
+   A library ad is linked to one or more Meta ads (the same video can run in several ad sets).
+   Links are saved in meta_ad_ids; if none are saved we match by product + video code (V1, S1, P2…). */
+let metaAds=[],metaCur=null,adsSynced=false;
+const codeOf=s=>((s||"").match(/\b([VSP]\d+[a-z]?)\b/i)||[])[1]?.toUpperCase()||null;
+const purchasesOf=a=>act(a.actions,PURCHASE)??act(a.actions,"omni_purchase")??act(a.actions,"purchase")??0;
+function autoLinks(lib){
+  if(lib.meta_ad_ids?.length)return lib.meta_ad_ids;
+  const code=codeOf(lib.name);if(!code||!lib.product_id)return[];
+  return metaAds.filter(m=>guessProduct(m.campaign_name)===lib.product_id&&codeOf(m.ad_name)===code).map(m=>m.ad_id);
+}
+async function syncAds(){
+  if(!settings.act){$("syncInfo").textContent="Add your ad account ID in ⚙ Settings to sync results.";return}
+  $("syncInfo").textContent="Syncing with Meta…";$("syncAds").disabled=true;
+  let d;try{d=await fetch(SB_URL+"/functions/v1/meta-stats",{method:"POST",headers:{"Content-Type":"application/json","apikey":SB_KEY},body:JSON.stringify({act:settings.act,mode:"ads"})}).then(r=>r.json())}catch(e){d={error:"Couldn't reach the server"}}
+  $("syncAds").disabled=false;
+  if(d.error){$("syncInfo").textContent=d.error==="not_configured"?"Add your Meta access token in ⚙ Settings to sync results.":"Sync failed: "+d.error;return}
+  metaAds=d.ads||[];metaCur=d.currency;adsSynced=true;
+  const toDT=v=>metaCur==="USD"?v*3:v;
+  const used=new Set();let changed=0;
+  for(const lib of ads){
+    const ids=autoLinks(lib);if(!ids.length)continue;ids.forEach(x=>used.add(x));
+    const ms=metaAds.filter(m=>ids.includes(m.ad_id));if(!ms.length)continue;
+    const spend=+toDT(ms.reduce((t,m)=>t+(+m.spend||0),0)).toFixed(2);
+    const orders=ms.reduce((t,m)=>t+purchasesOf(m),0);
+    const impr=ms.reduce((t,m)=>t+(+m.impressions||0),0),clicks=ms.reduce((t,m)=>t+(+m.inline_link_clicks||0),0);
+    const ctr=impr?+(clicks/impr*100).toFixed(2):null;
+    const patch={spend,orders,ctr,synced_at:new Date().toISOString()};
+    if(!lib.meta_ad_ids?.length)patch.meta_ad_ids=ids;
+    if(lib.spend!==spend||lib.orders!==orders||lib.ctr!==ctr||patch.meta_ad_ids){const r=await sb.from("ads").update(patch).eq("id",lib.id);if(!r.error){Object.assign(lib,patch);changed++}}
+  }
+  // Meta ads not linked to any library ad, grouped by name within a campaign
+  const groups={};for(const m of metaAds){if(used.has(m.ad_id))continue;const k=m.campaign_name+"|"+m.ad_name;(groups[k]??={campaign:m.campaign_name,name:m.ad_name,ids:[],spend:0});groups[k].ids.push(m.ad_id);groups[k].spend+=+m.spend||0}
+  const G=Object.values(groups).filter(g=>g.spend>0);
+  $("unlinked").innerHTML=G.length?`<div class="unl"><h3>${G.length} Meta ad${G.length>1?"s":""} not linked to the library yet</h3>${G.map((g,i)=>`<div class="r"><span><b>${esc(g.name)}</b> <small>${esc(g.campaign)} · ${metaCur==="USD"?"$":""}${fmt(g.spend)}</small></span>
+    <span style="display:flex;gap:6px;flex-wrap:wrap"><select data-g="${i}"><option value="">Link to an ad in the library…</option>${ads.filter(a=>!guessProduct(g.campaign)||a.product_id===guessProduct(g.campaign)).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("")}</select><button class="btn ghost sm" data-new="${i}">+ Add as new ad</button></span></div>`).join("")}</div>`:"";
+  $("unlinked").querySelectorAll("[data-g]").forEach(s=>s.onchange=async()=>{if(!s.value)return;const lib=ads.find(a=>a.id===s.value);const ids=[...new Set([...autoLinks(lib),...G[+s.dataset.g].ids])];
+    const r=await sb.from("ads").update({meta_ad_ids:ids}).eq("id",lib.id);if(r.error)return toast("Couldn't link");lib.meta_ad_ids=ids;toast("Linked");syncAds()});
+  $("unlinked").querySelectorAll("[data-new]").forEach(b=>b.onclick=async()=>{const g=G[+b.dataset.new];
+    const r=await sb.from("ads").insert({name:g.name,product_id:guessProduct(g.campaign),format:"video",status:"paused",meta_ad_ids:g.ids}).select().single();
+    if(r.error)return toast("Couldn't add");ads.unshift(r.data);toast("Added to the library");syncAds()});
+  renderAds();
+  $("syncInfo").textContent=`Synced with Meta ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})} · ${changed} ad${changed===1?"":"s"} updated · spend in DT (1$ ≈ 3 DT)`;
+}
+$("syncAds").onclick=syncAds;
 
 /* ---------- Guide & settings ---------- */
 let settings={};
@@ -1439,6 +1494,7 @@ Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 function setTab(t){
   for(const x of["ideas","products","suppliers","ads","plans","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
   if(t==="stats"&&!stLoaded&&sb)loadStats();
+  if(t==="ads"&&!adsSynced&&sb)syncAds();
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
 $("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");
