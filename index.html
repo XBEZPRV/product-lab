@@ -559,6 +559,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <fieldset><legend>Meta</legend>
       <div class="f"><label for="set-act">Ad account ID</label><input id="set-act" inputmode="numeric" maxlength="30" placeholder="1234567890"><small>Ads Manager → the number after act= in the address bar</small></div>
       <div class="f"><label for="set-pixel">Pixel / dataset ID</label><input id="set-pixel" inputmode="numeric" maxlength="30" placeholder="9876543210"><small>Events Manager → Data sources</small></div>
+      <div class="f full"><label for="set-token">Access token</label><input id="set-token" type="password" autocomplete="off" maxlength="600" placeholder="Paste a new token to replace the saved one"><small id="tokenStatus">Saved on the server only. It never shows again here.</small></div>
     </fieldset>
     <fieldset><legend>Stores</legend>
       <div class="f full"><label for="set-store1">Store 1 link</label><input id="set-store1" type="url" maxlength="300" placeholder="https://koujinatna.converty.shop"></div>
@@ -843,9 +844,15 @@ function renderLinks(){
   $("setLinks").innerHTML=L.map(([l,u])=>isUrl(u)?`<a href="${esc(u)}" target="_blank" rel="noopener"><span>${l}</span><span>Open ↗</span></a>`:`<div class="links"><span class="off">${l}: add the link below</span></div>`).join("");
 }
 $("guideBtn").onclick=()=>$("guideDlg").showModal();
-$("setBtn").onclick=()=>{for(const k of SET_KEYS)$("set-"+k).value=settings[k]??(k==="delivery"?DELIVERY:"");$("setMsg").textContent="";renderLinks();$("setDlg").showModal()};
+async function tokenStatus(){
+  const r=await sb.rpc("meta_token_status");
+  $("tokenStatus").textContent=r.data?`✓ Token saved ${new Date(r.data).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}. Paste a new one only to replace it.`:"No token saved yet. Saved on the server only; it never shows again here.";
+}
+$("setBtn").onclick=()=>{for(const k of SET_KEYS)$("set-"+k).value=settings[k]??(k==="delivery"?DELIVERY:"");$("set-token").value="";$("setMsg").textContent="";renderLinks();tokenStatus();$("setDlg").showModal()};
 $("setForm").onsubmit=async e=>{
   e.preventDefault();$("setMsg").textContent="Saving…";
+  const tok=$("set-token").value.trim();
+  if(tok){const t=await sb.rpc("set_meta_token",{t:tok});if(t.error){$("setMsg").textContent="Couldn't save token: "+t.error.message;return}$("set-token").value="";stLoaded=false;tokenStatus()}
   const rows=SET_KEYS.map(k=>({key:k,value:$("set-"+k).value.trim()||null}));
   const r=await sb.from("settings").upsert(rows);
   if(r.error){$("setMsg").textContent="Couldn't save: "+r.error.message;return}
@@ -859,7 +866,6 @@ const act=(arr,type)=>{const x=(arr||[]).find(a=>a.action_type===type);return x?
 const PURCHASE="offsite_conversion.fb_pixel_purchase";
 let stLoaded=false;
 async function loadStats(){
-  if(!stPass()){$("stLogin").hidden=false;$("stBody").innerHTML="";return}
   $("stLogin").hidden=true;$("stBody").innerHTML=`<div class="empty">Loading stats from Meta…</div>`;
   let r,d;
   try{
@@ -868,7 +874,7 @@ async function loadStats(){
     d=await r.json();
   }catch(e){$("stBody").innerHTML=`<div class="sterr">Couldn't reach the stats server. Check your internet.</div>`;return}
   if(d.error==="wrong_password"){try{localStorage.removeItem("pl_stats_pass")}catch(e){}$("stLogin").hidden=false;$("stLoginMsg").textContent="Wrong password.";$("stBody").innerHTML="";return}
-  if(d.error==="not_configured"){$("stBody").innerHTML=`<div class="sterr">Stats aren't set up yet: the Meta token and password still need to be added on the server.</div>`;return}
+  if(d.error==="not_configured"){$("stBody").innerHTML=`<div class="empty">No Meta token yet.<br>Open <b>⚙ Settings</b>, paste your access token, and save.<br><button class="btn primary" onclick="document.getElementById('setBtn').click()">Open Settings</button></div>`;return}
   stLoaded=true;
   const px=d.pixel||{},A=d.account,C=d.campaigns||[];
   const steps=[["PageView","Page views"],["ViewContent","Product views"],["AddToCart","Add to cart"],["InitiateCheckout","Checkout started"],["Purchase","Purchases"]];
@@ -894,8 +900,7 @@ async function loadStats(){
     ${C.length?`<p class="sth">By campaign</p><div class="ctable"><table><thead><tr><th>Campaign</th><th>Spend</th><th>Link clicks</th><th>CTR</th><th>Purchases</th><th>Cost / purchase</th></tr></thead><tbody>
       ${C.map(c=>{const p=act(c.actions,PURCHASE),cp=act(c.cost_per_action_type,PURCHASE);return `<tr><td>${esc(c.campaign_name)}</td><td>${fmt(c.spend)}</td><td>${fmt(+c.inline_link_clicks,0)}</td><td>${fmt(+c.inline_link_click_ctr,2)}%</td><td>${fmt(p,0)}</td><td class="${cp?"":"neg"}">${cp?fmt(cp,2):"—"}</td></tr>`}).join("")}
     </tbody></table></div>`:""}
-    <p class="stnote">Updated ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})} · <button class="link" id="stLogout" style="border:0;background:none;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer">Forget password on this device</button></p>`;
-  $("stLogout").onclick=()=>{try{localStorage.removeItem("pl_stats_pass")}catch(e){}stLoaded=false;loadStats()};
+    <p class="stnote">Updated ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</p>`;
 }
 $("stLogin").onsubmit=e=>{e.preventDefault();const p=$("stPass").value;if(!p)return;try{localStorage.setItem("pl_stats_pass",p)}catch(e){}$("stLoginMsg").textContent="";$("stPass").value="";loadStats()};
 $("stDays").onchange=loadStats;$("stRefresh").onclick=loadStats;
