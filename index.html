@@ -700,7 +700,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 <!-- Guide (Darija) -->
 <dialog id="guideDlg" aria-labelledby="guideTitle"><div style="display:flex;flex-direction:column;max-height:calc(100dvh - 34px)">
   <div class="dh" style="direction:rtl"><h2 id="guideTitle">كيفاش تخدم بـ Product Lab</h2><button type="button" class="x" data-close aria-label="سكّر" style="margin-right:auto;margin-left:0">✕</button></div>
-  <div class="db guide">
+  <div class="db guide"><p class="tip" style="margin-top:0">الدليل الكامل مع الصور: <a href="guide.html" target="_blank" rel="noopener"><b>Open full guide ↗</b></a></p>
     <h3>شنوّة هذا؟</h3>
     <p>هذا المكان اللي نخدمو فيه أنا وانت مع بعضنا. كل حاجة تبدّلها توصل للآخر في ثانية. ما فمّاش login، أما ما تبعث الرابط لحتّى حد آخر.</p>
     <p>كي تشوف <b>Saved · live</b> الفوق معناها كل شي مسجّل.</p>
@@ -1304,7 +1304,7 @@ function renderLinks(){
     ["Store 1",settings.store1],["Store 2",settings.store2]];
   $("setLinks").innerHTML=L.map(([l,u])=>isUrl(u)?`<a href="${esc(u)}" target="_blank" rel="noopener"><span>${l}</span><span>Open ↗</span></a>`:`<div class="links"><span class="off">${l}: add the link below</span></div>`).join("");
 }
-$("guideBtn").onclick=()=>$("guideDlg").showModal();
+$("guideBtn").onclick=()=>{window.open("guide.html","_blank","noopener")||(location.href="guide.html")};
 async function tokenStatus(){
   const r=await sb.rpc("meta_token_status");
   $("tokenStatus").textContent=r.data?`✓ Token saved ${new Date(r.data).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}. Paste a new one only to replace it.`:"No token saved yet. Saved on the server only; it never shows again here.";

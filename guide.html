@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>دليل Product Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Kufi+Arabic:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column with a sticky table of contents on wide screens; every step is text then its screenshot. */
+:root{--canvas:#f4f2f0;--card:#fff;--ink:#0c0a08;--muted:#6d6c6b;--line:#e5e7eb;--action:#e4f222;--warn-bg:#fdf0d5;--warn:#6b4700;
+  --sans:"Noto Kufi Arabic",Inter,system-ui,-apple-system,sans-serif;--latin:Inter,system-ui,sans-serif;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--canvas:#121110;--card:#1a1919;--ink:#f4f2f0;--muted:#a3a19f;--line:#2e2c2b;--warn-bg:#3a2e12;--warn:#f2c14e;color-scheme:dark}}
+:root[data-theme="dark"]{--canvas:#121110;--card:#1a1919;--ink:#f4f2f0;--muted:#a3a19f;--line:#2e2c2b;--warn-bg:#3a2e12;--warn:#f2c14e;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--canvas);color:var(--ink);font:400 17px/1.9 var(--sans)}
+a{color:inherit}
+b,code,.en{font-family:var(--latin),var(--sans);unicode-bidi:isolate}
+b{font-weight:500}
+.top{position:sticky;top:0;z-index:5;background:rgba(244,242,240,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .top{background:rgba(18,17,16,.9)}}
+.top .in{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;height:60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:8px;font:500 17px var(--latin);text-decoration:none;direction:ltr}
+.brand i{width:10px;height:10px;border-radius:3px;background:var(--action)}
+.open{font:500 14px var(--latin);text-decoration:none;background:var(--action);color:#0c0a08;border-radius:6px;padding:8px 14px;white-space:nowrap}
+.wrap{max-width:1180px;margin:0 auto;padding-block:40px 120px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px}
+nav.toc{position:sticky;top:84px;align-self:start;font-size:14px;line-height:1.6}
+nav.toc p{margin:0 0 10px;color:var(--muted);font-size:12px}
+nav.toc a{display:block;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:6px}
+nav.toc a:hover{background:var(--card);color:var(--ink)}
+main{min-width:0;max-width:820px}
+h1{font-weight:500;font-size:clamp(32px,5vw,46px);line-height:1.3;margin:0 0 10px}
+.lede{color:var(--muted);font-size:19px;margin:0 0 28px}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 40px;font:14px var(--latin);direction:ltr;justify-content:flex-end}
+.flow span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.flow i{color:var(--muted);font-style:normal}
+section{padding-top:28px;margin-top:28px;border-top:1px solid var(--line)}
+h2{font-weight:500;font-size:26px;line-height:1.4;margin:0 0 6px;display:flex;gap:10px;align-items:baseline}
+h2 small{font:400 14px var(--latin);color:var(--muted)}
+h3{font-weight:500;font-size:19px;margin:26px 0 6px}
+p{margin:0 0 12px}
+ol,ul{padding-right:22px;padding-left:0;margin:0 0 14px}
+li{margin-bottom:6px}
+figure{margin:16px 0 24px}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+.phone{max-width:300px}
+.tip{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:12px 16px;margin:14px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:10px 0 16px}
+td,th{border-top:1px solid var(--line);padding:8px 10px;text-align:right;vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:13px;border-top:0}
+.tablewrap{overflow-x:auto}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;gap:20px}nav.toc{position:static;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}nav.toc a{display:inline-block}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top"><div class="in">
+  <a class="brand" href="./"><i></i>Product Lab</a>
+  <a class="open" href="./">Open the app</a>
+</div></div>
+
+<div class="wrap">
+<nav class="toc" aria-label="المحتوى">
+  <p>المحتوى</p>
+  <a href="#start">1. الدخول</a>
+  <a href="#home">2. Home</a>
+  <a href="#ideas">3. Ideas</a>
+  <a href="#sources">4. وين نلقاو المنتوجات</a>
+  <a href="#comp">5. Competitors</a>
+  <a href="#suppliers">6. Suppliers</a>
+  <a href="#products">7. Products</a>
+  <a href="#ads">8. Ads: الخطة والمراجعة</a>
+  <a href="#live">9. Ads: النتائج</a>
+  <a href="#stats">10. Stats والـ flags</a>
+  <a href="#tasks">11. Tasks</a>
+  <a href="#menu">12. السجل والـ Settings</a>
+  <a href="#rules">القواعد متاعنا</a>
+</nav>
+
+<main>
+  <h1>كيفاش تخدم بـ Product Lab</h1>
+  <p class="lede">المكان اللي نخدمو فيه أنا وأزر مع بعضنا: من الفكرة حتى الإعلان والنتيجة. كل حاجة يعملها واحد، الآخر يشوفها في ثانية، ويتسجّل شكون عملها.</p>
+  <div class="flow" aria-label="الطريق">
+    <span>Ideas</span><i>→</i><span>Competitors</span><i>→</i><span>Suppliers</span><i>→</i><span>Products</span><i>→</i><span>Ads plan</span><i>→</i><span>Review</span><i>→</i><span>Meta</span><i>→</i><span>Stats</span>
+  </div>
+  <p class="tip">الصور اللي تحت فيها <b>أمثلة</b> باش تفهم. الأرقام متاعك تتبدّل.</p>
+
+  <section id="start">
+    <h2>1. الدخول <small>Login</small></h2>
+    <ol>
+      <li>حلّ <b>xbezprv.github.io/product-lab</b>.</li>
+      <li>اختار اسمك: <b>yassin</b> ولا <b>azer</b>.</li>
+      <li><b>أول مرة:</b> اكتب الكلمة السرّية اللي تحب عليها (6 حروف ولا أكثر). هي تولّي متاعك.</li>
+      <li>بعد هكا، تقعد داخل على نفس التليفون ولا الكمبيوتر 90 يوم.</li>
+    </ol>
+    <figure><img src="guide/01-login.jpg" alt="شاشة الدخول: اختيار الاسم والكلمة السرّية" loading="lazy" width="1600" height="875"></figure>
+    <p class="tip">ما تعطيش الكلمة السرّية متاعك لحد. كل واحد يدخل باسمو، باش السجل يقول شكون عمل شنوّة.</p>
+  </section>
+
+  <section id="home">
+    <h2>2. الصفحة الأولى <small>Home</small></h2>
+    <p>أول ما تدخل، تلقى كل شي يستناك انت:</p>
+    <ul>
+      <li><b>Needs your attention</b>: كامبانيا لازم توقفها (🔴)، ولا تكبّرها (🚀)، خطة تستنى موافقتك، أفكار ما صوّتّش عليها، ومهام فات وقتها. اضغط على أي سطر يهزّك طول للبلاصة.</li>
+      <li><b>Ads · last 7 days</b>: كل كامبانيا مع المصروف، الكوموندات، والـ flag.</li>
+      <li><b>Today</b>: أرقام اليوم من Meta.</li>
+      <li><b>Recent activity</b>: آخر الحاجات اللي تعملت وشكون عملها.</li>
+      <li>الأزرار <b>+ Idea</b>، <b>+ Task</b>، <b>+ Campaign</b> باش تزيد بسرعة.</li>
+    </ul>
+    <figure><img src="guide/02-home.jpg" alt="صفحة Home مع الحاجات اللي تستنى والأرقام" loading="lazy" width="1600" height="1000"></figure>
+    <div class="grid2">
+      <figure><img class="phone" src="guide/19-phone-home.jpg" alt="Home على التليفون" loading="lazy" width="780" height="1688"><figcaption>نفس الصفحة على التليفون: اسحب التابات لليسار باش تشوفهم الكل.</figcaption></figure>
+      <div><h3>التابات الفوق</h3><p>مقسومين على 3:</p><ul><li><b>Ideas · Competitors · Suppliers</b>: نلقاو المنتوج.</li><li><b>Products · Ads · Plans</b>: نجرّبوه.</li><li><b>Stats · Tasks</b>: نتبعو النتائج والخدمة.</li></ul></div>
+    </div>
+  </section>
+
+  <section id="ideas">
+    <h2>3. الأفكار <small>Ideas</small></h2>
+    <p>كل منتوج تلقاه يدخل هنا قبل ما نصرفو عليه حتى مليم.</p>
+    <ol>
+      <li>اضغط <b>+ Add idea</b>: الاسم، منين لقيتو (<b>Found on</b>)، الكلفة، السوم اللي نبيعو بيه، والوزن.</li>
+      <li>كل فكرة تاخذ نقطة على <b>6 قواعد</b>. الثلاثة الأولين يتحسبو وحدهم من الأرقام: رخيص (10 د.ت ولا أقل)، خفيف (500 غ ولا أقل)، ربح 3 مرات. الثلاثة الأخرين تجاوب عليهم: ما يتكسّرش، فيديو ساهل، ما يتلقاش رخيص في تونس.</li>
+      <li>الكرت يورّي: النقطة (6/6)، الحالة، <b>Ready x/4</b>، كم منافس والسوم متاعهم، والتصويت.</li>
+    </ol>
+    <figure><img src="guide/04-ideas.jpg" alt="قائمة الأفكار مع النقاط" loading="lazy" width="1600" height="1000"></figure>
+
+    <h3>السوم المقترح والتحذير</h3>
+    <p>اضغط على فكرة. في <b>Price</b> تلقى سوم المنافسين، وسوم مقترح: على الأقل 3 مرات الكلفة، وشوية تحت متوسط السوق.</p>
+    <ul>
+      <li>كان السوم متاعنا أغلى من السوق، يطلع <b>⚠ أحمر</b>. المثال هذا: قلم الأظافر بـ 89 د.ت والسوق بين 23 و35.</li>
+      <li><b>Use … DT</b> يحطّ السوم المقترح بضغطة. <b>+ Add a competitor ad</b> يزيد منافس مربوط بالفكرة هذي.</li>
+    </ul>
+    <figure><img src="guide/05-idea-panel.jpg" alt="تفاصيل فكرة: السوم، المنافسين، والتحذير" loading="lazy" width="1600" height="1375"></figure>
+
+    <h3>التصويت و Ready to test</h3>
+    <ol>
+      <li>صوّت <b>👍 Test it</b> ولا <b>👎 Skip</b>. كي نصوّتو الزوز نفس الحاجة، الفكرة تتبدّل وحدها.</li>
+      <li>قبل ما نجرّبو، لازم الـ 4 يكونو ✓: شفنا المنافسين، لقينا مورّد، عندنا فكرة الفيديو، وقرّرنا السوم.</li>
+      <li>اضغط <b>Move to Products</b>. كان مازال ناقص حاجة، يسألك مرة أخرى.</li>
+    </ol>
+    <figure><img src="guide/06-idea-checklist.jpg" alt="التصويت وقائمة Ready to test" loading="lazy" width="1600" height="1375"></figure>
+  </section>
+
+  <section id="sources">
+    <h2>4. وين نلقاو المنتوجات <small>Ideas → Where to look</small></h2>
+    <ol>
+      <li>في تاب Ideas، الفوق على اليمين، اضغط <b>🔎 Where to look</b>.</li>
+      <li>تلقى السيتات مقسّمين: أدوات التجسس (Meta Ad Library، TikTok، Spybox…)، سيتات الاختراعات، أسواق قريبة (Jumia، Noon…)، الموردين.</li>
+      <li>اضغط على اسم السيت يتحلّ. كي تلقى منتوج، اضغط <b>+ Idea</b> تحت نفس السيت، يتسجّل وحدو منين جا.</li>
+      <li>تحت كل سيت: كم فكرة جات منو، وكم وحدة قرّرنا نجرّبوها. هكا نعرفو أنا سيت يعطينا أحسن أفكار.</li>
+      <li>سيت جديد؟ <b>+ Add source</b>.</li>
+    </ol>
+    <figure><img src="guide/07-sources.jpg" alt="قائمة السيتات اللي نلقاو فيها المنتوجات" loading="lazy" width="1600" height="1125"></figure>
+  </section>
+
+  <section id="comp">
+    <h2>5. المنافسين <small>Competitors</small></h2>
+    <ol>
+      <li>اضغط <b>Open Ad Library ↗</b>: يتحلّ على تونس. اكتب اسم المنتوج.</li>
+      <li>كل إعلان تلقاه: screenshot، ومبعد <b>+ Add competitor ad</b>: اسم الصفحة، السوم، العرض، الـ angle، ووقتاش بدا.</li>
+      <li>اربطو بالفكرة ولا المنتوج متاعنا، باش السوم المقترح يتحسب.</li>
+      <li><b>🔥</b> = الإعلان يدور من أكثر من 30 يوم، يعني غالبًا يبيع.</li>
+    </ol>
+    <figure><img src="guide/08-competitors.jpg" alt="قائمة إعلانات المنافسين" loading="lazy" width="1600" height="1000"></figure>
+  </section>
+
+  <section id="suppliers">
+    <h2>6. الموردين <small>Suppliers</small></h2>
+    <ul>
+      <li>كل مورّد كلّمناه: التليفون، الإيميل، السوم، وأقل كمية.</li>
+      <li>الحالة: <b>To contact → Waiting reply → Quoted → Chosen</b> ولا <b>Rejected</b>.</li>
+      <li>اضغط على مورّد، زر <b>Copy</b> ينسخ النومرو باش تبعث WhatsApp.</li>
+    </ul>
+    <figure><img src="guide/09-suppliers.jpg" alt="قائمة الموردين" loading="lazy" width="1600" height="1000"></figure>
+  </section>
+
+  <section id="products">
+    <h2>7. المنتوجات <small>Products</small></h2>
+    <ul>
+      <li>المنتوجات اللي نجرّبو فيها ولا جرّبناها. الحالة: <b>Sourcing → Testing → Winner</b> ولا <b>Stopped</b>.</li>
+      <li>اضغط على منتوج: الصورة، المشكلة اللي يحلها، الأرقام، السكريبت (مع زر Copy)، والموردين.</li>
+      <li>المربّع الملوّن يقلك: قدّاش تنجم تصرف إعلانات على كوموند وحدة وما تخسرش.</li>
+      <li>ما تكتبش الأرقام كل نهار. كي يوفى التست، اكتب المصروف والكوموندات مرة، وبدّل الحالة.</li>
+    </ul>
+    <div class="grid2">
+      <figure><img src="guide/10-products.jpg" alt="قائمة المنتوجات" loading="lazy" width="1600" height="1000"></figure>
+      <figure><img src="guide/11-product-panel.jpg" alt="تفاصيل منتوج" loading="lazy" width="1600" height="1250"></figure>
+    </div>
+  </section>
+
+  <section id="ads">
+    <h2>8. الإعلانات: الخطة والمراجعة <small>Ads → By campaign</small></h2>
+    <h3>أ. المكتبة: <b>+ Upload video / image</b></h3>
+    <p>كل فيديو ولا تصويرة نحطّوه مرة وحدة. سمّيه بكود في الأول: <b>V3 · LED wall</b> (V فيديو، S تصويرة). اكتب الـ angle والـ hook.</p>
+    <h3>ب. نعملو الخطة (Planned · not live yet)</h3>
+    <ol>
+      <li><b>+ New campaign</b>: الاسم يبدا باسم المنتوج (<b>Shoe box – Test 2</b>)، الميزانية، والقواعد.</li>
+      <li>حلّ الكامبانيا ← <b>+ Add ad set</b>: الـ angle، الجمهور، الميزانية.</li>
+      <li>حلّ الـ Ad set ← <b>+ Add ad</b>: اختار الفيديو من المكتبة، النص، الـ Headline، والزر.</li>
+      <li>كي الإعلان حاضر، علّم <b>Ready to publish</b>.</li>
+    </ol>
+    <h3>ج. المراجعة (على اليمين)</h3>
+    <ol>
+      <li><b>اللي عمل الخطة:</b> يضغط <b>Send for review</b>. تولّي <b>In review</b>، وموافقتو تتحسب.</li>
+      <li><b>الآخر:</b> يتفرّج، يكتب ملاحظة، ويضغط <b>Approve</b>. تولّي <b>Approved</b>.</li>
+      <li>ننشروها في Ads Manager <b>بنفس الأسماء</b>، ومبعد <b>Published on Meta: mark live</b>.</li>
+    </ol>
+    <figure><img src="guide/12-ads-plan.jpg" alt="خطة كامبانيا في المراجعة مع التعاليق" loading="lazy" width="1600" height="1188"></figure>
+    <p class="tip">ما ننشرو حتى حاجة في Meta قبل ما تولّي <b>Approved</b>.</p>
+  </section>
+
+  <section id="live">
+    <h2>9. الإعلانات: النتائج <small>Ads → Live on Meta</small></h2>
+    <ul>
+      <li>الكامبانيات الحقيقية تجي وحدها من Meta: <b>كامبانيا ← Ad set ← إعلان</b>، مع المصروف بالدينار، الكوموندات، والـ CTR.</li>
+      <li>اضغط على إعلان: الفيديو متاعو والأرقام على اليمين.</li>
+      <li>باش يتربط وحدو بالفيديو، سمّي الإعلان في Ads Manager بنفس الكود: <b>A1 – V3 video</b>.</li>
+      <li>إعلان عليه <b>?</b> = مش مربوط. اختار الفيديو متاعو من القائمة على اليمين، مرة وحدة.</li>
+    </ul>
+    <figure><img src="guide/13-ads-live.jpg" alt="الكامبانيات من Meta مع الفيديو على اليمين" loading="lazy" width="1600" height="1188"></figure>
+    <p>في <b>▦ Library</b>: كل الفيديوات، وجدول <b>Which angles work</b> يقلك أنا فكرة جابت كوموندات بأرخص سوم.</p>
+    <figure><img src="guide/14-ads-library.jpg" alt="مكتبة الفيديوات وجدول الأفكار اللي تخدم" loading="lazy" width="1600" height="1125"></figure>
+  </section>
+
+  <section id="stats">
+    <h2>10. الإحصائيات والـ flags <small>Stats</small></h2>
+    <ol>
+      <li>اختار المدّة (Today، 7، 14، 30 يوم) واضغط <b>Refresh</b>.</li>
+      <li><b>Funnel</b>: زيارات، مشاهدة منتوج، كوموندات، من الناس اللي جاو من الإعلانات.</li>
+      <li><b>Ad account</b>: المصروف بالدولار وبحذاه بالدينار (الدولار ≈ 3 د.ت).</li>
+      <li><b>What to do</b>: كل كامبانيا عندها flag مع جملة تفسّر علاش.</li>
+      <li>كوموند جات في WhatsApp ولا تليفون من إعلان؟ اضغط <b>+</b> قدّام الكامبانيا.</li>
+    </ol>
+    <div class="tablewrap"><table>
+      <tr><th>Flag</th><th>وقتاش</th><th>شنوّة نعملو</th></tr>
+      <tr><td>🔴 <b>Stop</b></td><td>صرفنا أكثر من ربح كوموند وحدة وما جاتش كوموند، ولا الكوموند تكلّف أكثر من ربحها، ولا CTR تحت 1%</td><td>نوقفو</td></tr>
+      <tr><td>⚪ <b>Too early</b></td><td>ما فمّاش كوموند، أما صرفنا شوية</td><td>نستناو</td></tr>
+      <tr><td>🟡 <b>Watch</b></td><td>كوموند ولا زوز</td><td>نجرّبو hook جديد</td></tr>
+      <tr><td>🟢 <b>Winning</b></td><td>3 كوموندات ولا أكثر، أرخص من الربح</td><td>نخلّيوه</td></tr>
+      <tr><td>🚀 <b>Scale</b></td><td>5 ولا أكثر، أقل من 70% من الربح</td><td>نزيدو الميزانية 20–30% كل 2–3 أيام</td></tr>
+    </table></div>
+    <p><b>Break-even</b> = سوم البيع − الكلفة − 8 د.ت توصيل. هذا أكثر ما نجمو نصرفو في الإعلانات على كوموند وحدة.</p>
+    <figure><img src="guide/15-stats.jpg" alt="صفحة Stats مع الـ flags لكل كامبانيا" loading="lazy" width="1600" height="1875"></figure>
+  </section>
+
+  <section id="tasks">
+    <h2>11. المهام <small>Tasks</small></h2>
+    <ul>
+      <li>اكتب المهمة، شكون باش يعملها، والوقت. اضغط <b>Add task</b>.</li>
+      <li>كي تكمّل، علّم المربّع. الأحمر = فات الوقت، الأصفر = اليوم.</li>
+      <li>الفوق تنجم تختار تشوف المهام متاعك برك.</li>
+    </ul>
+    <figure><img src="guide/16-tasks.jpg" alt="قائمة المهام" loading="lazy" width="1600" height="1000"></figure>
+  </section>
+
+  <section id="menu">
+    <h2>12. السجل والـ Settings <small>Menu</small></h2>
+    <p>الدورة الكحلة الفوق على اليمين (فيها أول حرف من اسمك):</p>
+    <ul>
+      <li><b>🕘 Activity</b>: شكون زاد، بدّل، ولا فسخ أي حاجة، ووقتاش.</li>
+      <li><b>؟</b>: الدليل.</li>
+      <li><b>⚙ Settings</b>: رقم الـ Ad account، الـ Pixel، الـ Access token، روابط الحوانت، وسوم التوصيل.</li>
+      <li><b>Sign out</b>: اضغط مرتين.</li>
+    </ul>
+    <div class="grid2">
+      <figure><img src="guide/03-menu.jpg" alt="القائمة متاع الحساب" loading="lazy" width="1600" height="525"></figure>
+      <figure><img src="guide/17-activity.jpg" alt="السجل: شكون عمل شنوّة" loading="lazy" width="1600" height="1000"></figure>
+    </div>
+    <figure><img src="guide/18-settings.jpg" alt="الإعدادات" loading="lazy" width="1600" height="1250"></figure>
+    <p class="tip">الـ Access token يتسجّل في السيرفر وما يبانش مرة أخرى. كي الـ Stats يوقفو، اعمل token جديد من Business Settings وحطّو في Settings.</p>
+  </section>
+
+  <section id="rules">
+    <h2>القواعد متاعنا</h2>
+    <ol>
+      <li>ما نصرفو حتى مليم على منتوج قبل ما نعرفو سومو الحقيقي من مورّد.</li>
+      <li>نشوفو المنافسين قبل ما نقرّرو السوم. ما نبيعوش أغلى من السوق.</li>
+      <li>ما ننشرو حتى كامبانيا قبل ما نوافقو عليها الزوز.</li>
+      <li>كي الـ flag يقول 🔴 Stop، نوقفو نفس النهار.</li>
+      <li>كي يقول 🚀 Scale، نثبّتو في Converty الأول (كوموندات رجعت؟) ومبعد نكبّرو.</li>
+      <li>نحلّو الموقع مرة في الجمعة على الأقل، باش ما يوقفش.</li>
+    </ol>
+  </section>
+</main>
+</div>
+</body>
+</html>
