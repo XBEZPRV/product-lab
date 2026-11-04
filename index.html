@@ -100,13 +100,6 @@ textarea{min-height:90px;resize:vertical;unicode-bidi:plaintext}
     <p class="lede">Every product we try, what it cost, what it sold, and whether we keep it. Numbers in Tunisian dinars.</p>
   </header>
 
-  <form class="auth" id="login" hidden>
-    <h3>Sign in</h3>
-    <p>Enter your email. We'll send you a sign-in link, no password needed.</p>
-    <label>Email<input id="l-email" type="email" required autocomplete="email"></label>
-    <div class="actions"><button type="submit" class="primary">Send sign-in link</button></div>
-    <p class="err" id="l-msg"></p>
-  </form>
   <div id="app" hidden style="display:contents">
   <section class="strip" aria-label="Summary">
     <div><b id="nAll">0</b><span>Products</span></div>
@@ -248,7 +241,7 @@ $("form").addEventListener("submit",async e=>{
 function setLive(t,c){$("liveText").textContent=t;$("live").style.background=c}
 tabs();
 const SB_URL="https://caajpoyjvmbxmyblmuun.supabase.co",SB_KEY="sb_publishable_L-Q_0wU-nZ6j9W9RrzlpFA_dfOK2dJS";
-const show=id=>{for(const x of["login","app"])$(x).hidden=x!==id};
+const show=id=>{for(const x of["app"])$(x).hidden=x!==id};
 
 async function load(){
   const{data,error}=await sb.from("products").select("*").order("updated_at",{ascending:false});
@@ -256,26 +249,11 @@ async function load(){
   rows=data;setLive("live · shared","var(--green)");render();
 }
 let chan=null;
-async function enter(session){
-  if(!session){show("login");setLive("signed out","var(--dim)");return}
-  const t=await sb.from("team").select("email").limit(1);
-  show("app");$("who").textContent="Signed in as "+session.user.email+" · ";
-  const out=document.createElement("button");out.className="link";out.textContent="Sign out";out.onclick=()=>sb.auth.signOut();$("who").append(out);
-  if(!t.data?.length){setLive("not on the team","var(--red)");$("newBtn").hidden=true;$("list").innerHTML='<div class="empty">This email isn\'t on the team yet. Ask the owner to add it.</div>';return}
-  $("newBtn").hidden=false;
-  await load();
-  if(!chan)chan=sb.channel("products").on("postgres_changes",{event:"*",schema:"public",table:"products"},()=>load()).subscribe();
-}
-$("login").addEventListener("submit",async e=>{
-  e.preventDefault();$("l-msg").textContent="Sending…";
-  const{error}=await sb.auth.signInWithOtp({email:$("l-email").value.trim(),options:{emailRedirectTo:location.origin+location.pathname}});
-  $("l-msg").style.color=error?"":"var(--green)";
-  $("l-msg").textContent=error?"Couldn't send the link: "+error.message:"Check your email and tap the sign-in link.";
-});
+show("app");
 if(window.supabase?.createClient){
   sb=supabase.createClient(SB_URL,SB_KEY);
-  sb.auth.getSession().then(({data})=>enter(data.session));
-  sb.auth.onAuthStateChange((ev,session)=>{if(ev==="SIGNED_IN"||ev==="SIGNED_OUT")enter(session)});
-}else{show("login");$("l-msg").textContent="Couldn't load the Supabase library. Check your internet and reload."}
+  load();
+  chan=sb.channel("products").on("postgres_changes",{event:"*",schema:"public",table:"products"},()=>load()).subscribe();
+}else{setLive("offline","var(--red)");$("list").innerHTML='<div class="empty">Couldn\'t load the Supabase library. Check your internet and reload.</div>'}
 </script>
 </body></html>
