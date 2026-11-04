@@ -204,6 +204,23 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .step b{min-width:28px;text-align:center;color:var(--ink);font-weight:500}
 @media (max-width:760px){.funnel{grid-template-columns:repeat(2,1fr)}.dnums{grid-template-columns:repeat(2,1fr)}}
 
+/* Ideas */
+.score{position:absolute;right:10px;top:10px;font-weight:500;font-size:13px;border-radius:6px;padding:3px 9px}
+.s-hi{background:var(--good-bg);color:var(--good)}.s-mid{background:var(--warn-bg);color:var(--warn)}.s-lo{background:var(--bad-bg);color:var(--bad)}
+.rules6{display:flex;flex-wrap:wrap;gap:4px}
+.rules6 span{font-size:11px;border-radius:6px;padding:2px 7px;background:var(--canvas);color:var(--muted)}
+.rules6 .y{background:var(--good-bg);color:var(--good)}.rules6 .n{background:var(--bad-bg);color:var(--bad)}
+.votes{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--muted)}
+.votes b{font-weight:500}
+.rlist{display:flex;flex-direction:column;gap:8px}
+.rrow{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.rrow small{display:block;color:var(--muted);font-size:12px}
+.tri{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:none}
+.tri button{border:0;background:var(--card);padding:6px 10px;cursor:pointer;font-size:13px}
+.tri button[aria-pressed=true]{background:var(--ink);color:#fff}
+.auto{font-size:13px;font-weight:500;flex:none}
+.vote{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
 /* Plans */
 .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px}
@@ -316,6 +333,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 <div class="top"><div class="wrap">
   <div class="brand"><i></i><span>Product Lab</span></div>
   <nav class="nav" role="tablist">
+    <button role="tab" id="tab-ideas" aria-selected="false">Ideas</button>
     <button role="tab" id="tab-products" aria-selected="true">Products</button>
     <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
     <button role="tab" id="tab-ads" aria-selected="false">Ads</button>
@@ -346,6 +364,16 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="search"><input id="pSearch" type="search" placeholder="Search products" aria-label="Search products"></div>
     </div>
     <div class="grid" id="pGrid"><div class="empty">Loading products…</div></div>
+  </section>
+
+  <!-- IDEAS -->
+  <section id="view-ideas" hidden>
+    <div class="headrow">
+      <div><h1>Product ideas</h1><p class="sub">Score each idea on our 6 rules, vote together, then test the best ones.</p></div>
+      <button class="btn primary" id="addIdea">+ Add idea</button>
+    </div>
+    <div class="tools"><div class="chips" id="iChips"></div></div>
+    <div class="grid" id="iGrid"><div class="empty">Loading ideas…</div></div>
   </section>
 
   <!-- SUPPLIERS -->
@@ -527,6 +555,15 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <h3>شنوّة هذا؟</h3>
     <p>هذا المكان اللي نخدمو فيه أنا وانت مع بعضنا. كل حاجة تبدّلها توصل للآخر في ثانية. ما فمّاش login، أما ما تبعث الرابط لحتّى حد آخر.</p>
     <p>كي تشوف <b>Saved · live</b> الفوق معناها كل شي مسجّل.</p>
+
+    <h3>0. Ideas — أفكار المنتوجات</h3>
+    <ul>
+      <li>كل منتوج تلقاه (TikTok، AliExpress، حانوت…) زيدو هنا بـ <b>+ Add idea</b>، حتى قبل ما تعرف سومو.</li>
+      <li>كل فكرة تاخذ نقطة على 6 قواعد: رخيص (10 د.ت ولا أقل)، خفيف (500 غرام ولا أقل)، ربح 3 مرات السوم، ما يتكسّرش، فيديو ساهل في 5 ثواني، وما يتلقاش رخيص في تونس.</li>
+      <li>الثلاثة الأولين يتحسبو وحدهم من الأرقام. الثلاثة الأخرين جاوب عليهم بـ Yes ولا No.</li>
+      <li>اكتب اسمك وصوّت <b>👍 Test it</b> ولا <b>👎 Skip</b>. كي نصوّتو الزوز نفس الحاجة، الفكرة تتبدّل وحدها.</li>
+      <li>كي نقرّرو نجرّبوها، اضغط <b>Move to Products</b> وتولّي منتوج.</li>
+    </ul>
 
     <h3>1. Products — المنتوجات</h3>
     <ul>
@@ -1036,6 +1073,106 @@ function renderDecisions(){
 $("stLogin").onsubmit=e=>{e.preventDefault();const p=$("stPass").value;if(!p)return;try{localStorage.setItem("pl_stats_pass",p)}catch(e){}$("stLoginMsg").textContent="";$("stPass").value="";loadStats()};
 $("stDays").onchange=loadStats;$("stRefresh").onclick=loadStats;
 
+/* ---------- Ideas ---------- */
+const I_STATUS={new:"To decide",test:"Test it",skip:"Skip",moved:"In Products"};
+let ideas=[],iFilter="all";
+// The 6 rules: 3 are worked out from the numbers, 3 are answered by us.
+function rules(i){
+  const c=num(i.cost),p=num(i.price),w=num(i.weight_g);
+  return[
+    {k:"cheap",l:"Cheap",h:"Costs 10 DT or less",v:c==null?null:c<=10,auto:true},
+    {k:"light",l:"Light",h:"500 g or less",v:w==null?null:w<=500,auto:true},
+    {k:"margin",l:"3× margin",h:"Sells for 3× its cost",v:c==null||p==null?null:p>=c*3,auto:true},
+    {k:"unbreakable",l:"Doesn't break",h:"No glass, nothing that cracks",v:i.unbreakable},
+    {k:"easy_video",l:"Easy video",h:"Problem and fix show in 5 seconds",v:i.easy_video},
+    {k:"not_in_shops",l:"Not in shops",h:"Not easy to find cheap in Tunisia",v:i.not_in_shops},
+  ];
+}
+const scoreOf=i=>rules(i).filter(r=>r.v===true).length;
+const scoreCls=s=>s>=5?"s-hi":s>=3?"s-mid":"s-lo";
+async function loadIdeas(){const r=await sb.from("ideas").select("*").order("created_at",{ascending:false});if(!r.error)ideas=r.data}
+function renderIdeas(){
+  const c=$("iChips");c.innerHTML="";
+  [["all","All"],...Object.entries(I_STATUS)].forEach(([k,l])=>{
+    const n=k==="all"?ideas.length:ideas.filter(x=>x.status===k).length;if(k!=="all"&&!n&&iFilter!==k)return;
+    const b=document.createElement("button");b.className="chip";b.setAttribute("aria-pressed",k===iFilter);b.innerHTML=`${esc(l)} <span>${n}</span>`;
+    b.onclick=()=>{iFilter=k;renderIdeas()};c.append(b);
+  });
+  const list=ideas.filter(i=>iFilter==="all"||i.status===iFilter).sort((a,b)=>scoreOf(b)-scoreOf(a));
+  const G=$("iGrid");
+  if(!list.length){G.innerHTML=ideas.length?`<div class="empty">No ideas here.</div>`:`<div class="empty">No ideas yet.<br><button class="btn primary" onclick="editIdea()">+ Add your first idea</button></div>`;return}
+  G.innerHTML=list.map(i=>{const s=scoreOf(i),R=rules(i);const v=Object.entries(i.votes||{});
+    return `<button class="pcard" data-id="${i.id}">
+      <div class="pimg">${isUrl(i.image)?`<img src="${esc(i.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s)}">${s}/6</span></div>
+      <div class="pbody"><div><p class="pname">${esc(i.name)}</p><p class="ptype">${esc(i.found_on||"")}</p></div>
+        <div class="rules6">${R.map(r=>`<span class="${r.v===true?"y":r.v===false?"n":""}">${r.v===true?"✓":r.v===false?"✗":"?"} ${r.l}</span>`).join("")}</div>
+        <div class="votes">${v.length?v.map(([n,x])=>`<span>${esc(n)}: <b>${x==="test"?"Test":"Skip"}</b></span>`).join(" · "):"No votes yet"}</div>
+      </div></button>`}).join("");
+  G.querySelectorAll(".pcard").forEach(b=>b.onclick=()=>openIdea(b.dataset.id));
+}
+async function patchIdea(id,patch){const r=await sb.from("ideas").update(patch).eq("id",id);if(r.error){toast("Couldn't save: "+r.error.message);return false}
+  Object.assign(ideas.find(x=>x.id===id),patch);renderIdeas();openIdea(id);return true}
+function openIdea(id){
+  const i=ideas.find(x=>x.id===id);if(!i)return;current={kind:"i",id};
+  const R=rules(i),s=scoreOf(i),name=me(),myVote=name?i.votes?.[name]:null;
+  const margin=num(i.price)!=null&&num(i.cost)!=null?num(i.price)-num(i.cost)-DELIVERY:null;
+  $("sideTitle").textContent=i.name;
+  $("sideMeta").innerHTML=`<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s)}" style="position:static">${s}/6 rules</span>`;
+  $("sideBody").innerHTML=`
+    ${isUrl(i.image)?`<img class="hero" src="${esc(i.image)}" alt="">`:""}
+    <div><label class="btn ghost sm" style="cursor:pointer">${isUrl(i.image)?"Change photo":"Add photo"}<input type="file" accept="image/*" id="iPhoto" hidden></label></div>
+    ${i.why?`<div class="sec"><h3>Why it could sell</h3><p class="text">${esc(i.why)}</p></div>`:""}
+    <div class="sec"><h3>Numbers (DT)</h3><div class="money">
+      <div><span>Cost</span><b>${fmt(num(i.cost))}</b></div><div><span>Sell for</span><b>${fmt(num(i.price))}</b></div>
+      <div><span>Margin after delivery</span><b class="${margin==null?"":margin>0?"pos":"neg"}">${fmt(margin,1)}</b></div></div>
+      <p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${margin!=null?`You could pay up to ${fmt(margin,0)} DT in ads per order and still break even.`:"Add cost and selling price with Edit."}</p></div>
+    <div class="sec"><h3>The 6 rules</h3><div class="rlist">${R.map(r=>`<div class="rrow"><span>${r.l}<small>${r.h}${r.auto?" · from the numbers":""}</small></span>
+      ${r.auto?`<span class="auto ${r.v===true?"pos":r.v===false?"neg":""}">${r.v===true?"✓ Yes":r.v===false?"✗ No":"Add numbers"}</span>`
+        :`<span class="tri" data-rule="${r.k}">${[["true","Yes"],["false","No"],["","?"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${String(r.v??"")===v}">${l}</button>`).join("")}</span>`}</div>`).join("")}</div></div>
+    <div class="sec"><h3>Vote</h3>
+      <div class="vote">Your name: <input id="iMe" value="${esc(name)}" placeholder="e.g. Karim" maxlength="30" style="height:34px;border:1px solid var(--line);border-radius:8px;padding:0 10px;width:140px">
+        <button class="btn ${myVote==="test"?"primary":"ghost"} sm" id="vTest">👍 Test it</button><button class="btn ${myVote==="skip"?"primary":"ghost"} sm" id="vSkip">👎 Skip</button></div>
+      <p class="votes" style="margin-top:8px">${Object.entries(i.votes||{}).map(([n,x])=>`${esc(n)}: <b>${x==="test"?"Test it":"Skip"}</b>`).join(" · ")||"No votes yet"}</p></div>
+    ${isUrl(i.link)?`<div class="sec"><h3>Link</h3><div class="mini"><a href="${esc(i.link)}" target="_blank" rel="noopener"><span>${esc(i.link.replace(/^https?:\/\/(www\.)?/,"").slice(0,48))}</span><span>Open ↗</span></a></div></div>`:""}
+    <div class="sec">${i.status==="moved"?`<p class="text">This idea is now in Products.</p>`:`<button class="btn primary" id="iMove">Move to Products and start testing</button>`}</div>`;
+  $("sideBody").querySelectorAll("[data-rule]").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>patchIdea(i.id,{[g.dataset.rule]:b.dataset.v===""?null:b.dataset.v==="true"})));
+  $("iMe").onchange=e=>{setMe(e.target.value.trim());openIdea(i.id)};
+  const vote=async x=>{const n=me()||$("iMe").value.trim();if(!n){toast("Write your name first");$("iMe").focus();return}setMe(n);
+    const votes={...(i.votes||{})};votes[n]===x?delete votes[n]:votes[n]=x;
+    const vals=Object.values(votes);const status=i.status==="moved"?"moved":vals.length>=2&&vals.every(v=>v==="test")?"test":vals.length>=2&&vals.every(v=>v==="skip")?"skip":"new";
+    await patchIdea(i.id,{votes,status});if(status!==i.status&&status!=="new")toast(status==="test"?"You both said: test it":"You both said: skip")};
+  $("vTest").onclick=()=>vote("test");$("vSkip").onclick=()=>vote("skip");
+  $("iPhoto").onchange=async e=>{const f=e.target.files[0];if(!f)return;toast("Uploading photo…");
+    const path="idea-"+Date.now()+"-"+f.name.replace(/[^\w.-]+/g,"_");const up=await sb.storage.from("product-images").upload(path,f,{contentType:f.type});
+    if(up.error)return toast("Couldn't upload");patchIdea(i.id,{image:sb.storage.from("product-images").getPublicUrl(path).data.publicUrl})};
+  const mv=$("iMove");if(mv)mv.onclick=async()=>{
+    const r=await sb.from("products").insert({name:i.name,status:"sourcing",cost:num(i.cost),price:num(i.price),image:i.image,source:i.link,problem:null,notes:i.why,updated_at:new Date().toISOString()}).select().single();
+    if(r.error)return toast("Couldn't move: "+r.error.message);
+    await patchIdea(i.id,{status:"moved",product_id:r.data.id});await loadAll();toast("Added to Products");
+  };
+  showSide();
+}
+function editIdea(i){
+  const yn=[["","?"],["true","Yes"],["false","No"]];
+  gForm(i?"Edit idea":"New product idea",[
+    {k:"name",label:"Product",req:true,ph:"Silicone stove gap cover"},
+    {k:"found_on",label:"Found on",full:false,ph:"TikTok, AliExpress, a shop…"},
+    {k:"link",label:"Link",full:false,ph:"https://…"},
+    {k:"cost",label:"Cost per unit, delivered (DT)",type:"number",full:false},
+    {k:"price",label:"We could sell for (DT)",type:"number",full:false},
+    {k:"weight_g",label:"Weight (grams)",type:"number",full:false},
+    {k:"unbreakable",label:"Doesn't break?",type:"select",opts:yn,full:false},
+    {k:"easy_video",label:"Easy 5-second video?",type:"select",opts:yn,full:false},
+    {k:"not_in_shops",label:"Hard to find cheap in Tunisia?",type:"select",opts:yn,full:false},
+    {k:"why",label:"Why it could sell",type:"textarea",ph:"The problem it solves, who buys it, what you saw"}],
+    i?{...i,unbreakable:String(i.unbreakable??""),easy_video:String(i.easy_video??""),not_in_shops:String(i.not_in_shops??"")}:{},
+    async d=>{for(const k of["unbreakable","easy_video","not_in_shops"])d[k]=d[k]==null?null:d[k]==="true";
+      if(d.weight_g!=null)d.weight_g=Math.round(d.weight_g);
+      const r=i?await sb.from("ideas").update(d).eq("id",i.id):await sb.from("ideas").insert(d).select().single();
+      if(r.error)return r.error.message;await loadIdeas();renderIdeas();openIdea(i?i.id:r.data.id)});
+}
+$("addIdea").onclick=()=>editIdea();
+
 /* ---------- Generic form ---------- */
 let gSave=null;
 function gForm(title,fields,vals,onSave){
@@ -1282,8 +1419,8 @@ function showSide(){$("shade").hidden=false;$("side").hidden=false;$("sideDel").
 function hideSide(){$("shade").hidden=true;$("side").hidden=true;$("side").querySelectorAll("video").forEach(v=>v.pause())}
 $("sideClose").onclick=$("shade").onclick=hideSide;
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("side").hidden)hideSide()});
-const TABLE={p:"products",s:"suppliers",a:"ads"};
-$("sideEdit").onclick=()=>current.kind==="p"?openPForm(products.find(p=>p.id===current.id)):current.kind==="a"?openAForm(ads.find(a=>a.id===current.id)):openSForm(suppliers.find(s=>s.id===current.id));
+const TABLE={p:"products",s:"suppliers",a:"ads",i:"ideas"};
+$("sideEdit").onclick=()=>current.kind==="p"?openPForm(products.find(p=>p.id===current.id)):current.kind==="a"?openAForm(ads.find(a=>a.id===current.id)):current.kind==="i"?(hideSide(),editIdea(ideas.find(x=>x.id===current.id))):openSForm(suppliers.find(s=>s.id===current.id));
 $("sideDel").onclick=async()=>{
   const b=$("sideDel");if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Click again to delete";return}
   const r=await sb.from(TABLE[current.kind]).delete().eq("id",current.id);
@@ -1300,12 +1437,12 @@ Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
 function setTab(t){
-  for(const x of["products","suppliers","ads","plans","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
+  for(const x of["ideas","products","suppliers","ads","plans","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
   if(t==="stats"&&!stLoaded&&sb)loadStats();
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
-$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");
-let startTab="products";try{const t=localStorage.getItem("pl_tab");if(["suppliers","ads","plans","stats","tasks"].includes(t))startTab=t}catch(e){}
+$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");
+let startTab="products";try{const t=localStorage.getItem("pl_tab");if(["ideas","suppliers","ads","plans","stats","tasks"].includes(t))startTab=t}catch(e){}
 
 /* ---------- Data ---------- */
 async function loadAll(){
@@ -1316,12 +1453,12 @@ async function loadAll(){
   if(!t.error){tasks=t.data}
   const ad=await sb.from("ads").select("*").order("created_at",{ascending:false});
   if(!ad.error){ads=ad.data}
-  await Promise.all([loadPlans(),loadSettings()]);
+  await Promise.all([loadPlans(),loadSettings(),loadIdeas()]);
   if(p.error||s.error){sync("Offline","var(--bad)");const m=`<div class="empty">Couldn't load data. Check your internet and reload.</div>`;$("pGrid").innerHTML=m;$("sList").innerHTML=m;return}
   products=p.data;suppliers=s.data;sync("Saved · live","var(--good)");
-  renderProducts();renderSuppliers();renderTasks();renderAds();
+  renderProducts();renderSuppliers();renderTasks();renderAds();renderIdeas();
   if(!(openPlan&&document.activeElement?.closest?.("#planView")&&document.activeElement.matches("input,textarea")))renderPlans();
-  if(current&&!$("side").hidden&&current.kind!=="a")({p:openProduct,s:openSupplier,a:openAd})[current.kind](current.id);
+  if(current&&!$("side").hidden&&current.kind!=="a")({p:openProduct,s:openSupplier,a:openAd,i:openIdea})[current.kind](current.id);
 }
 if(window.supabase?.createClient){
   sb=supabase.createClient(SB_URL,SB_KEY);
@@ -1331,7 +1468,7 @@ if(window.supabase?.createClient){
     .on("postgres_changes",{event:"*",schema:"public",table:"suppliers"},again)
     .on("postgres_changes",{event:"*",schema:"public",table:"tasks"},again)
     .on("postgres_changes",{event:"*",schema:"public",table:"ads"},again);
-  for(const t of["campaigns","adsets","plan_ads","plan_comments"])ch.on("postgres_changes",{event:"*",schema:"public",table:t},again);
+  for(const t of["campaigns","adsets","plan_ads","plan_comments","ideas"])ch.on("postgres_changes",{event:"*",schema:"public",table:t},again);
   ch.subscribe();
 }else{sync("Offline","var(--bad)");$("pGrid").innerHTML=`<div class="empty">Couldn't load. Check your internet and reload.</div>`}
 </script>
