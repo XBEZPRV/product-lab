@@ -955,7 +955,7 @@ function decide(spendDT,orders,beDT,impr,ctr){
   if(!orders)return spendDT>=beDT
     ?{k:"stop",l:"Stop",t:`Spent ${fmt(spendDT,0)} DT with no orders. That's more than one order is worth (${fmt(beDT,0)} DT).`,c:"bad"}
     :{k:"early",l:"Too early",t:`No orders yet, but only ${fmt(spendDT,0)} of ${fmt(beDT,0)} DT spent. Let it run.`,c:"idle"};
-  if(orders>=3&&cpo>beDT)return{k:"stop",l:"Stop",t:`Each order costs ${fmt(cpo,0)} DT in ads, but you only make ${fmt(beDT,0)} DT. Every order loses money.`,c:"bad"};
+  if((orders>=3||spendDT>=beDT*3)&&cpo>beDT)return{k:"stop",l:"Stop",t:`Each order costs ${fmt(cpo,0)} DT in ads, but you only make ${fmt(beDT,0)} DT. Every order loses money.`,c:"bad"};
   if(orders>=5&&cpo<=beDT*.7)return{k:"scale",l:"Scale",t:`Each order costs ${fmt(cpo,0)} DT and you make ${fmt(beDT,0)} DT. Check Converty, then raise the budget 20–30% every 2–3 days.`,c:"good"};
   if(orders>=3&&cpo<=beDT)return{k:"win",l:"Winning",t:`Orders cost ${fmt(cpo,0)} DT, under your ${fmt(beDT,0)} DT limit. Keep it as it is.`,c:"good"};
   return{k:"watch",l:"Watch",t:cpo>beDT?`${orders} order${orders>1?"s":""} at ${fmt(cpo,0)} DT each, above your ${fmt(beDT,0)} DT limit. Try a new hook before spending more.`:`${orders} order${orders>1?"s":""} at ${fmt(cpo,0)} DT each. Promising, wait for 3 orders.`,c:"warn"};
