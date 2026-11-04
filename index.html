@@ -180,7 +180,25 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .ctable td{padding:12px 14px;border-top:1px solid var(--line)}
 .ctable tr:first-child td{border-top:0}
 .sterr{background:var(--bad-bg);color:var(--bad);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:14px}
-@media (max-width:760px){.funnel{grid-template-columns:repeat(2,1fr)}}
+.dlist{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+.dec{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.dtop{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.flag{font-weight:500;font-size:13px;border-radius:6px;padding:4px 10px;letter-spacing:.01em}
+.dname{font-weight:500;font-size:16px}
+.dwhy{margin:0;font-size:15px}
+.dnums{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.dnums div{background:var(--card);padding:8px 12px}
+.dnums span{display:block;font-size:12px;color:var(--muted)}
+.dnums b{font-weight:500;font-variant-numeric:tabular-nums}
+.dnums em{display:block;font-style:normal;font-size:11px;color:var(--muted)}
+.dedit{display:flex;flex-wrap:wrap;gap:16px;align-items:center;font-size:13px;color:var(--muted)}
+.dedit label{display:flex;align-items:center;gap:8px}
+.dedit select{height:34px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 8px;color:var(--ink);max-width:220px}
+.step{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.step button{width:32px;height:32px;border:0;background:var(--card);cursor:pointer;font-size:16px}
+.step button:hover{background:var(--canvas)}
+.step b{min-width:28px;text-align:center;color:var(--ink);font-weight:500}
+@media (max-width:760px){.funnel{grid-template-columns:repeat(2,1fr)}.dnums{grid-template-columns:repeat(2,1fr)}}
 
 /* Plans */
 .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
@@ -918,10 +936,71 @@ async function loadStats(){
       <div><span>Purchases</span><b>${fmt(purchases,0)}</b></div>
       <div><span>Cost / purchase</span><b class="${cpp?"":"neg"}">${cpp?money(cpp):"No purchases"}</b></div>
     </div><p class="stnote">Money is in ${cur==="USD"?"US dollars, with an estimate in dinars at about 3 DT per $1":"your ad account currency"}.</p>`:(d.adsError?"":`<div class="empty" style="margin-bottom:24px">No ad spend in this period.</div>`)}
-    ${C.length?`<p class="sth">By campaign</p><div class="ctable"><table><thead><tr><th>Campaign</th><th>Spend</th><th>Link clicks</th><th>CTR</th><th>Purchases</th><th>Cost / purchase</th></tr></thead><tbody>
-      ${C.map(c=>{const p=act(c.actions,PURCHASE)??act(c.actions,"omni_purchase")??act(c.actions,"purchase"),cp=act(c.cost_per_action_type,PURCHASE)??(p?+c.spend/p:null);return `<tr><td>${esc(c.campaign_name)}</td><td>${money(+c.spend)}</td><td>${fmt(+c.inline_link_clicks,0)}</td><td>${fmt(+c.inline_link_click_ctr,2)}%</td><td>${fmt(p,0)}</td><td class="${cp?"":"neg"}">${cp?money(cp):"—"}</td></tr>`}).join("")}
-    </tbody></table></div>`:""}
+    <div id="decisions"></div>
     <p class="stnote">Updated ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</p>`;
+  lastStats={C,cur};await loadLinks();renderDecisions();
+}
+
+/* Decisions: one flag per campaign from break-even cost per order */
+let lastStats=null,links={};
+async function loadLinks(){const r=await sb.from("campaign_links").select("*");if(!r.error)links=Object.fromEntries(r.data.map(x=>[x.campaign_name,x]))}
+function guessProduct(name){
+  const n=(name||"").toLowerCase();
+  return products.find(p=>{const first=(p.name||"").toLowerCase().split(/[\s·–-]+/)[0];return first.length>2&&n.includes(first)})?.id||null;
+}
+function decide(spendDT,orders,beDT,impr,ctr){
+  if(beDT==null||beDT<=0)return{k:"setup",l:"Add cost & price",t:"Add the product's cost and selling price so we can judge it.",c:"idle"};
+  const cpo=orders?spendDT/orders:null;
+  if(impr>=1000&&ctr<1)return{k:"stop",l:"Stop",t:"Under 1% of people click. The ad isn't grabbing attention: stop it and try a new hook.",c:"bad"};
+  if(!orders)return spendDT>=beDT
+    ?{k:"stop",l:"Stop",t:`Spent ${fmt(spendDT,0)} DT with no orders. That's more than one order is worth (${fmt(beDT,0)} DT).`,c:"bad"}
+    :{k:"early",l:"Too early",t:`No orders yet, but only ${fmt(spendDT,0)} of ${fmt(beDT,0)} DT spent. Let it run.`,c:"idle"};
+  if(orders>=3&&cpo>beDT)return{k:"stop",l:"Stop",t:`Each order costs ${fmt(cpo,0)} DT in ads, but you only make ${fmt(beDT,0)} DT. Every order loses money.`,c:"bad"};
+  if(orders>=5&&cpo<=beDT*.7)return{k:"scale",l:"Scale",t:`Each order costs ${fmt(cpo,0)} DT and you make ${fmt(beDT,0)} DT. Check Converty, then raise the budget 20–30% every 2–3 days.`,c:"good"};
+  if(orders>=3&&cpo<=beDT)return{k:"win",l:"Winning",t:`Orders cost ${fmt(cpo,0)} DT, under your ${fmt(beDT,0)} DT limit. Keep it as it is.`,c:"good"};
+  return{k:"watch",l:"Watch",t:cpo>beDT?`${orders} order${orders>1?"s":""} at ${fmt(cpo,0)} DT each, above your ${fmt(beDT,0)} DT limit. Try a new hook before spending more.`:`${orders} order${orders>1?"s":""} at ${fmt(cpo,0)} DT each. Promising, wait for 3 orders.`,c:"warn"};
+}
+function renderDecisions(){
+  const D=$("decisions");if(!D||!lastStats)return;const{C,cur}=lastStats;
+  if(!C.length){D.innerHTML="";return}
+  const toDT=v=>cur==="USD"?v*3:v; // other currencies assumed DT
+  const rows=C.map(c=>{
+    const L=links[c.campaign_name]||{};
+    const pid=L.product_id!==undefined?L.product_id:guessProduct(c.campaign_name);
+    const p=products.find(x=>x.id===pid);
+    const meta=act(c.actions,PURCHASE)??act(c.actions,"omni_purchase")??act(c.actions,"purchase")??0;
+    const extra=L.extra_orders||0,orders=meta+extra;
+    const spendDT=toDT(+c.spend||0);
+    const be=p&&num(p.price)!=null&&num(p.cost)!=null?num(p.price)-num(p.cost)-DELIVERY:null;
+    const f=decide(spendDT,orders,be,+c.impressions||0,+c.inline_link_click_ctr||0);
+    return{c,p,pid,meta,extra,orders,spendDT,be,f};
+  });
+  const order={stop:0,watch:1,scale:2,win:3,early:4,setup:5};
+  rows.sort((a,b)=>order[a.f.k]-order[b.f.k]);
+  const col={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",warn:"var(--warn-bg);color:var(--warn)",idle:"var(--idle-bg);color:var(--idle)"};
+  D.innerHTML=`<p class="sth">What to do · by campaign</p><div class="dlist">${rows.map((r,i)=>`
+    <div class="dec">
+      <div class="dtop"><span class="flag" style="background:${col[r.f.c]}">${r.f.l}</span><b class="dname">${esc(r.c.campaign_name)}</b></div>
+      <p class="dwhy">${esc(r.f.t)}</p>
+      <div class="dnums">
+        <div><span>Spend</span><b>${fmt(r.spendDT,0)} DT</b></div>
+        <div><span>Orders</span><b>${r.orders}</b>${r.extra?`<em>${r.meta} Meta + ${r.extra} message</em>`:""}</div>
+        <div><span>Ads per order</span><b>${r.orders?fmt(r.spendDT/r.orders,0)+" DT":"—"}</b></div>
+        <div><span>Break-even</span><b>${r.be!=null?fmt(r.be,0)+" DT":"—"}</b></div>
+        <div><span>Link CTR</span><b>${fmt(+r.c.inline_link_click_ctr,2)}%</b></div>
+      </div>
+      <div class="dedit">
+        <label>Product <select data-link="${i}">${[["","Not linked"],...products.map(p=>[p.id,p.name])].map(([k,l])=>`<option value="${k}" ${k===(r.pid||"")?"selected":""}>${esc(l)}</option>`).join("")}</select></label>
+        <label>Orders from messages / calls <span class="step"><button type="button" data-minus="${i}" aria-label="Remove one">−</button><b>${r.extra}</b><button type="button" data-plus="${i}" aria-label="Add one">+</button></span></label>
+      </div>
+    </div>`).join("")}</div>
+    <p class="stnote">Break-even = selling price − product cost − ${fmt(DELIVERY)} DT delivery. Dollars are counted at 3 DT. Add orders that came by WhatsApp, Messenger or phone with +.</p>`;
+  const save=async(i,patch)=>{const r=rows[i];const cur=links[r.c.campaign_name]||{campaign_name:r.c.campaign_name,product_id:r.pid,extra_orders:r.extra};
+    const next={...cur,...patch,campaign_name:r.c.campaign_name,updated_at:new Date().toISOString()};links[r.c.campaign_name]=next;renderDecisions();
+    const q=await sb.from("campaign_links").upsert(next);if(q.error)toast("Couldn't save: "+q.error.message)};
+  D.querySelectorAll("[data-link]").forEach(s=>s.onchange=()=>save(+s.dataset.link,{product_id:s.value||null}));
+  D.querySelectorAll("[data-plus]").forEach(b=>b.onclick=()=>save(+b.dataset.plus,{extra_orders:rows[+b.dataset.plus].extra+1}));
+  D.querySelectorAll("[data-minus]").forEach(b=>b.onclick=()=>save(+b.dataset.minus,{extra_orders:Math.max(0,rows[+b.dataset.minus].extra-1)}));
 }
 $("stLogin").onsubmit=e=>{e.preventDefault();const p=$("stPass").value;if(!p)return;try{localStorage.setItem("pl_stats_pass",p)}catch(e){}$("stLoginMsg").textContent="";$("stPass").value="";loadStats()};
 $("stDays").onchange=loadStats;$("stRefresh").onclick=loadStats;
