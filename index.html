@@ -205,6 +205,32 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 @media (max-width:760px){.funnel{grid-template-columns:repeat(2,1fr)}.dnums{grid-template-columns:repeat(2,1fr)}}
 
 .syncbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:12px;font-size:14px;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:none}
+.seg button{border:0;background:var(--card);padding:7px 12px;cursor:pointer;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.tv{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+.tv-l{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tv-r{position:sticky;top:80px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px;max-height:calc(100dvh - 100px);overflow:auto}
+.tv-r .empty{border:0;padding:24px 8px}
+.cf{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 70px 54px 64px;gap:8px;align-items:center;padding:10px 14px;font-size:14px;font-variant-numeric:tabular-nums;cursor:pointer;border:0;background:none;width:100%;text-align:left;color:var(--ink)}
+.row:hover{background:var(--canvas)}
+.row .nm{display:flex;align-items:center;gap:8px;min-width:0}
+.row .nm span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .n{text-align:right}
+.row .car{width:14px;flex:none;color:var(--muted);transition:transform .15s}
+.row[aria-expanded=true] .car{transform:rotate(90deg)}
+.r-c{font-weight:500;background:var(--card)}
+.r-s{padding-left:30px;border-top:1px solid var(--line);color:var(--ink)}
+.r-a{padding-left:48px;border-top:1px solid var(--line);font-size:13px}
+.r-a[aria-current=true]{background:var(--warn-bg)}
+.r-a .th{width:30px;height:30px;border-radius:6px;object-fit:cover;background:var(--soft);flex:none;display:grid;place-items:center;font-size:10px;color:var(--muted)}
+.rh{display:grid;grid-template-columns:minmax(0,1fr) 70px 54px 64px;gap:8px;padding:0 14px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.rh .n{text-align:right}
+.tv-r .player,.tv-r .hero{max-height:52vh;object-fit:contain;background:#000}
+.tv-r .nolink{background:var(--warn-bg);color:#4a3600;border-radius:10px;padding:10px 12px;font-size:14px}
+.tv-r select{width:100%;height:38px;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:0 8px}
+@media (max-width:860px){.tv{grid-template-columns:1fr}.tv-r{position:static;max-height:none}.row,.rh{grid-template-columns:minmax(0,1fr) 60px 44px 54px}}
 .unl{background:var(--warn-bg);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:14px}
 .unl h3{font-size:13px;font-weight:500;margin:0 0 8px;color:#4a3600}
 .unl .r{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:var(--card);border-radius:10px;padding:8px 10px;margin-top:6px}
@@ -406,10 +432,13 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="chips" id="aProd"></div>
       <div class="search"><select id="aStatus" aria-label="Filter by result" style="width:100%;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:0 10px"></select></div>
     </div>
-    <div class="syncbar"><span id="syncInfo">Results come from Meta automatically.</span><button class="btn ghost sm" id="syncAds">↻ Sync results from Meta</button></div>
+    <div class="syncbar"><span class="seg" role="tablist"><button id="vTree" aria-pressed="true">📁 By campaign</button><button id="vLib" aria-pressed="false">▦ Library</button></span><span id="syncInfo">Results come from Meta automatically.</span><button class="btn ghost sm" id="syncAds">↻ Sync</button></div>
+    <div id="treeView" class="tv"><div class="tv-l" id="tree"><div class="empty">Loading campaigns from Meta…</div></div><aside class="tv-r" id="treeSide"><div class="empty">Click an ad to see its video and results.</div></aside></div>
+    <div id="libView" hidden>
     <div id="unlinked"></div>
     <div id="aAngles"></div>
     <div class="agrid" id="aGrid"><div class="empty">Loading ads…</div></div>
+    </div>
   </section>
 
   <!-- PLANS -->
@@ -951,10 +980,61 @@ async function syncAds(){
   $("unlinked").querySelectorAll("[data-new]").forEach(b=>b.onclick=async()=>{const g=G[+b.dataset.new];
     const r=await sb.from("ads").insert({name:g.name,product_id:guessProduct(g.campaign),format:"video",status:"paused",meta_ad_ids:g.ids}).select().single();
     if(r.error)return toast("Couldn't add");ads.unshift(r.data);toast("Added to the library");syncAds()});
-  renderAds();
+  renderAds();renderTree();
   $("syncInfo").textContent=`Synced with Meta ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})} · ${changed} ad${changed===1?"":"s"} updated · spend in DT (1$ ≈ 3 DT)`;
 }
 $("syncAds").onclick=syncAds;
+
+/* Folder view: campaign → ad set → ad, with the ad's video and results on the right */
+let openFolders=new Set(),selMeta=null;
+const libFor=id=>ads.find(l=>autoLinks(l).includes(id));
+function sumRows(ms){const toDT=v=>metaCur==="USD"?v*3:v;const sp=toDT(ms.reduce((t,m)=>t+(+m.spend||0),0));const o=ms.reduce((t,m)=>t+purchasesOf(m),0);
+  const im=ms.reduce((t,m)=>t+(+m.impressions||0),0),cl=ms.reduce((t,m)=>t+(+m.inline_link_clicks||0),0);return{sp,o,ctr:im?cl/im*100:null}}
+const cells=r=>`<span class="n">${fmt(r.sp,0)}</span><span class="n">${r.o||"—"}</span><span class="n">${r.ctr!=null?fmt(r.ctr,1)+"%":"—"}</span>`;
+function renderTree(){
+  const T=$("tree");
+  if(!metaAds.length){T.innerHTML=`<div class="empty">${adsSynced?"No ads with spend in the last 12 months.":"Loading campaigns from Meta…"}</div>`;return}
+  const camps={};for(const m of metaAds){const c=(camps[m.campaign_id]??={name:m.campaign_name,sets:{}});(c.sets[m.adset_id]??={name:m.adset_name,ads:[]}).ads.push(m)}
+  if(!openFolders.size)Object.keys(camps).forEach(k=>openFolders.add(k));
+  T.innerHTML=`<div class="rh"><span>Campaign / ad set / ad</span><span class="n">Spend DT</span><span class="n">Orders</span><span class="n">CTR</span></div>`+
+  Object.entries(camps).map(([cid,c])=>{const all=Object.values(c.sets).flatMap(s=>s.ads);const co=openFolders.has(cid);
+    return `<div class="cf"><button class="row r-c" data-f="${cid}" aria-expanded="${co}"><span class="nm"><span class="car">▶</span>📁 <span>${esc(c.name)}</span></span>${cells(sumRows(all))}</button>
+    ${co?Object.entries(c.sets).map(([sid,s])=>{const so=openFolders.has(sid);
+      return `<button class="row r-s" data-f="${sid}" aria-expanded="${so}"><span class="nm"><span class="car">▶</span>📂 <span>${esc(s.name)}</span></span>${cells(sumRows(s.ads))}</button>
+      ${so?s.ads.map(m=>{const lib=libFor(m.ad_id);const th=lib&&(lib.poster||(lib.format==="image"?lib.media:""));
+        return `<button class="row r-a" data-ad="${m.ad_id}" aria-current="${selMeta===m.ad_id}"><span class="nm">${isUrl(th)?`<img class="th" src="${esc(th)}" alt="">`:`<span class="th">${lib?"✓":"?"}</span>`}<span>${esc(m.ad_name)}</span></span>${cells(sumRows([m]))}</button>`}).join(""):""}`}).join(""):""}</div>`}).join("");
+  T.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{const k=b.dataset.f;openFolders.has(k)?openFolders.delete(k):openFolders.add(k);renderTree()});
+  T.querySelectorAll("[data-ad]").forEach(b=>b.onclick=()=>{selMeta=b.dataset.ad;renderTree();renderTreeSide()});
+  if(selMeta)renderTreeSide();
+}
+function renderTreeSide(){
+  const S=$("treeSide");const m=metaAds.find(x=>x.ad_id===selMeta);if(!m){S.innerHTML=`<div class="empty">Click an ad to see its video and results.</div>`;return}
+  const lib=libFor(m.ad_id),r=sumRows([m]);const pid=guessProduct(m.campaign_name);
+  const media=lib&&isUrl(lib.media)?(lib.format==="video"?`<video class="player" src="${esc(lib.media)}" ${isUrl(lib.poster)?`poster="${esc(lib.poster)}"`:""} controls playsinline preload="metadata"></video>`:`<img class="hero" src="${esc(lib.media)}" alt="">`):"";
+  S.innerHTML=`<div><p class="sth" style="margin:0 0 2px">${esc(m.campaign_name)} › ${esc(m.adset_name)}</p><h2 style="font-weight:500;font-size:20px;margin:0">${esc(m.ad_name)}</h2></div>
+    ${media}
+    ${lib?`<div class="sec"><h3>Library ad</h3><p class="text"><b>${esc(lib.name)}</b>${lib.angle?`<br><span style="color:var(--muted)">Angle: ${esc(lib.angle)}</span>`:""}</p>${lib.hook?`<p class="script" dir="auto" style="margin-top:8px">${esc(lib.hook)}</p>`:""}</div>`
+      :`<div class="nolink">This Meta ad isn't linked to a video in the library yet. Link it below so its video and angle show here.</div>`}
+    <div class="money"><div><span>Spend</span><b>${fmt(r.sp,1)} DT</b></div><div><span>Orders</span><b>${r.o}</b></div><div><span>CTR</span><b>${r.ctr!=null?fmt(r.ctr,2)+"%":"—"}</b></div>
+      <div><span>Impressions</span><b>${fmt(+m.impressions,0)}</b></div><div><span>Link clicks</span><b>${fmt(+m.inline_link_clicks,0)}</b></div><div><span>DT per order</span><b>${r.o?fmt(r.sp/r.o,1):"—"}</b></div></div>
+    <div class="sec"><h3>${lib?"Change link":"Link to library"}</h3>
+      <select id="tvLink"><option value="">${lib?"Keep: "+esc(lib.name):"Choose the video or image…"}</option>${ads.filter(a=>!pid||a.product_id===pid).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("")}</select>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">${lib?`<button class="btn ghost sm" id="tvOpen">Open library ad</button><button class="btn danger sm" id="tvUnlink">Unlink</button>`:`<button class="btn ghost sm" id="tvNew">+ Add as new library ad</button>`}</div></div>`;
+  const relink=async(target)=>{
+    if(lib){const ids=autoLinks(lib).filter(x=>x!==m.ad_id);const q=await sb.from("ads").update({meta_ad_ids:ids.length?ids:["none"]}).eq("id",lib.id);if(q.error)return toast("Couldn't update");lib.meta_ad_ids=ids.length?ids:["none"]}
+    if(target){const ids=[...new Set([...autoLinks(target).filter(x=>x!=="none"),m.ad_id])];const q=await sb.from("ads").update({meta_ad_ids:ids}).eq("id",target.id);if(q.error)return toast("Couldn't link");target.meta_ad_ids=ids}
+    toast(target?"Linked":"Unlinked");syncAds();
+  };
+  $("tvLink").onchange=e=>{const t=ads.find(a=>a.id===e.target.value);if(t)relink(t)};
+  if($("tvUnlink"))$("tvUnlink").onclick=()=>relink(null);
+  if($("tvOpen"))$("tvOpen").onclick=()=>openAd(lib.id);
+  if($("tvNew"))$("tvNew").onclick=async()=>{const q=await sb.from("ads").insert({name:m.ad_name,product_id:pid,format:"video",status:"paused",meta_ad_ids:[m.ad_id]}).select().single();
+    if(q.error)return toast("Couldn't add");ads.unshift(q.data);toast("Added. Open it to upload the video.");syncAds()};
+}
+function setAdsView(v){$("vTree").setAttribute("aria-pressed",v==="tree");$("vLib").setAttribute("aria-pressed",v==="lib");$("treeView").hidden=v!=="tree";$("libView").hidden=v!=="lib";
+  try{localStorage.setItem("pl_adsview",v)}catch(e){}}
+$("vTree").onclick=()=>setAdsView("tree");$("vLib").onclick=()=>setAdsView("lib");
+try{if(localStorage.getItem("pl_adsview")==="lib")setAdsView("lib")}catch(e){}
 
 /* ---------- Guide & settings ---------- */
 let settings={};
