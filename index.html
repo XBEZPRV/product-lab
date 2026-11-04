@@ -880,6 +880,8 @@ async function loadStats(){
   if(d.error==="not_configured"){$("stBody").innerHTML=`<div class="empty">No Meta token yet.<br>Open <b>⚙ Settings</b>, paste your access token, and save.<br><button class="btn primary" onclick="document.getElementById('setBtn').click()">Open Settings</button></div>`;return}
   stLoaded=true;
   const fromAds=!d.pixel&&!!d.adFunnel;
+  const cur=d.currency||"",RATE=3; // approx DT per USD
+  const money=v=>v==null?"—":cur==="USD"?`$${fmt(v)} <em style="font-style:normal;font-size:12px;color:var(--muted)">≈ ${fmt(v*RATE,0)} DT</em>`:`${fmt(v)} ${esc(cur)}`;
   const px=d.pixel||d.adFunnel||{},A=d.account,C=d.campaigns||[];
   const steps=[["PageView","Page views"],["ViewContent","Product views"],["AddToCart","Add to cart"],["InitiateCheckout","Checkout started"],["Purchase","Purchases"]];
   let prev=null;
@@ -895,15 +897,15 @@ async function loadStats(){
     <p class="stnote">${fromAds?"Pixel events counted by Meta for people who came from your ads. Page views = landing page views.":"Counts every event the pixel received, from ads and from other visits."}</p>
     ${A?`<p class="sth">Ad account · total</p>
     <div class="facts">
-      <div><span>Spend</span><b>${fmt(A.spend)}</b></div>
+      <div><span>Spend</span><b>${money(+A.spend)}</b></div>
       <div><span>Impressions</span><b>${fmt(+A.impressions,0)}</b></div>
       <div><span>Link clicks</span><b>${fmt(+A.inline_link_clicks,0)}</b></div>
       <div><span>Link CTR</span><b>${fmt(+A.inline_link_click_ctr,2)}%</b></div>
       <div><span>Purchases</span><b>${fmt(purchases,0)}</b></div>
-      <div><span>Cost / purchase</span><b class="${cpp?"":"neg"}">${cpp?fmt(cpp,2):"No purchases"}</b></div>
-    </div><p class="stnote">Spend is in your ad account currency.</p>`:(d.adsError?"":`<div class="empty" style="margin-bottom:24px">No ad spend in this period.</div>`)}
+      <div><span>Cost / purchase</span><b class="${cpp?"":"neg"}">${cpp?money(cpp):"No purchases"}</b></div>
+    </div><p class="stnote">Money is in ${cur==="USD"?"US dollars, with an estimate in dinars at about 3 DT per $1":"your ad account currency"}.</p>`:(d.adsError?"":`<div class="empty" style="margin-bottom:24px">No ad spend in this period.</div>`)}
     ${C.length?`<p class="sth">By campaign</p><div class="ctable"><table><thead><tr><th>Campaign</th><th>Spend</th><th>Link clicks</th><th>CTR</th><th>Purchases</th><th>Cost / purchase</th></tr></thead><tbody>
-      ${C.map(c=>{const p=act(c.actions,PURCHASE)??act(c.actions,"omni_purchase")??act(c.actions,"purchase"),cp=act(c.cost_per_action_type,PURCHASE)??(p?+c.spend/p:null);return `<tr><td>${esc(c.campaign_name)}</td><td>${fmt(c.spend)}</td><td>${fmt(+c.inline_link_clicks,0)}</td><td>${fmt(+c.inline_link_click_ctr,2)}%</td><td>${fmt(p,0)}</td><td class="${cp?"":"neg"}">${cp?fmt(cp,2):"—"}</td></tr>`}).join("")}
+      ${C.map(c=>{const p=act(c.actions,PURCHASE)??act(c.actions,"omni_purchase")??act(c.actions,"purchase"),cp=act(c.cost_per_action_type,PURCHASE)??(p?+c.spend/p:null);return `<tr><td>${esc(c.campaign_name)}</td><td>${money(+c.spend)}</td><td>${fmt(+c.inline_link_clicks,0)}</td><td>${fmt(+c.inline_link_click_ctr,2)}%</td><td>${fmt(p,0)}</td><td class="${cp?"":"neg"}">${cp?money(cp):"—"}</td></tr>`}).join("")}
     </tbody></table></div>`:""}
     <p class="stnote">Updated ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</p>`;
 }
