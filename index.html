@@ -149,6 +149,53 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .angles .wrapt{overflow-x:auto}
 .player{width:100%;max-height:62vh;border-radius:12px;background:#000;display:block}
 
+/* Plans */
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px}
+.plan:hover{border-color:var(--ink)}
+.plan h2{font-weight:500;font-size:18px;margin:0;line-height:1.25}
+.plan .pm{display:flex;flex-wrap:wrap;gap:6px;font-size:13px;color:var(--muted)}
+.plan .pm span{background:var(--canvas);border-radius:6px;padding:2px 8px}
+.p-draft{color:var(--idle);background:var(--idle-bg)}.p-review{color:var(--warn);background:var(--warn-bg)}.p-approved{color:var(--good);background:var(--good-bg)}.p-done{color:var(--idle);background:var(--idle-bg)}
+.back{border:0;background:none;color:var(--muted);cursor:pointer;padding:0;margin-bottom:12px;font-size:14px}
+.back:hover{color:var(--ink)}
+.pv-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.pv-head h1{font-size:clamp(26px,4vw,36px)}
+.pv-actions{display:flex;flex-wrap:wrap;gap:8px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.facts div{background:var(--card);padding:12px 14px}
+.facts span{display:block;font-size:12px;color:var(--muted)}
+.facts b{font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+.rules{background:var(--warn-bg);color:#4a3600;border-radius:14px;padding:14px 16px;margin-bottom:20px;white-space:pre-wrap;font-size:14px}
+.rules h3,.review h3,.adsets h3{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px;color:inherit;opacity:.8}
+.adsets{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.aset{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.aset-h{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:linear-gradient(var(--card),var(--card))}
+.aset-h .t{min-width:0;flex:1}
+.aset-h h2{font-weight:500;font-size:17px;margin:0}
+.aset-h p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.aset-ads{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:14px 16px}
+.pad{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:var(--card)}
+.pad .thumb{aspect-ratio:16/10;background:var(--soft);display:grid;place-items:center;font-size:12px;color:var(--muted);overflow:hidden}
+.pad .thumb img{width:100%;height:100%;object-fit:cover}
+.pad .pb{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.pad .pb b{font-weight:500;font-size:14px}
+.pad .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.pad .sc{background:var(--canvas);border-radius:8px;padding:8px 10px;white-space:pre-wrap;unicode-bidi:plaintext;overflow-wrap:anywhere;max-height:140px;overflow:auto}
+.pad .row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:4px}
+.pad label.rd{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
+.addcard{border:1px dashed #d3d3d3;border-radius:12px;background:transparent;cursor:pointer;min-height:120px;color:var(--muted)}
+.addcard:hover{border-color:var(--ink);color:var(--ink)}
+.review{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.review .who{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;font-size:14px}
+.review .who input{height:36px;border:1px solid var(--line);border-radius:10px;padding:0 10px;width:160px}
+.cmts{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.cmt{background:var(--canvas);border-radius:10px;padding:10px 12px;font-size:14px}
+.cmt small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.cform{display:flex;gap:8px}
+.cform textarea{flex:1;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical;unicode-bidi:plaintext}
+.ok{color:var(--good);font-weight:500}
+
 /* Tasks */
 .badge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--action);color:#0c0a08;font-size:11px;font-weight:500;margin-left:4px}
 .tadd{display:grid;grid-template-columns:minmax(0,1fr) 140px 190px 150px auto;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;margin-bottom:16px}
@@ -215,6 +262,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <button role="tab" id="tab-products" aria-selected="true">Products</button>
     <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
     <button role="tab" id="tab-ads" aria-selected="false">Ads</button>
+    <button role="tab" id="tab-plans" aria-selected="false">Plans</button>
     <button role="tab" id="tab-tasks" aria-selected="false">Tasks <span id="taskBadge" class="badge" hidden></span></button>
   </nav>
   <div class="sync"><b id="dot"></b><span id="syncText">Connecting…</span></div>
@@ -265,6 +313,18 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     </div>
     <div id="aAngles"></div>
     <div class="agrid" id="aGrid"><div class="empty">Loading ads…</div></div>
+  </section>
+
+  <!-- PLANS -->
+  <section id="view-plans" hidden>
+    <div id="planList">
+      <div class="headrow">
+        <div><h1>Campaign plans</h1><p class="sub">Plan the campaign, ad sets and ads. Review together, then publish in Ads Manager.</p></div>
+        <button class="btn primary" id="addPlan">+ New plan</button>
+      </div>
+      <div class="plist" id="pList"><div class="empty">Loading plans…</div></div>
+    </div>
+    <div id="planView" hidden></div>
   </section>
 
   <!-- TASKS -->
@@ -377,6 +437,13 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <datalist id="angleList"></datalist>
   </div>
   <div class="df"><span class="msg" id="aMsg"></span><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary" id="aSave">Save ad</button></div>
+</form></dialog>
+
+<!-- Generic form -->
+<dialog id="gDlg" aria-labelledby="gTitle"><form id="gForm" novalidate>
+  <div class="dh"><h2 id="gTitle"></h2><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <div class="db"><fieldset id="gFields" style="border:0"></fieldset></div>
+  <div class="df"><span class="msg" id="gMsg"></span><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary">Save</button></div>
 </form></dialog>
 
 <div class="toast" id="toast" hidden></div>
@@ -629,6 +696,179 @@ $("aStatus").onchange=renderAds;
 Object.entries(A_STATUS).forEach(([k,l])=>$("a-status").add(new Option(l,k)));
 $("addAd").onclick=()=>openAForm();
 
+/* ---------- Generic form ---------- */
+let gSave=null;
+function gForm(title,fields,vals,onSave){
+  $("gTitle").textContent=title;$("gMsg").textContent="";gSave=onSave;
+  $("gFields").innerHTML=fields.map(f=>{
+    const v=vals?.[f.k]??"";const id="g-"+f.k;
+    const input=f.type==="textarea"?`<textarea id="${id}" maxlength="${f.max||3000}" dir="auto" placeholder="${esc(f.ph||"")}">${esc(v)}</textarea>`
+      :f.type==="select"?`<select id="${id}">${f.opts.map(([k,l])=>`<option value="${esc(k)}" ${String(k)===String(v)?"selected":""}>${esc(l)}</option>`).join("")}</select>`
+      :`<input id="${id}" type="${f.type||"text"}" value="${esc(v)}" ${f.type==="number"?'step="0.01" min="0" inputmode="decimal"':""} maxlength="${f.max||200}" placeholder="${esc(f.ph||"")}" dir="auto">`;
+    return `<div class="f ${f.full===false?"":"full"}"><label for="${id}">${esc(f.label)}</label>${input}${f.hint?`<small>${esc(f.hint)}</small>`:""}</div>`}).join("");
+  $("gForm").dataset.fields=JSON.stringify(fields.map(f=>[f.k,f.type||"text",!!f.req]));
+  $("gDlg").showModal();$("gFields").querySelector("input,textarea,select")?.focus();
+}
+$("gForm").onsubmit=async e=>{
+  e.preventDefault();const d={};
+  for(const [k,t,req] of JSON.parse($("gForm").dataset.fields)){
+    let v=$("g-"+k).value.trim();
+    if(req&&!v){$("gMsg").textContent="Fill in the required field.";$("g-"+k).focus();return}
+    d[k]=t==="number"?num(v):(v||null);
+  }
+  $("gMsg").textContent="Saving…";
+  const err=await gSave(d);
+  if(err){$("gMsg").textContent="Couldn't save: "+err;return}
+  $("gDlg").close();
+};
+
+/* ---------- Plans ---------- */
+const C_STATUS={draft:"Draft",review:"In review",approved:"Approved",live:"Live",done:"Finished"};
+let campaigns=[],adsets=[],planAds=[],comments=[],openPlan=null;
+const me=()=>{try{return localStorage.getItem("pl_me")||""}catch(e){return""}};
+const setMe=v=>{try{localStorage.setItem("pl_me",v)}catch(e){}};
+async function loadPlans(){
+  const [c,s,a,m]=await Promise.all([
+    sb.from("campaigns").select("*").order("created_at",{ascending:false}),
+    sb.from("adsets").select("*").order("position"),
+    sb.from("plan_ads").select("*").order("position"),
+    sb.from("plan_comments").select("*").order("created_at")]);
+  if(!c.error)campaigns=c.data;if(!s.error)adsets=s.data;if(!a.error)planAds=a.data;if(!m.error)comments=m.data;
+}
+function renderPlans(){
+  const L=$("pList");const pn=id=>products.find(p=>p.id===id)?.name;
+  if(!campaigns.length)L.innerHTML=`<div class="empty">No plans yet.<br><button class="btn primary" onclick="newPlan()">+ Make your first plan</button></div>`;
+  else{
+    L.innerHTML=campaigns.map(c=>{const sets=adsets.filter(s=>s.campaign_id===c.id);const pa=planAds.filter(a=>sets.some(s=>s.id===a.adset_id));
+      return `<button class="plan" data-id="${c.id}"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><h2>${esc(c.name)}</h2><span class="pill p-${c.status}">${C_STATUS[c.status]}</span></div>
+      <div class="pm">${pn(c.product_id)?`<span>${esc(pn(c.product_id))}</span>`:""}<span>${sets.length} ad set${sets.length===1?"":"s"}</span><span>${pa.length} ad${pa.length===1?"":"s"} · ${pa.filter(a=>a.ready).length} ready</span>${c.daily_budget!=null?`<span>${fmt(c.daily_budget)} DT/day</span>`:""}</div>
+      ${c.approved_by?.length?`<div class="pm"><span class="ok">✓ Approved by ${esc(c.approved_by.join(", "))}</span></div>`:""}</button>`}).join("");
+    L.querySelectorAll(".plan").forEach(b=>b.onclick=()=>showPlan(b.dataset.id));
+  }
+  if(openPlan)renderPlanView();
+}
+function showPlan(id){openPlan=id;$("planList").hidden=true;$("planView").hidden=false;renderPlanView();window.scrollTo(0,0)}
+function closePlan(){openPlan=null;$("planList").hidden=false;$("planView").hidden=true}
+function renderPlanView(){
+  const c=campaigns.find(x=>x.id===openPlan);if(!c){closePlan();return}
+  const prod=products.find(p=>p.id===c.product_id);
+  const sets=adsets.filter(s=>s.campaign_id===c.id);
+  const pa=planAds.filter(a=>sets.some(s=>s.id===a.adset_id));
+  const setBudget=sets.reduce((t,s)=>t+(num(s.daily_budget)||0),0);
+  const cm=comments.filter(x=>x.campaign_id===c.id);
+  const name=me();const mine=name&&c.approved_by?.includes(name);
+  const V=$("planView");
+  V.innerHTML=`<button class="back" id="pvBack">← All plans</button>
+  <div class="pv-head"><div><h1>${esc(c.name)}</h1><div class="pm" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><span class="pill p-${c.status}">${C_STATUS[c.status]}</span>${prod?`<span style="color:var(--muted);font-size:14px">${esc(prod.name)}</span>`:""}</div></div>
+    <div class="pv-actions"><button class="btn ghost sm" id="pvEdit">Edit settings</button>
+    ${c.status==="draft"?`<button class="btn primary sm" id="pvReview">Send for review</button>`:""}
+    ${c.status==="review"||c.status==="approved"?`<button class="btn ${mine?"ghost":"primary"} sm" id="pvApprove">${mine?"Remove my approval":"Approve plan"}</button>`:""}
+    ${c.status==="approved"?`<button class="btn ghost sm" id="pvLive">Mark as live</button>`:""}
+    ${c.status==="live"?`<button class="btn ghost sm" id="pvDone">Mark as finished</button>`:""}
+    <button class="btn danger sm" id="pvDel">Delete</button></div></div>
+  <div class="facts">
+    <div><span>Objective</span><b>${esc(c.objective||"—")}</b></div>
+    <div><span>Campaign budget / day</span><b>${fmt(c.daily_budget)} DT</b></div>
+    <div><span>Ad set budgets / day</span><b>${fmt(setBudget)} DT</b></div>
+    <div><span>Start</span><b>${c.start_date?fmtDate(c.start_date):"Not set"}</b></div>
+    <div><span>Ads ready</span><b class="${pa.length&&pa.every(a=>a.ready)?"pos":""}">${pa.filter(a=>a.ready).length} / ${pa.length}</b></div>
+  </div>
+  ${c.rules?`<div class="rules"><h3>Rules for this test</h3>${esc(c.rules)}</div>`:""}
+  <div class="adsets">
+    ${sets.map((s,i)=>{const sa=pa.filter(a=>a.adset_id===s.id);
+      return `<div class="aset"><div class="aset-h"><div class="t"><h2>${esc(s.name)}</h2><p>${esc([s.angle&&"Angle: "+s.angle,s.audience&&"Audience: "+s.audience,s.daily_budget!=null&&fmt(s.daily_budget)+" DT/day"].filter(Boolean).join(" · "))}</p></div>
+      <button class="btn ghost sm" data-eset="${s.id}">Edit</button><button class="btn danger sm" data-dset="${s.id}">Delete</button></div>
+      <div class="aset-ads">${sa.map(a=>{const lib=ads.find(x=>x.id===a.ad_id);const th=lib&&(lib.poster||(lib.format==="image"?lib.media:""));
+        return `<div class="pad"><div class="thumb">${isUrl(th)?`<img src="${esc(th)}" alt="">`:"To make"}</div><div class="pb">
+        <b>${esc(a.name)}</b>
+        ${a.visual?`<div><div class="lbl">Video / image</div>${esc(a.visual)}</div>`:""}
+        ${a.script?`<div><div class="lbl">Primary text</div><div class="sc" dir="auto">${esc(a.script)}</div></div>`:""}
+        ${a.headline?`<div><div class="lbl">Headline</div><span dir="auto">${esc(a.headline)}</span></div>`:""}
+        ${a.cta?`<div><div class="lbl">Button</div>${esc(a.cta)}</div>`:""}
+        <div class="row"><label class="rd"><input type="checkbox" data-ready="${a.id}" ${a.ready?"checked":""}> Ready</label><span><button class="btn ghost sm" data-ead="${a.id}">Edit</button> <button class="btn danger sm" data-dad="${a.id}">✕</button></span></div>
+        </div></div>`}).join("")}
+        <button class="addcard" data-addad="${s.id}">+ Add ad to this ad set</button></div></div>`}).join("")}
+    <button class="addcard" id="pvAddSet" style="min-height:64px">+ Add ad set</button>
+  </div>
+  <div class="review"><h3>Review</h3>
+    <div class="who">Your name: <input id="meName" value="${esc(name)}" placeholder="e.g. Karim" maxlength="30"> ${c.approved_by?.length?`<span class="ok">✓ Approved by ${esc(c.approved_by.join(", "))}</span>`:`<span style="color:var(--muted)">No approvals yet</span>`}</div>
+    <div class="cmts">${cm.length?cm.map(x=>`<div class="cmt"><small>${esc(x.who||"Someone")} · ${new Date(x.created_at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</small><span dir="auto" style="white-space:pre-wrap">${esc(x.body)}</span></div>`).join(""):`<p style="color:var(--muted);margin:0;font-size:14px">No comments yet. Write what to change before publishing.</p>`}</div>
+    <form class="cform" id="cForm"><textarea id="cBody" placeholder="Comment, e.g. change the hook in ad 2" maxlength="1000" dir="auto"></textarea><button class="btn primary" type="submit">Send</button></form>
+  </div>`;
+  const q=s=>V.querySelectorAll(s);
+  $("pvBack").onclick=closePlan;
+  $("meName").onchange=e=>{setMe(e.target.value.trim());renderPlanView()};
+  $("pvEdit").onclick=()=>editPlan(c);
+  const st=(status,extra={})=>async()=>{const r=await sb.from("campaigns").update({status,...extra}).eq("id",c.id);if(r.error)return toast("Couldn't update");toast(C_STATUS[status]);refreshPlans()};
+  if($("pvReview"))$("pvReview").onclick=st("review");
+  if($("pvLive"))$("pvLive").onclick=st("live");
+  if($("pvDone"))$("pvDone").onclick=st("done");
+  if($("pvApprove"))$("pvApprove").onclick=async()=>{
+    const n=me();if(!n){toast("Write your name first");$("meName").focus();return}
+    const list=new Set(c.approved_by||[]);mine?list.delete(n):list.add(n);
+    const arr=[...list];await st(arr.length>=2?"approved":"review",{approved_by:arr})();
+  };
+  $("pvDel").onclick=async e=>{const b=e.target;if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Click again to delete";return}
+    const r=await sb.from("campaigns").delete().eq("id",c.id);if(r.error)return toast("Couldn't delete");closePlan();toast("Plan deleted");refreshPlans()};
+  $("pvAddSet").onclick=()=>editSet(c,null,sets.length);
+  q("[data-eset]").forEach(b=>b.onclick=()=>editSet(c,adsets.find(s=>s.id===b.dataset.eset)));
+  q("[data-dset]").forEach(b=>b.onclick=async()=>{if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Delete ad set + its ads?";return}
+    await sb.from("adsets").delete().eq("id",b.dataset.dset);refreshPlans()});
+  q("[data-addad]").forEach(b=>b.onclick=()=>editPlanAd(b.dataset.addad,null,c));
+  q("[data-ead]").forEach(b=>b.onclick=()=>{const a=planAds.find(x=>x.id===b.dataset.ead);editPlanAd(a.adset_id,a,c)});
+  q("[data-dad]").forEach(b=>b.onclick=async()=>{if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Delete?";return}
+    await sb.from("plan_ads").delete().eq("id",b.dataset.dad);refreshPlans()});
+  q("[data-ready]").forEach(b=>b.onchange=async()=>{await sb.from("plan_ads").update({ready:b.checked}).eq("id",b.dataset.ready);refreshPlans()});
+  $("cForm").onsubmit=async e=>{e.preventDefault();const body=$("cBody").value.trim();if(!body)return;
+    const r=await sb.from("plan_comments").insert({campaign_id:c.id,who:me()||null,body});if(r.error)return toast("Couldn't send");refreshPlans()};
+}
+const prodOpts=()=>[["","No product"],...products.map(p=>[p.id,p.name])];
+function newPlan(){editPlan(null)}
+function editPlan(c){
+  gForm(c?"Edit plan":"New campaign plan",[
+    {k:"name",label:"Campaign name",req:true,ph:"Shoe box · Pre-order test 1"},
+    {k:"product_id",label:"Product",type:"select",opts:prodOpts(),full:false},
+    {k:"objective",label:"Objective",type:"select",opts:[["Sales","Sales"],["Traffic","Traffic"],["Engagement","Engagement"],["Leads","Leads"]],full:false},
+    {k:"daily_budget",label:"Daily budget (DT)",type:"number",full:false},
+    {k:"start_date",label:"Start date",type:"date",full:false},
+    {k:"rules",label:"Rules for this test",type:"textarea",ph:"When to stop, when to scale, what counts as a win"}],
+    c||{objective:"Sales"},async d=>{
+      d.product_id=d.product_id||null;
+      const r=c?await sb.from("campaigns").update(d).eq("id",c.id):await sb.from("campaigns").insert(d).select().single();
+      if(r.error)return r.error.message;
+      if(!c)openPlan=r.data.id;await refreshPlans();if(!c)showPlan(r.data.id);
+    });
+}
+function editSet(c,s,pos){
+  gForm(s?"Edit ad set":"New ad set",[
+    {k:"name",label:"Ad set name",req:true,ph:"A · Mum and the mess"},
+    {k:"angle",label:"Angle",ph:"Story: shoes all over the house"},
+    {k:"audience",label:"Audience",ph:"Tunisia, women 25–50, broad"},
+    {k:"daily_budget",label:"Daily budget (DT)",type:"number",full:false}],
+    s,async d=>{
+      const r=s?await sb.from("adsets").update(d).eq("id",s.id):await sb.from("adsets").insert({...d,campaign_id:c.id,position:pos||0});
+      if(r.error)return r.error.message;refreshPlans();
+    });
+}
+function editPlanAd(setId,a,c){
+  const libOpts=[["","None, describe it below"],...ads.filter(x=>!c.product_id||x.product_id===c.product_id).map(x=>[x.id,x.name])];
+  gForm(a?"Edit ad":"New ad",[
+    {k:"name",label:"Ad name",req:true,ph:"Mum video"},
+    {k:"ad_id",label:"Use an ad from the library",type:"select",opts:libOpts,hint:"Pick an existing video or image, or leave empty if it still needs to be made"},
+    {k:"visual",label:"Video / image to make",type:"textarea",max:1000,ph:"What the video shows, scene by scene"},
+    {k:"script",label:"Primary text (ad copy)",type:"textarea",max:3000},
+    {k:"headline",label:"Headline",full:false},
+    {k:"cta",label:"Button",type:"select",opts:[["Shop now","Shop now"],["Order now","Order now"],["Learn more","Learn more"],["Send message","Send message"]],full:false}],
+    a||{cta:"Shop now"},async d=>{
+      d.ad_id=d.ad_id||null;
+      const n=planAds.filter(x=>x.adset_id===setId).length;
+      const r=a?await sb.from("plan_ads").update(d).eq("id",a.id):await sb.from("plan_ads").insert({...d,adset_id:setId,position:n});
+      if(r.error)return r.error.message;refreshPlans();
+    });
+}
+async function refreshPlans(){await loadPlans();renderPlans()}
+$("addPlan").onclick=newPlan;
+
 /* ---------- Tasks ---------- */
 const today=()=>new Date().toISOString().slice(0,10);
 function dueLabel(d){
@@ -719,11 +959,11 @@ Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
 function setTab(t){
-  for(const x of["products","suppliers","ads","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
+  for(const x of["products","suppliers","ads","plans","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
-$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");
-try{const t=localStorage.getItem("pl_tab");if(["suppliers","ads","tasks"].includes(t))setTab(t)}catch(e){}
+$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");$("tab-plans").onclick=()=>setTab("plans");
+try{const t=localStorage.getItem("pl_tab");if(["suppliers","ads","plans","tasks"].includes(t))setTab(t)}catch(e){}
 
 /* ---------- Data ---------- */
 async function loadAll(){
@@ -734,19 +974,23 @@ async function loadAll(){
   if(!t.error){tasks=t.data}
   const ad=await sb.from("ads").select("*").order("created_at",{ascending:false});
   if(!ad.error){ads=ad.data}
+  await loadPlans();
   if(p.error||s.error){sync("Offline","var(--bad)");const m=`<div class="empty">Couldn't load data. Check your internet and reload.</div>`;$("pGrid").innerHTML=m;$("sList").innerHTML=m;return}
   products=p.data;suppliers=s.data;sync("Saved · live","var(--good)");
   renderProducts();renderSuppliers();renderTasks();renderAds();
+  if(!(openPlan&&document.activeElement?.closest?.("#planView")&&document.activeElement.matches("input,textarea")))renderPlans();
   if(current&&!$("side").hidden&&current.kind!=="a")({p:openProduct,s:openSupplier,a:openAd})[current.kind](current.id);
 }
 if(window.supabase?.createClient){
   sb=supabase.createClient(SB_URL,SB_KEY);
   loadAll();
   let t;const again=()=>{clearTimeout(t);t=setTimeout(loadAll,300)};
-  sb.channel("lab").on("postgres_changes",{event:"*",schema:"public",table:"products"},again)
+  const ch=sb.channel("lab");ch.on("postgres_changes",{event:"*",schema:"public",table:"products"},again)
     .on("postgres_changes",{event:"*",schema:"public",table:"suppliers"},again)
     .on("postgres_changes",{event:"*",schema:"public",table:"tasks"},again)
-    .on("postgres_changes",{event:"*",schema:"public",table:"ads"},again).subscribe();
+    .on("postgres_changes",{event:"*",schema:"public",table:"ads"},again);
+  for(const t of["campaigns","adsets","plan_ads","plan_comments"])ch.on("postgres_changes",{event:"*",schema:"public",table:t},again);
+  ch.subscribe();
 }else{sync("Offline","var(--bad)");$("pGrid").innerHTML=`<div class="empty">Couldn't load. Check your internet and reload.</div>`}
 </script>
 </body>
