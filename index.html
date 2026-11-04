@@ -853,7 +853,8 @@ $("setForm").onsubmit=async e=>{
   e.preventDefault();$("setMsg").textContent="Saving…";
   const tok=$("set-token").value.trim();
   if(tok){const t=await sb.rpc("set_meta_token",{t:tok});if(t.error){$("setMsg").textContent="Couldn't save token: "+t.error.message;return}$("set-token").value="";stLoaded=false;tokenStatus()}
-  const rows=SET_KEYS.map(k=>({key:k,value:$("set-"+k).value.trim()||null}));
+  // never wipe a saved value with an empty box (e.g. Settings opened before data loaded)
+  const rows=SET_KEYS.map(k=>({key:k,value:$("set-"+k).value.trim()||settings[k]||null}));
   const r=await sb.from("settings").upsert(rows);
   if(r.error){$("setMsg").textContent="Couldn't save: "+r.error.message;return}
   await loadSettings();renderLinks();renderProducts();$("setMsg").textContent="Saved";toast("Settings saved");
@@ -866,7 +867,9 @@ const act=(arr,type)=>{const x=(arr||[]).find(a=>a.action_type===type);return x?
 const PURCHASE="offsite_conversion.fb_pixel_purchase";
 let stLoaded=false;
 async function loadStats(){
-  $("stLogin").hidden=true;$("stBody").innerHTML=`<div class="empty">Loading stats from Meta…</div>`;
+  $("stLogin").hidden=true;
+  if(!settings.act&&!settings.pixel){$("stBody").innerHTML=`<div class="empty">Add your ad account ID and pixel ID in <b>⚙ Settings</b> first.<br><button class="btn primary" onclick="document.getElementById('setBtn').click()">Open Settings</button></div>`;return}
+  $("stBody").innerHTML=`<div class="empty">Loading stats from Meta…</div>`;
   let r,d;
   try{
     r=await fetch(SB_URL+"/functions/v1/meta-stats",{method:"POST",headers:{"Content-Type":"application/json","apikey":SB_KEY,"x-lab-pass":stPass()},
