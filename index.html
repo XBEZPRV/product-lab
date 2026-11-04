@@ -1514,7 +1514,9 @@ function priceAdvice(i){
   let suggest=null,tone="idle",msg="";
   if(m.avg!=null&&floor!=null){
     if(floor>m.max){tone="bad";msg=`Hard to compete: 3× your cost is ${fmt(floor,0)} DT, but competitors sell for ${fmt(m.min,0)}–${fmt(m.max,0)} DT. Find a cheaper supplier, sell a bigger pack, or skip.`}
-    else{suggest=Math.max(floor,Math.round(Math.min(m.avg,m.max)*0.95));tone="good";msg=`Price at about ${fmt(suggest,0)} DT: at least 3× your cost, and just under the market average (${fmt(m.avg,0)} DT).`}
+    else{suggest=Math.max(floor,Math.round(Math.min(m.avg,m.max)*0.95));
+      if(suggest<=m.avg){tone="good";msg=`Price at about ${fmt(suggest,0)} DT: at least 3× your cost, and just under the market average (${fmt(m.avg,0)} DT).`}
+      else{tone="idle";msg=`Price at about ${fmt(suggest,0)} DT: the minimum for 3× your cost. That's above the market average (${fmt(m.avg,0)} DT) but still inside the range (${fmt(m.min,0)}–${fmt(m.max,0)} DT), so margins are tight. A cheaper supplier or a pack offer would help.`}}
   }else if(floor!=null){suggest=Math.ceil(floor);msg=`At least ${fmt(floor,0)} DT (3× cost). Add competitor ads to check the market price.`}
   else if(m.avg!=null){msg=`Competitors charge about ${fmt(m.avg,0)} DT. Add your cost to get a suggested price.`}
   else msg="Add your cost, and some competitor ads, to get a suggested price.";
