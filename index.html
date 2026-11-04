@@ -149,6 +149,22 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .angles .wrapt{overflow-x:auto}
 .player{width:100%;max-height:62vh;border-radius:12px;background:#000;display:block}
 
+.icon{flex:none;width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:16px;line-height:1}
+.icon:hover{border-color:var(--ink)}
+.nav{overflow-x:auto;scrollbar-width:none;min-width:0}
+.nav::-webkit-scrollbar{display:none}
+.nav button{flex:none}
+.guide{direction:rtl;text-align:right;font-size:16px;line-height:1.8}
+.guide h3{font-size:18px;font-weight:500;margin:22px 0 6px}
+.guide h3:first-child{margin-top:4px}
+.guide p,.guide li{margin:0 0 6px}
+.guide ul{padding-right:20px;padding-left:0;margin:0 0 6px}
+.guide .tip{background:var(--warn-bg);color:#4a3600;border-radius:10px;padding:10px 12px;margin-top:12px}
+.links{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.links a{display:flex;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-decoration:none}
+.links a:hover{border-color:var(--ink)}
+.links .off{color:var(--muted);font-size:13px}
+
 /* Plans */
 .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px}
@@ -249,7 +265,9 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
   .search{flex-basis:100%;margin-left:0}
   fieldset{grid-template-columns:1fr}
   .sync span{display:none}
-  .top .wrap{gap:10px}
+  .sync{margin-left:0}
+  .top .wrap{gap:8px}
+  .nav{flex:1}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -266,6 +284,8 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <button role="tab" id="tab-tasks" aria-selected="false">Tasks <span id="taskBadge" class="badge" hidden></span></button>
   </nav>
   <div class="sync"><b id="dot"></b><span id="syncText">Connecting…</span></div>
+  <button class="icon" id="guideBtn" title="دليل الاستعمال" aria-label="Guide">؟</button>
+  <button class="icon" id="setBtn" title="Settings" aria-label="Settings">⚙</button>
 </div></div>
 
 <main class="wrap">
@@ -439,6 +459,77 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
   <div class="df"><span class="msg" id="aMsg"></span><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary" id="aSave">Save ad</button></div>
 </form></dialog>
 
+<!-- Guide (Darija) -->
+<dialog id="guideDlg" aria-labelledby="guideTitle"><div style="display:flex;flex-direction:column;max-height:calc(100dvh - 34px)">
+  <div class="dh" style="direction:rtl"><h2 id="guideTitle">كيفاش تخدم بـ Product Lab</h2><button type="button" class="x" data-close aria-label="سكّر" style="margin-right:auto;margin-left:0">✕</button></div>
+  <div class="db guide">
+    <h3>شنوّة هذا؟</h3>
+    <p>هذا المكان اللي نخدمو فيه أنا وانت مع بعضنا. كل حاجة تبدّلها توصل للآخر في ثانية. ما فمّاش login، أما ما تبعث الرابط لحتّى حد آخر.</p>
+    <p>كي تشوف <b>Saved · live</b> الفوق معناها كل شي مسجّل.</p>
+
+    <h3>1. Products — المنتوجات</h3>
+    <ul>
+      <li>كل منتوج جرّبناه ولا باش نجرّبوه: التصويرة، قدّاش يكلّف، بقدّاش نبيعوه.</li>
+      <li>اضغط على منتوج باش تشوف كل شي: المشكلة اللي يحلها، السكريبت، الفوايد، والموردين متاعو.</li>
+      <li>المربّع الأخضر ولا الأحمر يقلك المنتوج يربّح ولا يخسّر بعد التوصيل والإعلانات.</li>
+      <li>ما تكتبش الأرقام كل نهار. كي يوفى التست، اكتب المصروف والكوموندات مرة وحدة، وبدّل الحالة لـ Winner ولا Stopped.</li>
+    </ul>
+
+    <h3>2. Suppliers — الموردين</h3>
+    <ul>
+      <li>كل مورد كلّمناه: التليفون، الإيميل، السوم، وأقل كمية.</li>
+      <li>بدّل الحالة: To contact ← Waiting reply ← Quoted ← Chosen ولا Rejected.</li>
+      <li>زر Copy ينسخلك النومرو باش تبعث WhatsApp طول.</li>
+    </ul>
+
+    <h3>3. Ads — مكتبة الإعلانات</h3>
+    <ul>
+      <li>كل فيديو ولا تصويرة عملناها، مع الـ angle (الفكرة اللي تبيع).</li>
+      <li>كي يوفى الإعلان، حط النتيجة من Ads Manager: المصروف، الكوموندات، والـ CTR.</li>
+      <li>جدول «Which angles work» يقلك أنا فكرة جابت كوموندات بأرخص سوم.</li>
+    </ul>
+
+    <h3>4. Plans — خطة الكامبانيا</h3>
+    <ul>
+      <li>قبل ما ننشرو أي كامبانيا، نعملو الخطة هنا: كم Ad set، أنا angle، أنا فيديو، والسكريبت.</li>
+      <li>كل واحد يقرا الخطة ويكتب ملاحظاتو في <b>Review</b>.</li>
+      <li>اكتب اسمك وانزل على <b>Approve plan</b>. كي نوافقو الزوز، تولّي Approved، وتوّا ننشروها في Ads Manager.</li>
+      <li>علّم على <b>Ready</b> كي الإعلان يكون حاضر.</li>
+    </ul>
+
+    <h3>5. Tasks — المهام</h3>
+    <ul>
+      <li>اكتب شنوّة لازم يتعمل، شكون باش يعملو، ووقتاش.</li>
+      <li>كي تكمّل، علّم على المربّع. الأحمر معناها فات الوقت.</li>
+    </ul>
+
+    <h3>⚙ Settings</h3>
+    <p>فيها الروابط متاع Ads Manager، الـ Pixel، والحانوت، باش تحلّهم بضغطة.</p>
+
+    <p class="tip">القاعدة: ما نصرفو حتى مليم على منتوج قبل ما نعرفو سومو الحقيقي، وما ننشرو حتى كامبانيا قبل ما نوافقو عليها الزوز.</p>
+  </div>
+</div></dialog>
+
+<!-- Settings -->
+<dialog id="setDlg" aria-labelledby="setTitle"><form id="setForm" novalidate>
+  <div class="dh"><h2 id="setTitle">Settings</h2><button type="button" class="x" data-close aria-label="Close">✕</button></div>
+  <div class="db">
+    <fieldset><legend>Quick links</legend>
+      <div class="f full"><div class="links" id="setLinks"></div></div>
+    </fieldset>
+    <fieldset><legend>Meta</legend>
+      <div class="f"><label for="set-act">Ad account ID</label><input id="set-act" inputmode="numeric" maxlength="30" placeholder="1234567890"><small>Ads Manager → the number after act= in the address bar</small></div>
+      <div class="f"><label for="set-pixel">Pixel / dataset ID</label><input id="set-pixel" inputmode="numeric" maxlength="30" placeholder="9876543210"><small>Events Manager → Data sources</small></div>
+    </fieldset>
+    <fieldset><legend>Stores</legend>
+      <div class="f full"><label for="set-store1">Store 1 link</label><input id="set-store1" type="url" maxlength="300" placeholder="https://koujinatna.converty.shop"></div>
+      <div class="f full"><label for="set-store2">Store 2 link</label><input id="set-store2" type="url" maxlength="300"></div>
+      <div class="f"><label for="set-delivery">Delivery cost per order (DT)</label><input id="set-delivery" type="number" step="0.5" min="0" inputmode="decimal"><small>Used to work out profit</small></div>
+    </fieldset>
+  </div>
+  <div class="df"><span class="msg" id="setMsg"></span><button type="button" class="btn ghost" data-close>Close</button><button type="submit" class="btn primary">Save settings</button></div>
+</form></dialog>
+
 <!-- Generic form -->
 <dialog id="gDlg" aria-labelledby="gTitle"><form id="gForm" novalidate>
   <div class="dh"><h2 id="gTitle"></h2><button type="button" class="x" data-close aria-label="Close">✕</button></div>
@@ -450,7 +541,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 
 <script>
 const SB_URL="https://caajpoyjvmbxmyblmuun.supabase.co",SB_KEY="sb_publishable_L-Q_0wU-nZ6j9W9RrzlpFA_dfOK2dJS";
-const DELIVERY=8; // DT courier cost per order, used for profit
+let DELIVERY=8; // DT courier cost per order, used for profit; overridden by settings
 const P_STATUS={idea:"Idea",sourcing:"Sourcing",testing:"Testing",winner:"Winner",stopped:"Stopped"};
 const S_STATUS={to_contact:"To contact",waiting:"Waiting reply",quoted:"Quoted",chosen:"Chosen",rejected:"Rejected"};
 const $=id=>document.getElementById(id);
@@ -695,6 +786,33 @@ $("aStatus").innerHTML=`<option value="">All results</option>`+Object.entries(A_
 $("aStatus").onchange=renderAds;
 Object.entries(A_STATUS).forEach(([k,l])=>$("a-status").add(new Option(l,k)));
 $("addAd").onclick=()=>openAForm();
+
+/* ---------- Guide & settings ---------- */
+let settings={};
+const SET_KEYS=["act","pixel","store1","store2","delivery"];
+async function loadSettings(){
+  const r=await sb.from("settings").select("*");if(r.error)return;
+  settings=Object.fromEntries(r.data.map(x=>[x.key,x.value]));
+  if(num(settings.delivery)!=null)DELIVERY=num(settings.delivery);
+}
+function renderLinks(){
+  const act=(settings.act||"").replace(/\D/g,""),px=(settings.pixel||"").replace(/\D/g,"");
+  const L=[
+    ["Ads Manager",act?`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${act}`:"https://adsmanager.facebook.com/"],
+    ["Events Manager (pixel)",px?`https://business.facebook.com/events_manager2/list/pixel/${px}/overview`:"https://business.facebook.com/events_manager2/"],
+    ["Store 1",settings.store1],["Store 2",settings.store2]];
+  $("setLinks").innerHTML=L.map(([l,u])=>isUrl(u)?`<a href="${esc(u)}" target="_blank" rel="noopener"><span>${l}</span><span>Open ↗</span></a>`:`<div class="links"><span class="off">${l}: add the link below</span></div>`).join("");
+}
+$("guideBtn").onclick=()=>$("guideDlg").showModal();
+$("setBtn").onclick=()=>{for(const k of SET_KEYS)$("set-"+k).value=settings[k]??(k==="delivery"?DELIVERY:"");$("setMsg").textContent="";renderLinks();$("setDlg").showModal()};
+$("setForm").onsubmit=async e=>{
+  e.preventDefault();$("setMsg").textContent="Saving…";
+  const rows=SET_KEYS.map(k=>({key:k,value:$("set-"+k).value.trim()||null}));
+  const r=await sb.from("settings").upsert(rows);
+  if(r.error){$("setMsg").textContent="Couldn't save: "+r.error.message;return}
+  await loadSettings();renderLinks();renderProducts();$("setMsg").textContent="Saved";toast("Settings saved");
+};
+try{if(!localStorage.getItem("pl_seen_guide")){localStorage.setItem("pl_seen_guide","1");setTimeout(()=>$("guideDlg").showModal(),600)}}catch(e){}
 
 /* ---------- Generic form ---------- */
 let gSave=null;
@@ -951,6 +1069,7 @@ $("sideDel").onclick=async()=>{
   hideSide();toast("Deleted");loadAll();
 };
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest("dialog").close());
+// guide dialog wraps its content in a div, so close on backdrop click via the dialog itself too
 document.querySelectorAll("dialog").forEach(d=>d.addEventListener("click",e=>{if(e.target===d)d.close()}));
 $("addProduct").onclick=()=>openPForm();
 $("addSupplier").onclick=()=>openSForm();
@@ -974,7 +1093,7 @@ async function loadAll(){
   if(!t.error){tasks=t.data}
   const ad=await sb.from("ads").select("*").order("created_at",{ascending:false});
   if(!ad.error){ads=ad.data}
-  await loadPlans();
+  await Promise.all([loadPlans(),loadSettings()]);
   if(p.error||s.error){sync("Offline","var(--bad)");const m=`<div class="empty">Couldn't load data. Check your internet and reload.</div>`;$("pGrid").innerHTML=m;$("sList").innerHTML=m;return}
   products=p.data;suppliers=s.data;sync("Saved · live","var(--good)");
   renderProducts();renderSuppliers();renderTasks();renderAds();
