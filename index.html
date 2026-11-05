@@ -329,6 +329,23 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .mthumbs{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .mthumbs img{width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 
+.cgroup{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:18px}
+.cg-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.cg-h>div{display:flex;gap:12px;align-items:center;min-width:0}
+.cg-h img{width:44px;height:44px;border-radius:10px;object-fit:cover}
+.cg-h b{display:block;font-weight:500;font-size:18px}
+.cg-h small{color:var(--muted);font-size:13px}
+.cg-sub{font-size:12px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.cgroup .pcard{background:var(--canvas)}
+.clist{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.clist .cg-sub{margin:8px 0 2px}
+.crow{display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 12px;cursor:pointer;color:var(--ink)}
+.crow:hover{border-color:var(--ink)}
+.crow .cn{min-width:0}
+.crow .cn b{font-weight:500}
+.crow small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .cp{flex:none;text-align:right;font-weight:500;font-variant-numeric:tabular-nums}
+
 /* Plans */
 .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:10px}
@@ -1602,6 +1619,14 @@ function priceAdvice(i){
   else if(price!=null&&floor!=null&&price<floor)warn=`Your price is under 3× your cost (${fmt(floor,0)} DT), so there's little room for ads.`;
   return{m,floor,suggest,tone,msg,warn};
 }
+function compList(i){
+  const cs=comps.filter(c=>c.idea_id===i.id||(i.product_id&&c.product_id===i.product_id));
+  if(!cs.length)return"";
+  const row=c=>{const d=daysRunning(c);return `<button class="crow" data-cid="${c.id}"><span class="cn">${abroad(c)?"🌍":"🇹🇳"} <b>${esc(c.name)}</b>${c.angle?`<small dir="auto">${esc(c.angle)}</small>`:""}</span><span class="cp">${!abroad(c)&&c.price!=null?fmt(c.price,0)+" DT":""}${d!=null?`<small>${d>=30?"🔥 ":""}${d} days</small>`:""}</span></button>`};
+  const tn=cs.filter(c=>!abroad(c)).sort((a,b)=>(num(a.price)??1e9)-(num(b.price)??1e9)),ab=cs.filter(abroad).sort((a,b)=>(daysRunning(b)??-1)-(daysRunning(a)??-1));
+  return `<div class="clist">${tn.length?`<p class="cg-sub">🇹🇳 In Tunisia (${tn.length}) · cheapest first</p>${tn.map(row).join("")}`:""}
+    ${ab.length?`<p class="cg-sub">🌍 Inspiration (${ab.length}) · longest running first</p>${ab.map(row).join("")}`:""}</div>`;
+}
 const CHECKS=[["chk_competitors","Competitors checked","Searched the Ad Library and added their ads"],["chk_supplier","Supplier found","Real price and delivery time confirmed"],["chk_video","Video idea ready","We know what the first ad will show"],["chk_price","Price decided","Checked against the market price"]];
 const checksDone=i=>CHECKS.filter(([k])=>i[k]).length;
 
@@ -1622,6 +1647,7 @@ function openIdea(id){
       <div><span>Competitors in Tunisia</span><b>${m.n}${m.hot?` · 🔥${m.hot}`:""}</b>${m.abroad?`<em style="font-style:normal;font-size:12px;color:var(--muted);display:block">+ ${m.abroad} abroad (inspiration)</em>`:""}</div><div><span>Market price</span><b>${m.min!=null?(m.min===m.max?fmt(m.min,0):fmt(m.min,0)+"–"+fmt(m.max,0)):"—"}</b></div><div><span>Suggested</span><b class="pos">${A.suggest!=null?fmt(A.suggest,0):"—"}</b></div></div>
       ${A.warn?`<p class="verdict" style="margin:8px 0 0;background:var(--bad-bg);color:var(--bad)">⚠ ${esc(A.warn)}</p>`:""}
       <p class="verdict" style="margin:8px 0 0;background:${tc}">${esc(A.msg)}</p>
+      ${compList(i)}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${A.suggest!=null&&A.suggest!==num(i.price)?`<button class="btn ghost sm" id="iUsePrice">Use ${fmt(A.suggest,0)} DT</button>`:""}<button class="btn ghost sm" id="iAddComp">+ Add a competitor ad</button></div>
       <p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${margin!=null?`At our price, you could pay up to ${fmt(margin,0)} DT in ads per order and still break even.`:"Add cost and price with Edit."}</p></div>`})()}
     <div class="sec"><h3>The 6 rules</h3><div class="rlist">${R.map(r=>`<div class="rrow"><span>${r.l}<small>${r.h}${r.auto?" · from the numbers":""}</small></span>
@@ -1644,6 +1670,7 @@ function openIdea(id){
   $("iPhoto").onchange=async e=>{const f=e.target.files[0];if(!f)return;toast("Uploading photo…");
     const path="idea-"+Date.now()+"-"+f.name.replace(/[^\w.-]+/g,"_");const up=await sb.storage.from("product-images").upload(path,f,{contentType:f.type});
     if(up.error)return toast("Couldn't upload");patchIdea(i.id,{image:sb.storage.from("product-images").getPublicUrl(path).data.publicUrl})};
+  $("sideBody").querySelectorAll("[data-cid]").forEach(b=>b.onclick=()=>{backTo={kind:"i",id:i.id};openComp(b.dataset.cid)});
   $("sideBody").querySelectorAll("[data-chk]").forEach(c=>c.onchange=()=>patchIdea(i.id,{[c.dataset.chk]:c.checked}));
   const up=$("iUsePrice");if(up)up.onclick=()=>patchIdea(i.id,{price:priceAdvice(i).suggest}).then(()=>toast("Price updated"));
   $("iAddComp").onclick=()=>{hideSide();editComp(null);setTimeout(()=>{const s=$("g-for");if(s)s.value="i"+i.id},0)};
@@ -1693,21 +1720,34 @@ function renderComps(){
     const b=document.createElement("button");b.className="chip";b.setAttribute("aria-pressed",k===cFilter);b.innerHTML=`${esc(l)} <span>${n}</span>`;b.onclick=()=>{cFilter=k;renderComps()};ch.append(b);
   });
   const list=comps.filter(c=>cFilter==="all"||forKey(c)===cFilter).sort((a,b)=>(daysRunning(b)??-1)-(daysRunning(a)??-1));
-  const G=$("cGrid");
+  const G=$("cGrid");G.className="";
   if(!list.length){G.innerHTML=`<div class="empty">No competitor ads yet.<br>Search your product in the Ad Library (Tunisia), take a screenshot, and add it here.<br><button class="btn primary" onclick="editComp()">+ Add competitor ad</button></div>`;return}
-  G.innerHTML=list.map(c=>`<button class="pcard" data-id="${c.id}"><div class="pimg">${isUrl(c.image)?`<img src="${esc(c.image)}" alt="" loading="lazy">`:"No screenshot"}<span style="position:absolute;top:10px;left:10px">${runBadge(c)}</span></div>
+  const card=c=>`<button class="pcard" data-id="${c.id}"><div class="pimg">${isUrl(c.image)?`<img src="${esc(c.image)}" alt="" loading="lazy">`:"No screenshot"}<span style="position:absolute;top:10px;left:10px">${runBadge(c)}</span></div>
     <div class="pbody"><div><p class="pname">${esc(c.name)}</p><p class="ptype">${abroad(c)?`🌍 ${esc(c.country)} · inspiration · `:"🇹🇳 "}${esc(forName(c)||"Not linked")}</p></div>
     ${c.angle?`<p style="margin:0;font-size:13px;color:var(--muted)">${esc(c.angle)}</p>`:""}
-    <div class="kpis"><div><span>Price</span><b>${c.price!=null?fmt(c.price)+" DT":"—"}${abroad(c)?`<em style="font-style:normal;font-size:11px;color:var(--muted);display:block">not used</em>`:""}</b></div><div style="grid-column:span 2"><span>Offer</span><b style="font-size:13px" dir="auto">${esc(c.offer||"—")}</b></div></div></div></button>`).join("");
+    <div class="kpis"><div><span>Price</span><b>${c.price!=null?fmt(c.price)+" DT":"—"}${abroad(c)?`<em style="font-style:normal;font-size:11px;color:var(--muted);display:block">not used</em>`:""}</b></div><div style="grid-column:span 2"><span>Offer</span><b style="font-size:13px" dir="auto">${esc(c.offer||"—")}</b></div></div></div></button>`;
+  // one section per idea / product, Tunisia first then inspiration
+  const groups=[...new Set(list.map(forKey))];
+  G.innerHTML=groups.map(k=>{
+    const cs=list.filter(c=>forKey(c)===k),tn=cs.filter(c=>!abroad(c)),ab=cs.filter(abroad);
+    const ps=tn.map(c=>num(c.price)).filter(v=>v!=null);
+    const owner=k[0]==="i"?ideas.find(i=>"i"+i.id===k):k[0]==="p"?products.find(p=>"p"+p.id===k):null;
+    return `<section class="cgroup"><div class="cg-h"><div>${owner&&isUrl(owner.image)?`<img src="${esc(owner.image)}" alt="">`:""}<span><b>${esc(owner?.name||"Not linked to an idea")}</b><small>${k[0]==="i"?"Idea":k[0]==="p"?"Product":""}${ps.length?` · 🇹🇳 market ${fmt(Math.min(...ps),0)}–${fmt(Math.max(...ps),0)} DT`:""} · ${tn.length} in Tunisia · ${ab.length} inspiration</small></span></div>
+      ${owner?`<button class="btn ghost sm" data-own="${k}">Open ${k[0]==="i"?"idea":"product"} →</button>`:""}</div>
+      ${tn.length?`<p class="cg-sub">🇹🇳 Tunisia · sets our price</p><div class="grid">${tn.map(card).join("")}</div>`:""}
+      ${ab.length?`<p class="cg-sub">🌍 Inspiration · hooks and videos</p><div class="grid">${ab.map(card).join("")}</div>`:""}</section>`}).join("");
   G.querySelectorAll(".pcard").forEach(b=>b.onclick=()=>openComp(b.dataset.id));
+  G.querySelectorAll("[data-own]").forEach(b=>b.onclick=()=>{const k=b.dataset.own;if(k[0]==="i"){setTab("ideas");setIdeasView("ideas");openIdea(k.slice(1))}else{setTab("products");openProduct(k.slice(1))}});
 }
+let backTo=null;
 function openComp(id){
   const c=comps.find(x=>x.id===id);if(!c)return;current={kind:"c",id};
+  const back=backTo&&backTo.kind==="i"&&c.idea_id===backTo.id?backTo:(c.idea_id?{kind:"i",id:c.idea_id}:null);backTo=null;
   const d=daysRunning(c),mine=products.find(p=>p.id===c.product_id)||ideas.find(i=>i.id===c.idea_id);
   $("sideTitle").textContent=c.name;
   $("sideMeta").innerHTML=`${runBadge(c)}<span>${abroad(c)?"🌍 "+esc(c.country)+" · inspiration":"🇹🇳 Tunisia"}</span>${forName(c)?`<span>${esc(forName(c))}</span>`:""}${c.format?`<span>${esc(c.format)}</span>`:""}`;
   const ourPrice=num(mine?.price);
-  $("sideBody").innerHTML=`
+  $("sideBody").innerHTML=`${back?`<button class="back" id="cBack" style="margin:0">← Back to idea: ${esc(ideas.find(x=>x.id===back.id)?.name||"")}</button>`:""}
     ${isUrl(c.image)?`<img class="hero" style="aspect-ratio:auto;max-height:60vh;object-fit:contain;background:var(--soft)" src="${esc(c.image)}" alt="">`:""}
     <div><label class="btn ghost sm" style="cursor:pointer">${isUrl(c.image)?"Change screenshot":"Add screenshot"}<input type="file" accept="image/*" id="cShot" hidden></label></div>
     <div class="sec"><h3>Their offer</h3><div class="money"><div><span>Price</span><b>${c.price!=null?fmt(c.price)+" DT":"—"}</b></div><div><span>Our price</span><b>${ourPrice!=null?fmt(ourPrice)+" DT":"—"}</b></div><div><span>Running</span><b>${d!=null?d+" days":"—"}</b></div></div>
@@ -1720,6 +1760,7 @@ function openComp(id){
       ${isUrl(c.ad_link)?`<a href="${esc(c.ad_link)}" target="_blank" rel="noopener"><span>Their ad (Ad Library)</span><span>Open ↗</span></a>`:""}
       ${isUrl(c.page_link)?`<a href="${esc(c.page_link)}" target="_blank" rel="noopener"><span>Their page or store</span><span>Open ↗</span></a>`:""}
       ${!isUrl(c.ad_link)&&!isUrl(c.page_link)?`<p class="text" style="color:var(--muted)">No links yet.</p>`:""}</div></div>`;
+  const cb=$("cBack");if(cb)cb.onclick=()=>{setTab("ideas");openIdea(back.id)};
   $("cShot").onchange=async e=>{const f=e.target.files[0];if(!f)return;toast("Uploading…");
     const path="comp-"+Date.now()+"-"+f.name.replace(/[^\w.-]+/g,"_");const up=await sb.storage.from("product-images").upload(path,f,{contentType:f.type});
     if(up.error)return toast("Couldn't upload");const url=sb.storage.from("product-images").getPublicUrl(path).data.publicUrl;
