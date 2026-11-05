@@ -330,7 +330,11 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .mthumbs img{width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 
 .cgroup{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:18px}
-.cg-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.cg-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer}
+.cgroup.open .cg-h{margin-bottom:6px}
+.cg-h .car{color:var(--muted);font-size:12px;transition:transform .15s;flex:none}
+.cgroup.open .cg-h .car{transform:rotate(90deg)}
+.cgroup{padding:12px 16px}
 .cg-h>div{display:flex;gap:12px;align-items:center;min-width:0}
 .cg-h img{width:44px;height:44px;border-radius:10px;object-fit:cover}
 .cg-h b{display:block;font-weight:500;font-size:18px}
@@ -1705,7 +1709,7 @@ function editIdea(i,srcId){
 $("addIdea").onclick=()=>editIdea();
 
 /* ---------- Competitors ---------- */
-let comps=[],cFilter="all";
+let comps=[],cFilter="all",openGroups=new Set(); // competitor groups start closed
 async function loadComps(){const r=await sb.from("competitors").select("*").order("created_at",{ascending:false});if(!r.error)comps=r.data}
 const daysRunning=c=>c.running_since?Math.max(0,Math.floor((Date.now()-new Date(c.running_since+"T12:00"))/86400000)):null;
 const forName=c=>products.find(p=>p.id===c.product_id)?.name||ideas.find(i=>i.id===c.idea_id)?.name||"";
@@ -1732,10 +1736,13 @@ function renderComps(){
     const cs=list.filter(c=>forKey(c)===k),tn=cs.filter(c=>!abroad(c)),ab=cs.filter(abroad);
     const ps=tn.map(c=>num(c.price)).filter(v=>v!=null);
     const owner=k[0]==="i"?ideas.find(i=>"i"+i.id===k):k[0]==="p"?products.find(p=>"p"+p.id===k):null;
-    return `<section class="cgroup"><div class="cg-h"><div>${owner&&isUrl(owner.image)?`<img src="${esc(owner.image)}" alt="">`:""}<span><b>${esc(owner?.name||"Not linked to an idea")}</b><small>${k[0]==="i"?"Idea":k[0]==="p"?"Product":""}${ps.length?` · 🇹🇳 market ${fmt(Math.min(...ps),0)}–${fmt(Math.max(...ps),0)} DT`:""} · ${tn.length} in Tunisia · ${ab.length} inspiration</small></span></div>
+    const open=openGroups.has(k)||cFilter!=="all";
+    return `<section class="cgroup ${open?"open":""}"><div class="cg-h" data-tog="${k}" role="button" tabindex="0" aria-expanded="${open}"><div><span class="car">▶</span>${owner&&isUrl(owner.image)?`<img src="${esc(owner.image)}" alt="">`:""}<span><b>${esc(owner?.name||"Not linked to an idea")}</b><small>${k[0]==="i"?"Idea":k[0]==="p"?"Product":""}${ps.length?` · 🇹🇳 market ${fmt(Math.min(...ps),0)}–${fmt(Math.max(...ps),0)} DT`:""} · ${tn.length} in Tunisia · ${ab.length} inspiration</small></span></div>
       ${owner?`<button class="btn ghost sm" data-own="${k}">Open ${k[0]==="i"?"idea":"product"} →</button>`:""}</div>
-      ${tn.length?`<p class="cg-sub">🇹🇳 Tunisia · sets our price</p><div class="grid">${tn.map(card).join("")}</div>`:""}
-      ${ab.length?`<p class="cg-sub">🌍 Inspiration · hooks and videos</p><div class="grid">${ab.map(card).join("")}</div>`:""}</section>`}).join("");
+      ${!open?"":`${tn.length?`<p class="cg-sub">🇹🇳 Tunisia · sets our price</p><div class="grid">${tn.map(card).join("")}</div>`:""}
+      ${ab.length?`<p class="cg-sub">🌍 Inspiration · hooks and videos</p><div class="grid">${ab.map(card).join("")}</div>`:""}`}</section>`}).join("");
+  G.querySelectorAll("[data-tog]").forEach(h=>{const t=()=>{const k=h.dataset.tog;openGroups.has(k)?openGroups.delete(k):openGroups.add(k);renderComps()};
+    h.onclick=e=>{if(!e.target.closest("[data-own]"))t()};h.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();t()}}});
   G.querySelectorAll(".pcard").forEach(b=>b.onclick=()=>openComp(b.dataset.id));
   G.querySelectorAll("[data-own]").forEach(b=>b.onclick=()=>{const k=b.dataset.own;if(k[0]==="i"){setTab("ideas");setIdeasView("ideas");openIdea(k.slice(1))}else{setTab("products");openProduct(k.slice(1))}});
 }
