@@ -1020,7 +1020,8 @@ function openSupplier(id){
   $("sideTitle").textContent=s.name;
   $("sideMeta").innerHTML=`<span class="pill p-${s.status}">${S_STATUS[s.status]}</span>${s.kind?`<span>${esc(s.kind)}</span>`:""}${s.city?`<span>${esc(s.city)}</span>`:""}`;
   const row=(label,val,copy)=>val?`<div><span><small style="display:block;color:var(--muted);font-size:12px">${label}</small>${esc(val)}</span>${copy?`<button class="btn ghost sm" data-copy="${esc(val)}">Copy</button>`:""}</div>`:"";
-  const wa=(s.phone||"").split("/")[0].replace(/\D/g,"");
+  let wa=(s.phone||"").split("/")[0].replace(/\D/g,"").replace(/^00/,"");
+  if(wa.length===8)wa="216"+wa; // Tunisian number written without the country code
   $("sideBody").innerHTML=`
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       ${wa.length>=8?`<a class="btn primary sm" href="https://wa.me/${wa}" target="_blank" rel="noopener">WhatsApp ↗</a>`:""}
