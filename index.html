@@ -669,7 +669,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="f"><label for="s-moq">Minimum order</label><input id="s-moq" maxlength="40" placeholder="50"></div>
       <div class="f full"><label for="s-notes">Notes</label><textarea id="s-notes" maxlength="2000" placeholder="What they said, shipping, next step"></textarea></div>
     </fieldset>
-    <datalist id="kinds"><option value="Factory (China)"><option value="Plastic factory (Tunisia)"><option value="Wholesaler (Tunisia)"><option value="Plexiglass workshop"><option value="Shipping / groupage"></datalist>
+    <datalist id="kinds"><option value="Importer (Tunisia)"><option value="General contact"><option value="Factory (China)"><option value="Plastic factory (Tunisia)"><option value="Wholesaler (Tunisia)"><option value="Plexiglass workshop"><option value="Shipping / groupage"></datalist>
   </div>
   <div class="df"><span class="msg" id="sMsg"></span><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn primary">Save supplier</button></div>
 </form></dialog>
@@ -759,7 +759,9 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <ul>
       <li>كل مورد كلّمناه: التليفون، الإيميل، السوم، وأقل كمية.</li>
       <li>بدّل الحالة: To contact ← Waiting reply ← Quoted ← Chosen ولا Rejected.</li>
-      <li>زر Copy ينسخلك النومرو باش تبعث WhatsApp طول.</li>
+      <li>زر Copy ينسخلك النومرو، وزر <b>WhatsApp ↗</b> يحلّ المحادثة طول.</li>
+      <li>تنجم تزيد contacts عامّين (مثلا importer في تونس) بلا ما تربطهم بمنتوج: اختار Type <b>Importer (Tunisia)</b> ولا <b>General contact</b>.</li>
+      <li><b>✉ Send email</b> يبعث إيميل من الدومين متاعنا، مع نماذج جاهزين (فرنساوي، دارجة، إنجليزي). كل إيميل يتسجّل تحت المورّد.</li>
     </ul>
 
     <h3>3. Ads — الإعلانات والكامبانيات</h3>
@@ -844,6 +846,10 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="f"><label for="set-act">Ad account ID</label><input id="set-act" inputmode="numeric" maxlength="30" placeholder="1234567890"><small>Ads Manager → the number after act= in the address bar</small></div>
       <div class="f"><label for="set-pixel">Pixel / dataset ID</label><input id="set-pixel" inputmode="numeric" maxlength="30" placeholder="9876543210"><small>Events Manager → Data sources</small></div>
       <div class="f full"><label for="set-token">Access token</label><input id="set-token" type="password" autocomplete="off" maxlength="600" placeholder="Paste a new token to replace the saved one"><small id="tokenStatus">Saved on the server only. It never shows again here.</small></div>
+    </fieldset>
+    <fieldset><legend>Email to suppliers</legend>
+      <div class="f full"><label for="set-mail_from">Send from</label><input id="set-mail_from" maxlength="120" placeholder="Yassin &lt;contact@helpfikhhma.org&gt;"><small>Name and address on your domain. The domain must be verified in Resend.</small></div>
+      <div class="f full"><label for="set-resend">Resend API key</label><input id="set-resend" type="password" autocomplete="off" maxlength="200" placeholder="re_…  (paste to save or replace)"><small id="resendStatus">Saved on the server only. It never shows again here.</small></div>
     </fieldset>
     <fieldset><legend>Stores</legend>
       <div class="f full"><label for="set-store1">Store 1 link</label><input id="set-store1" type="url" maxlength="300" placeholder="https://koujinatna.converty.shop"></div>
@@ -1004,7 +1010,12 @@ function openSupplier(id){
   $("sideTitle").textContent=s.name;
   $("sideMeta").innerHTML=`<span class="pill p-${s.status}">${S_STATUS[s.status]}</span>${s.kind?`<span>${esc(s.kind)}</span>`:""}${s.city?`<span>${esc(s.city)}</span>`:""}`;
   const row=(label,val,copy)=>val?`<div><span><small style="display:block;color:var(--muted);font-size:12px">${label}</small>${esc(val)}</span>${copy?`<button class="btn ghost sm" data-copy="${esc(val)}">Copy</button>`:""}</div>`:"";
+  const wa=(s.phone||"").split("/")[0].replace(/\D/g,"");
   $("sideBody").innerHTML=`
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${wa.length>=8?`<a class="btn primary sm" href="https://wa.me/${wa}" target="_blank" rel="noopener">WhatsApp ↗</a>`:""}
+      ${s.email?`<button class="btn ${wa.length>=8?"ghost":"primary"} sm" id="sMail">✉ Send email</button>`:""}
+    </div>
     <div class="sec"><h3>Contact</h3><div class="contact">
       ${row("Phone / WhatsApp",s.phone,true)}${row("Email",s.email,true)}
       ${isUrl(s.link)?`<div><span><small style="display:block;color:var(--muted);font-size:12px">Website</small>${esc(s.link.replace(/^https?:\/\/(www\.)?/,"").slice(0,44))}</span><a class="btn ghost sm" href="${esc(s.link)}" target="_blank" rel="noopener">Open ↗</a></div>`:""}
@@ -1012,10 +1023,33 @@ function openSupplier(id){
     </div></div>
     <div class="sec"><h3>Quote</h3><div class="money" style="grid-template-columns:repeat(2,1fr)"><div><span>Price</span><b style="font-size:15px">${esc(s.price||"—")}</b></div><div><span>Minimum order</span><b style="font-size:15px">${esc(s.moq||"—")}</b></div></div></div>
     ${prod?`<div class="sec"><h3>For product</h3><div class="mini"><a href="#" id="toProd"><span>${esc(prod.name)}</span><span class="pill p-${prod.status}">${P_STATUS[prod.status]}</span></a></div></div>`:""}
-    ${s.notes?`<div class="sec"><h3>Notes</h3><p class="text">${esc(s.notes)}</p></div>`:""}`;
+    ${s.notes?`<div class="sec"><h3>Notes</h3><p class="text">${esc(s.notes)}</p></div>`:""}
+    <div class="sec"><h3>Emails sent</h3><div id="sHist"><p class="text" style="color:var(--muted)">Loading…</p></div></div>`;
+  sb.from("supplier_messages").select("*").eq("supplier_id",s.id).order("sent_at",{ascending:false}).then(r=>{const H=$("sHist");if(!H)return;
+    H.innerHTML=r.data?.length?r.data.map(m=>`<div class="cmt" style="margin-bottom:8px"><small>${esc(m.who||"")} · ${new Date(m.sent_at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})} · ${m.status==="sent"?"✓ sent":"✗ "+esc(m.error||"failed")}</small><b dir="auto">${esc(m.subject||"")}</b><div dir="auto" style="white-space:pre-wrap;color:var(--muted);font-size:14px">${esc((m.body||"").slice(0,300))}</div></div>`).join(""):`<p class="text" style="color:var(--muted)">None yet.</p>`});
+  const sm=$("sMail");if(sm)sm.onclick=()=>composeMail(s);
   $("sideBody").querySelectorAll("[data-copy]").forEach(b=>b.onclick=()=>navigator.clipboard.writeText(b.dataset.copy).then(()=>toast("Copied"),()=>toast("Couldn't copy")));
   const tp=$("toProd");if(tp)tp.onclick=e=>{e.preventDefault();openProduct(prod.id)};
   showSide();
+}
+const MAIL_TEMPLATES={
+  quote_fr:["Demande de prix",(s)=>`Bonjour ${s.name},\n\nNous sommes une boutique en ligne en Tunisie. Nous cherchons le produit suivant :\n\n- Produit : \n- Quantité : \n\nPouvez-vous nous envoyer votre meilleur prix, le délai de livraison et la quantité minimum ?\n\nMerci,\n${me()}`],
+  quote_ar:["طلب سوم",(s)=>`عسلامة ${s.name}،\n\nعندنا حانوت أونلاين في تونس، ونحبّو نسألو على المنتوج هذا:\n\n- المنتوج: \n- الكمية: \n\nقدّاش السوم، قدّاش ياخو وقت التوصيل، وشنوّة أقل كمية؟\n\nيعيشك،\n${me()}`],
+  quote_en:["Price request",(s)=>`Hello ${s.name},\n\nWe are an online store in Tunisia. We are looking for:\n\n- Product: \n- Quantity: \n\nCould you send your best price, delivery time to Tunis and minimum order?\n\nThank you,\n${me()}`],
+};
+function composeMail(s){
+  gForm("Email to "+s.name,[
+    {k:"tpl",label:"Start from",type:"select",opts:[["","Blank"],["quote_fr","Price request (French)"],["quote_ar","طلب سوم (Darija)"],["quote_en","Price request (English)"]],full:false},
+    {k:"to",label:"To",full:false},
+    {k:"subject",label:"Subject",req:true},
+    {k:"body",label:"Message",type:"textarea",req:true,max:5000}],
+    {to:s.email},async d=>{
+      d.to=(d.to||"").trim();
+      const r=await fetch(SB_URL+"/functions/v1/send-mail",{method:"POST",headers:{"Content-Type":"application/json","apikey":SB_KEY,"x-session":getTok()||""},
+        body:JSON.stringify({supplier_id:s.id,to:d.to,subject:d.subject,body:d.body})}).then(x=>x.json()).catch(()=>({error:"Couldn't reach the server"}));
+      if(r.error)return r.error;toast("Email sent to "+d.to);openSupplier(s.id);
+    });
+  $("g-tpl").onchange=e=>{const t=MAIL_TEMPLATES[e.target.value];if(!t)return;$("g-subject").value=t[0];$("g-body").value=t[1](s)};
 }
 function openSForm(s){
   editingS=s?.id||null;$("sMsg").textContent="";$("sDlgTitle").textContent=s?"Edit supplier":"Add supplier";
@@ -1290,7 +1324,7 @@ try{if(localStorage.getItem("pl_adsview")==="lib")setAdsView("lib")}catch(e){}
 
 /* ---------- Guide & settings ---------- */
 let settings={};
-const SET_KEYS=["act","pixel","store1","store2","delivery"];
+const SET_KEYS=["act","pixel","store1","store2","delivery","mail_from"];
 async function loadSettings(){
   const r=await sb.from("settings").select("*");if(r.error)return;
   settings=Object.fromEntries(r.data.map(x=>[x.key,x.value]));
@@ -1309,11 +1343,14 @@ async function tokenStatus(){
   const r=await sb.rpc("meta_token_status");
   $("tokenStatus").textContent=r.data?`✓ Token saved ${new Date(r.data).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}. Paste a new one only to replace it.`:"No token saved yet. Saved on the server only; it never shows again here.";
 }
-$("setBtn").onclick=()=>{for(const k of SET_KEYS)$("set-"+k).value=settings[k]??(k==="delivery"?DELIVERY:"");$("set-token").value="";$("setMsg").textContent="";renderLinks();tokenStatus();$("setDlg").showModal()};
+async function resendStatus(){const r=await sb.rpc("secret_status",{k:"resend_key"});$("resendStatus").textContent=r.data?`✓ Key saved ${new Date(r.data).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}. Paste a new one only to replace it.`:"No key saved yet. Saved on the server only; it never shows again here."}
+$("setBtn").onclick=()=>{for(const k of SET_KEYS)$("set-"+k).value=settings[k]??(k==="delivery"?DELIVERY:"");$("set-token").value="";$("set-resend").value="";$("setMsg").textContent="";renderLinks();tokenStatus();resendStatus();$("setDlg").showModal()};
 $("setForm").onsubmit=async e=>{
   e.preventDefault();$("setMsg").textContent="Saving…";
   const tok=$("set-token").value.trim();
   if(tok){const t=await sb.rpc("set_meta_token",{t:tok});if(t.error){$("setMsg").textContent="Couldn't save token: "+t.error.message;return}$("set-token").value="";stLoaded=false;tokenStatus()}
+  const rk=$("set-resend").value.trim();
+  if(rk){const t=await sb.rpc("set_secret",{k:"resend_key",v:rk});if(t.error){$("setMsg").textContent="Couldn't save the Resend key: "+t.error.message;return}$("set-resend").value="";resendStatus()}
   // never wipe a saved value with an empty box (e.g. Settings opened before data loaded)
   const rows=SET_KEYS.map(k=>({key:k,value:$("set-"+k).value.trim()||settings[k]||null}));
   const r=await sb.from("settings").upsert(rows);
