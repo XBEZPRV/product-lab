@@ -753,6 +753,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <li>قبل ما نجرّبو منتوج، نشوفو شكون يبيعو في تونس: اضغط <b>Open Ad Library</b>، اختار Tunisia، واكتب اسم المنتوج.</li>
       <li>كل إعلان تلقاه: خوذ screenshot، وزيدو بـ <b>+ Add competitor ad</b>: اسم الصفحة، السوم، العرض، الـ angle، ووقتاش بدا («Started running on»).</li>
       <li>اربطو بالمنتوج ولا الفكرة متاعنا، باش نقارنو السوم متاعهم بالسوم متاعنا.</li>
+      <li><b>Country</b>: كان البايع في تونس، السوم متاعو يتحسب في سوم السوق. كان برّا (فرانسا، الجزائر…)، يتسجّل <b>🌍 inspiration</b>: نستفادو من الفكرة والفيديو، أما السوم متاعو ما يتحسبش.</li>
       <li><b>🔥</b> معناها الإعلان يدور من أكثر من 30 يوم. الحوانت ما يخلّصوش إعلان مدّة طويلة كان ما يبيعش، يعني الـ angle هذا غالبًا يخدم.</li>
     </ul>
 
@@ -1577,10 +1578,11 @@ async function patchIdea(id,patch){const r=await sb.from("ideas").update(patch).
 /* Market price from linked competitor ads, and a suggested price.
    Rule of thumb: sell for at least 3× cost; stay at or a bit under what competitors charge. */
 function market(i){
-  const cs=comps.filter(c=>c.idea_id===i.id||(i.product_id&&c.product_id===i.product_id));
+  const all=comps.filter(c=>c.idea_id===i.id||(i.product_id&&c.product_id===i.product_id));
+  const cs=all.filter(c=>(c.country||"Tunisia")==="Tunisia"); // only Tunisian sellers set our market price
   const ps=cs.map(c=>num(c.price)).filter(v=>v!=null);
   const hot=cs.filter(c=>{const d=daysRunning(c);return d!=null&&d>=30}).length;
-  return{n:cs.length,hot,min:ps.length?Math.min(...ps):null,max:ps.length?Math.max(...ps):null,avg:ps.length?ps.reduce((a,b)=>a+b,0)/ps.length:null};
+  return{n:cs.length,abroad:all.length-cs.length,hot,min:ps.length?Math.min(...ps):null,max:ps.length?Math.max(...ps):null,avg:ps.length?ps.reduce((a,b)=>a+b,0)/ps.length:null};
 }
 function priceAdvice(i){
   const cost=num(i.cost),price=num(i.price),m=market(i);
@@ -1617,7 +1619,7 @@ function openIdea(id){
     ${(()=>{const A=priceAdvice(i),m=A.m;const tc={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",idle:"var(--idle-bg);color:var(--idle)"}[A.tone];
       return `<div class="sec"><h3>Price (DT)</h3><div class="money">
       <div><span>Cost</span><b>${fmt(num(i.cost))}</b></div><div><span>Our price</span><b>${fmt(num(i.price))}</b></div><div><span>Margin after delivery</span><b class="${margin==null?"":margin>0?"pos":"neg"}">${fmt(margin,1)}</b></div>
-      <div><span>Competitors</span><b>${m.n}${m.hot?` · 🔥${m.hot}`:""}</b></div><div><span>Market price</span><b>${m.min!=null?(m.min===m.max?fmt(m.min,0):fmt(m.min,0)+"–"+fmt(m.max,0)):"—"}</b></div><div><span>Suggested</span><b class="pos">${A.suggest!=null?fmt(A.suggest,0):"—"}</b></div></div>
+      <div><span>Competitors in Tunisia</span><b>${m.n}${m.hot?` · 🔥${m.hot}`:""}</b>${m.abroad?`<em style="font-style:normal;font-size:12px;color:var(--muted);display:block">+ ${m.abroad} abroad (inspiration)</em>`:""}</div><div><span>Market price</span><b>${m.min!=null?(m.min===m.max?fmt(m.min,0):fmt(m.min,0)+"–"+fmt(m.max,0)):"—"}</b></div><div><span>Suggested</span><b class="pos">${A.suggest!=null?fmt(A.suggest,0):"—"}</b></div></div>
       ${A.warn?`<p class="verdict" style="margin:8px 0 0;background:var(--bad-bg);color:var(--bad)">⚠ ${esc(A.warn)}</p>`:""}
       <p class="verdict" style="margin:8px 0 0;background:${tc}">${esc(A.msg)}</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${A.suggest!=null&&A.suggest!==num(i.price)?`<button class="btn ghost sm" id="iUsePrice">Use ${fmt(A.suggest,0)} DT</button>`:""}<button class="btn ghost sm" id="iAddComp">+ Add a competitor ad</button></div>
@@ -1681,6 +1683,7 @@ async function loadComps(){const r=await sb.from("competitors").select("*").orde
 const daysRunning=c=>c.running_since?Math.max(0,Math.floor((Date.now()-new Date(c.running_since+"T12:00"))/86400000)):null;
 const forName=c=>products.find(p=>p.id===c.product_id)?.name||ideas.find(i=>i.id===c.idea_id)?.name||"";
 const forKey=c=>c.product_id?"p"+c.product_id:c.idea_id?"i"+c.idea_id:"none";
+const abroad=c=>(c.country||"Tunisia")!=="Tunisia";
 function runBadge(c){const d=daysRunning(c);if(d==null)return"";return d>=30?`<span class="pill p-winner">🔥 ${d} days</span>`:`<span class="pill p-idea">${d} days</span>`}
 function renderComps(){
   const ch=$("cChips");ch.innerHTML="";
@@ -1693,22 +1696,23 @@ function renderComps(){
   const G=$("cGrid");
   if(!list.length){G.innerHTML=`<div class="empty">No competitor ads yet.<br>Search your product in the Ad Library (Tunisia), take a screenshot, and add it here.<br><button class="btn primary" onclick="editComp()">+ Add competitor ad</button></div>`;return}
   G.innerHTML=list.map(c=>`<button class="pcard" data-id="${c.id}"><div class="pimg">${isUrl(c.image)?`<img src="${esc(c.image)}" alt="" loading="lazy">`:"No screenshot"}<span style="position:absolute;top:10px;left:10px">${runBadge(c)}</span></div>
-    <div class="pbody"><div><p class="pname">${esc(c.name)}</p><p class="ptype">${esc(forName(c)||"Not linked")}</p></div>
+    <div class="pbody"><div><p class="pname">${esc(c.name)}</p><p class="ptype">${abroad(c)?`🌍 ${esc(c.country)} · inspiration · `:"🇹🇳 "}${esc(forName(c)||"Not linked")}</p></div>
     ${c.angle?`<p style="margin:0;font-size:13px;color:var(--muted)">${esc(c.angle)}</p>`:""}
-    <div class="kpis"><div><span>Price</span><b>${c.price!=null?fmt(c.price)+" DT":"—"}</b></div><div style="grid-column:span 2"><span>Offer</span><b style="font-size:13px" dir="auto">${esc(c.offer||"—")}</b></div></div></div></button>`).join("");
+    <div class="kpis"><div><span>Price</span><b>${c.price!=null?fmt(c.price)+" DT":"—"}${abroad(c)?`<em style="font-style:normal;font-size:11px;color:var(--muted);display:block">not used</em>`:""}</b></div><div style="grid-column:span 2"><span>Offer</span><b style="font-size:13px" dir="auto">${esc(c.offer||"—")}</b></div></div></div></button>`).join("");
   G.querySelectorAll(".pcard").forEach(b=>b.onclick=()=>openComp(b.dataset.id));
 }
 function openComp(id){
   const c=comps.find(x=>x.id===id);if(!c)return;current={kind:"c",id};
   const d=daysRunning(c),mine=products.find(p=>p.id===c.product_id)||ideas.find(i=>i.id===c.idea_id);
   $("sideTitle").textContent=c.name;
-  $("sideMeta").innerHTML=`${runBadge(c)}${forName(c)?`<span>${esc(forName(c))}</span>`:""}${c.format?`<span>${esc(c.format)}</span>`:""}`;
+  $("sideMeta").innerHTML=`${runBadge(c)}<span>${abroad(c)?"🌍 "+esc(c.country)+" · inspiration":"🇹🇳 Tunisia"}</span>${forName(c)?`<span>${esc(forName(c))}</span>`:""}${c.format?`<span>${esc(c.format)}</span>`:""}`;
   const ourPrice=num(mine?.price);
   $("sideBody").innerHTML=`
     ${isUrl(c.image)?`<img class="hero" style="aspect-ratio:auto;max-height:60vh;object-fit:contain;background:var(--soft)" src="${esc(c.image)}" alt="">`:""}
     <div><label class="btn ghost sm" style="cursor:pointer">${isUrl(c.image)?"Change screenshot":"Add screenshot"}<input type="file" accept="image/*" id="cShot" hidden></label></div>
     <div class="sec"><h3>Their offer</h3><div class="money"><div><span>Price</span><b>${c.price!=null?fmt(c.price)+" DT":"—"}</b></div><div><span>Our price</span><b>${ourPrice!=null?fmt(ourPrice)+" DT":"—"}</b></div><div><span>Running</span><b>${d!=null?d+" days":"—"}</b></div></div>
       ${c.offer?`<p class="script" dir="auto" style="margin-top:8px">${esc(c.offer)}</p>`:""}
+      ${abroad(c)?`<p class="verdict" style="margin:8px 0 0;background:var(--info-bg);color:var(--info)">Seller outside Tunisia: their price is not used for our market price. Use them for the idea, the video and the angle.</p>`:""}
       ${d!=null&&d>=30?`<p class="verdict" style="margin:8px 0 0;background:var(--good-bg);color:var(--good)">Running for ${d} days. Stores rarely pay for an ad that long unless it sells, so this angle probably works.</p>`:""}</div>
     ${c.angle?`<div class="sec"><h3>Angle</h3><p class="text">${esc(c.angle)}</p></div>`:""}
     ${c.notes?`<div class="sec"><h3>What we learned</h3><p class="text">${esc(c.notes)}</p></div>`:""}
@@ -1726,6 +1730,7 @@ function editComp(c){
   const forOpts=[["","Not linked"],...products.map(p=>["p"+p.id,"Product: "+p.name]),...ideas.filter(i=>i.status!=="moved").map(i=>["i"+i.id,"Idea: "+i.name])];
   gForm(c?"Edit competitor ad":"Add competitor ad",[
     {k:"name",label:"Store or page name",req:true,ph:"Dar Deco TN"},
+    {k:"country",label:"Country",type:"select",opts:[["Tunisia","Tunisia (counts for our price)"],["Algeria","Algeria"],["Morocco","Morocco"],["France","France"],["Other","Other country"]],full:false,hint:"Only Tunisian sellers set our market price. Others are inspiration for the idea and the ad."},
     {k:"for",label:"Same product as our",type:"select",opts:forOpts},
     {k:"ad_link",label:"Ad link (from the Ad Library)",ph:"https://www.facebook.com/ads/library/?id=…"},
     {k:"page_link",label:"Their page or store link",ph:"https://…"},
@@ -1735,7 +1740,7 @@ function editComp(c){
     {k:"angle",label:"Their angle",ph:"Problem: dirt falls between stove and counter"},
     {k:"format",label:"Format",type:"select",opts:[["","—"],["Video","Video"],["Image","Image"],["Carousel","Carousel"],["UGC video","UGC video"]],full:false},
     {k:"notes",label:"What we learned",type:"textarea",ph:"Their hook, comments, what we can do better"}],
-    c?{...c,for:c.product_id?"p"+c.product_id:c.idea_id?"i"+c.idea_id:""}:{},
+    c?{...c,for:c.product_id?"p"+c.product_id:c.idea_id?"i"+c.idea_id:""}:{country:"Tunisia"},
     async d=>{const f=d.for||"";delete d.for;d.product_id=f.startsWith("p")?f.slice(1):null;d.idea_id=f.startsWith("i")?f.slice(1):null;
       const r=c?await sb.from("competitors").update(d).eq("id",c.id):await sb.from("competitors").insert(d).select().single();
       if(r.error)return r.error.message;await loadComps();renderComps();openComp(c?c.id:r.data.id)});
