@@ -1082,6 +1082,9 @@ function composeMail(s){
     <input id="g-files" type="file" accept="image/*" multiple>
     <small>Tick our product photos, or add photos from your phone or computer.</small>`;
   $("gFields").append(box);
+  const sendBtn=$("gForm").querySelector('button[type=submit]');sendBtn.textContent="Send email";
+  $("g-body").style.minHeight="200px";
+  $("gDlg").addEventListener("close",()=>{sendBtn.textContent="Save"},{once:true});
   $("g-tpl").onchange=e=>{const t=MAIL_TEMPLATES[e.target.value];if(!t)return;$("g-subject").value=t[0];$("g-body").value=t[1](s)};
 }
 function openSForm(s){
