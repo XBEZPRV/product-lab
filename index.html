@@ -759,6 +759,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <li>كل منتوج تلقاه (TikTok، AliExpress، حانوت…) زيدو هنا بـ <b>+ Add idea</b>، حتى قبل ما تعرف سومو.</li>
       <li>كل فكرة تاخذ نقطة على 6 قواعد: رخيص (10 د.ت ولا أقل)، خفيف (500 غرام ولا أقل)، ربح 3 مرات السوم، ما يتكسّرش، فيديو ساهل في 5 ثواني، وما يتلقاش رخيص في تونس.</li>
       <li>الثلاثة الأولين يتحسبو وحدهم من الأرقام. الثلاثة الأخرين جاوب عليهم بـ Yes ولا No.</li>
+      <li>فوق القواعد فمّا زرّ <b>🏪 General / 💎 Brand</b>. الـ 6 قواعد للـ General. كان تختار <b>💎 Brand</b>، تولّي الفكرة تتقيّس بـ <b>N.T.P.M.A</b> (متاع Bechir): <b>N</b> شكون يشريه، <b>T</b> شنوّة يبدّل (قبل ← بعد)، <b>P</b> السوم 3 مرات الكلفة، <b>M</b> علاش يخدم وشنوّة يفرق على الآخرين، <b>A</b> نجّمو نوصلولهم بالإعلانات. لازم 4 على 5 قبل ما نجرّبو. كي تنقل الفكرة لـ Products، الـ General/Brand يتنقل معاها.</li>
       <li>اكتب اسمك وصوّت <b>👍 Test it</b> ولا <b>👎 Skip</b>. كي نصوّتو الزوز نفس الحاجة، الفكرة تتبدّل وحدها.</li>
       <li><b>Price</b>: يحسب السوم متاع المنافسين (من تاب Competitors) ويعطيك <b>Suggested</b>: على الأقل 3 مرات الكلفة، وشوية تحت متوسط السوق. اضغط <b>Use … DT</b> باش تاخذو.</li>
       <li>كان السوم متاعنا أغلى من السوق، يطلع <b>⚠</b> أحمر (كيف LISSA: 89 د.ت والسوق 23–40).</li>
@@ -1593,8 +1594,16 @@ $("stDays").onchange=loadStats;$("stRefresh").onclick=loadStats;
 const I_STATUS={new:"To decide",test:"Test it",skip:"Skip",moved:"In Products"};
 let ideas=[],iFilter="all";
 // The 6 rules: 3 are worked out from the numbers, 3 are answered by us.
+// 💎 Brand ideas use Bechir's N.T.P.M.A check instead (answers saved in i.ntpma).
 function rules(i){
-  const c=num(i.cost),p=num(i.price),w=num(i.weight_g);
+  const c=num(i.cost),p=num(i.price),w=num(i.weight_g),x=i.ntpma||{};
+  if(i.mode==="brand")return[
+    {k:"ntpma.n",l:"N · Buyer",h:"Niche: we can name who buys it (new moms, gym guys…)",v:x.n??null},
+    {k:"ntpma.t",l:"T · Change",h:"Transformation: the before → after is clear",v:x.t??null},
+    {k:"price3",l:"P · 3× price",h:"Price: sells for 3× its cost",v:c==null||p==null?null:p>=c*3,auto:true},
+    {k:"ntpma.m",l:"M · Why it works",h:"Mechanism: a simple reason it works, different from the others",v:x.m??null},
+    {k:"ntpma.a",l:"A · Ads reach",h:"Access: these buyers are on TikTok/Meta and we can target them",v:x.a??null},
+  ];
   return[
     {k:"cheap",l:"Cheap",h:"Costs 10 DT or less",v:c==null?null:c<=10,auto:true},
     {k:"light",l:"Light",h:"500 g or less",v:w==null?null:w<=500,auto:true},
@@ -1605,7 +1614,10 @@ function rules(i){
   ];
 }
 const scoreOf=i=>rules(i).filter(r=>r.v===true).length;
-const scoreCls=s=>s>=5?"s-hi":s>=3?"s-mid":"s-lo";
+const scoreMax=i=>i.mode==="brand"?5:6;
+const scoreCls=(s,n=6)=>s>=n-1?"s-hi":s>=n/2?"s-mid":"s-lo";
+const I_MODE=x=>x.mode==="brand"?"💎":"🏪";
+function ntpmaVerdict(s){return s>=4?["good","Strong brand idea. Test it."]:s===3?["warn","Fix the weak point before testing."]:["bad","Weak as a brand. Sell it as 🏪 General or skip it."]}
 async function loadIdeas(){const r=await sb.from("ideas").select("*").order("created_at",{ascending:false});if(!r.error)ideas=r.data}
 function renderIdeas(){
   const c=$("iChips");c.innerHTML="";
@@ -1614,12 +1626,12 @@ function renderIdeas(){
     const b=document.createElement("button");b.className="chip";b.setAttribute("aria-pressed",k===iFilter);b.innerHTML=`${esc(l)} <span>${n}</span>`;
     b.onclick=()=>{iFilter=k;renderIdeas()};c.append(b);
   });
-  const list=ideas.filter(i=>iFilter==="all"||i.status===iFilter).sort((a,b)=>scoreOf(b)-scoreOf(a));
+  const list=ideas.filter(i=>iFilter==="all"||i.status===iFilter).sort((a,b)=>scoreOf(b)/scoreMax(b)-scoreOf(a)/scoreMax(a));
   const G=$("iGrid");
   if(!list.length){G.innerHTML=ideas.length?`<div class="empty">No ideas here.</div>`:`<div class="empty">No ideas yet.<br><button class="btn primary" onclick="editIdea()">+ Add your first idea</button></div>`;return}
   G.innerHTML=list.map(i=>{const s=scoreOf(i),R=rules(i);const v=Object.entries(i.votes||{});
     return `<button class="pcard" data-id="${i.id}">
-      <div class="pimg">${isUrl(i.image)?`<img src="${esc(i.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s)}">${s}/6</span>${priceAdvice(i).warn?`<span class="score s-lo" style="top:auto;bottom:10px">⚠ price</span>`:""}</div>
+      <div class="pimg">${isUrl(i.image)?`<img src="${esc(i.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s,scoreMax(i))}">${I_MODE(i)} ${s}/${scoreMax(i)}</span>${priceAdvice(i).warn?`<span class="score s-lo" style="top:auto;bottom:10px">⚠ price</span>`:""}</div>
       <div class="pbody"><div><p class="pname">${esc(i.name)}</p><p class="ptype">${esc(srcName(i))}</p></div>
         <div class="rules6">${R.map(r=>`<span class="${r.v===true?"y":r.v===false?"n":""}">${r.v===true?"✓":r.v===false?"✗":"?"} ${r.l}</span>`).join("")}</div>
         <div class="votes"><span>Ready ${checksDone(i)}/4</span>${market(i).n?`<span>· ${market(i).n} competitor${market(i).n>1?"s":""}${market(i).avg!=null?" ~"+fmt(market(i).avg,0)+" DT":""}</span>`:""}</div>
@@ -1672,7 +1684,7 @@ function openIdea(id){
   const R=rules(i),s=scoreOf(i),name=me(),myVote=name?i.votes?.[name]:null;
   const margin=breakEven(num(i.price),num(i.cost),null);
   $("sideTitle").textContent=i.name;
-  $("sideMeta").innerHTML=`<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s)}" style="position:static">${s}/6 rules</span>`;
+  $("sideMeta").innerHTML=`<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s,scoreMax(i))}" style="position:static">${s}/${scoreMax(i)} ${i.mode==="brand"?"N.T.P.M.A":"rules"}</span><span class="pill p-idea">${P_MODE[i.mode||"general"]}</span>`;
   $("sideBody").innerHTML=`
     ${isUrl(i.image)?`<img class="hero" src="${esc(i.image)}" alt="">`:""}
     <div><label class="btn ghost sm" style="cursor:pointer">${isUrl(i.image)?"Change photo":"Add photo"}<input type="file" accept="image/*" id="iPhoto" hidden></label></div>
@@ -1687,7 +1699,11 @@ function openIdea(id){
       ${compList(i)}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${A.suggest!=null&&A.suggest!==num(i.price)?`<button class="btn ghost sm" id="iUsePrice">Use ${fmt(A.suggest,0)} DT</button>`:""}<button class="btn ghost sm" id="iAddComp">+ Add a competitor ad</button></div>
       <p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${margin!=null?`At our price, you could pay up to ${fmt(margin,0)} DT in ads per order and still break even.`:"Add cost and price with Edit."}</p></div>`})()}
-    <div class="sec"><h3>The 6 rules</h3><div class="rlist">${R.map(r=>`<div class="rrow"><span>${r.l}<small>${r.h}${r.auto?" · from the numbers":""}</small></span>
+    <div class="sec"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">${i.mode==="brand"?"N.T.P.M.A check":"The 6 rules"}</h3>
+      <span class="seg" id="iMode"><button type="button" data-m="general" aria-pressed="${i.mode!=="brand"}">🏪 General</button><button type="button" data-m="brand" aria-pressed="${i.mode==="brand"}">💎 Brand</button></span></div>
+      <p class="text" style="color:var(--muted);font-size:13px;margin:6px 0 8px">${i.mode==="brand"?"Brand: one product we build a name around. It must pass 4 of these 5 before we test.":"General store: quick product, sold fast. These 6 rules keep it cheap and easy to sell."}</p>
+      ${i.mode==="brand"?(()=>{const[t,m]=ntpmaVerdict(s);return `<p class="verdict" style="margin:0 0 8px;background:var(--${t}-bg);color:var(--${t})">${s}/5 · ${m}</p>`})():""}
+      <div class="rlist">${R.map(r=>`<div class="rrow"><span>${r.l}<small>${r.h}${r.auto?" · from the numbers":""}</small></span>
       ${r.auto?`<span class="auto ${r.v===true?"pos":r.v===false?"neg":""}">${r.v===true?"✓ Yes":r.v===false?"✗ No":"Add numbers"}</span>`
         :`<span class="tri" data-rule="${r.k}">${[["true","Yes"],["false","No"],["","?"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${String(r.v??"")===v}">${l}</button>`).join("")}</span>`}</div>`).join("")}</div></div>
     <div class="sec"><h3>Vote</h3>
@@ -1697,7 +1713,10 @@ function openIdea(id){
     ${isUrl(i.link)?`<div class="sec"><h3>Link</h3><div class="mini"><a href="${esc(i.link)}" target="_blank" rel="noopener"><span>${esc(i.link.replace(/^https?:\/\/(www\.)?/,"").slice(0,48))}</span><span>Open ↗</span></a></div></div>`:""}
     <div class="sec"><h3>Ready to test? ${checksDone(i)}/4</h3><div class="rlist">${CHECKS.map(([k,l,h])=>`<label class="rrow" style="cursor:pointer"><span>${l}<small>${h}${k==="chk_competitors"&&market(i).n?` · ${market(i).n} added`:""}</small></span><input type="checkbox" data-chk="${k}" ${i[k]?"checked":""} style="width:20px;height:20px;accent-color:#0c0a08"></label>`).join("")}</div></div>
     <div class="sec">${i.status==="moved"?`<p class="text">This idea is now in Products.</p>`:`<button class="btn ${checksDone(i)===4?"primary":"ghost"}" id="iMove">${checksDone(i)===4?"Move to Products and start testing":`Move to Products (${checksDone(i)}/4 ready)`}</button>`}</div>`;
-  $("sideBody").querySelectorAll("[data-rule]").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>patchIdea(i.id,{[g.dataset.rule]:b.dataset.v===""?null:b.dataset.v==="true"})));
+  $("sideBody").querySelectorAll("[data-rule]").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    const k=g.dataset.rule,v=b.dataset.v===""?null:b.dataset.v==="true";
+    patchIdea(i.id,k.startsWith("ntpma.")?{ntpma:{...(i.ntpma||{}),[k.slice(6)]:v}}:{[k]:v})}));
+  $("iMode").querySelectorAll("button").forEach(b=>b.onclick=()=>{if((i.mode||"general")!==b.dataset.m)patchIdea(i.id,{mode:b.dataset.m})});
   $("iMe").onchange=e=>{setMe(e.target.value.trim());openIdea(i.id)};
   const vote=async x=>{const n=me()||$("iMe").value.trim();if(!n){toast("Write your name first");$("iMe").focus();return}setMe(n);
     const votes={...(i.votes||{})};votes[n]===x?delete votes[n]:votes[n]=x;
@@ -1713,7 +1732,7 @@ function openIdea(id){
   $("iAddComp").onclick=()=>{hideSide();editComp(null);setTimeout(()=>{const s=$("g-for");if(s)s.value="i"+i.id},0)};
   const mv=$("iMove");if(mv)mv.onclick=async()=>{
     if(checksDone(i)<4&&mv.dataset.sure!=="1"){mv.dataset.sure="1";mv.textContent=`Only ${checksDone(i)}/4 ready. Click again to move anyway`;return}
-    const r=await sb.from("products").insert({name:i.name,status:"sourcing",cost:num(i.cost),price:num(i.price),image:i.image,source:i.link,problem:null,notes:i.why,updated_at:new Date().toISOString()}).select().single();
+    const r=await sb.from("products").insert({name:i.name,status:"sourcing",mode:i.mode||"general",cost:num(i.cost),price:num(i.price),image:i.image,source:i.link,problem:null,notes:i.why,updated_at:new Date().toISOString()}).select().single();
     if(r.error)return toast("Couldn't move: "+r.error.message);
     await patchIdea(i.id,{status:"moved",product_id:r.data.id});await loadAll();toast("Added to Products");
   };
@@ -1724,6 +1743,7 @@ function editIdea(i,srcId){
   const srcOpts=[["","—"],...sources.map(x=>[x.id,x.name])];
   gForm(i?"Edit idea":"New product idea",[
     {k:"name",label:"Product",req:true,ph:"Silicone stove gap cover"},
+    {k:"mode",label:"Sold as",type:"select",opts:[["general","🏪 General store"],["brand","💎 Brand"]],full:false,hint:"Brand ideas get the N.T.P.M.A check"},
     {k:"source_id",label:"Found on",type:"select",opts:srcOpts,full:false,hint:"Not in the list? Add it in 🔎 Where to look"},
     {k:"link",label:"Link",full:false,ph:"https://…"},
     {k:"cost",label:"Cost per unit, delivered (DT)",type:"number",full:false},
@@ -1733,7 +1753,7 @@ function editIdea(i,srcId){
     {k:"easy_video",label:"Easy 5-second video?",type:"select",opts:yn,full:false},
     {k:"not_in_shops",label:"Hard to find cheap in Tunisia?",type:"select",opts:yn,full:false},
     {k:"why",label:"Why it could sell",type:"textarea",ph:"The problem it solves, who buys it, what you saw"}],
-    i?{...i,unbreakable:String(i.unbreakable??""),easy_video:String(i.easy_video??""),not_in_shops:String(i.not_in_shops??"")}:{source_id:srcId||""},
+    i?{...i,mode:i.mode||"general",unbreakable:String(i.unbreakable??""),easy_video:String(i.easy_video??""),not_in_shops:String(i.not_in_shops??"")}:{mode:"general",source_id:srcId||""},
     async d=>{d.source_id=d.source_id||null;for(const k of["unbreakable","easy_video","not_in_shops"])d[k]=d[k]==null?null:d[k]==="true";
       if(d.weight_g!=null)d.weight_g=Math.round(d.weight_g);
       const r=i?await sb.from("ideas").update(d).eq("id",i.id):await sb.from("ideas").insert(d).select().single();
