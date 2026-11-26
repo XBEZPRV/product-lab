@@ -82,6 +82,8 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .pimg{aspect-ratio:4/3;background:var(--soft);display:grid;place-items:center;color:var(--muted);font-size:13px;position:relative}
 .pimg img{width:100%;height:100%;object-fit:cover;display:block}
 .pimg .pill{position:absolute;top:10px;left:10px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.pimg .mtag{position:absolute;top:10px;right:10px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:12px}
+.upg{background:var(--good-bg);border-radius:12px;padding:12px 14px}
 .pbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
 .pname{font-weight:500;font-size:17px;line-height:1.25;margin:0}
 .ptype{font-size:12px;color:var(--muted);margin:2px 0 0}
@@ -653,6 +655,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="f full"><label for="p-name">Product name</label><input id="p-name" required maxlength="80" placeholder="Foldable cutting mat"></div>
       <div class="f"><label for="p-status">Status</label><select id="p-status"></select></div>
       <div class="f"><label for="p-type">Type</label><input id="p-type" maxlength="40" list="types" placeholder="Kitchen"></div>
+      <div class="f"><label for="p-mode">Sold as</label><select id="p-mode"><option value="general">🏪 General store</option><option value="brand">💎 Brand</option></select><small>General = test fast. Brand = build it for the long run.</small></div>
       <div class="f full"><label for="p-image">Photo</label><div class="imgpick"><img id="p-preview" alt="" hidden><input id="p-image" type="file" accept="image/*"></div></div>
     </fieldset>
     <fieldset><legend>Money (DT)</legend>
@@ -660,6 +663,8 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="f"><label for="p-price">Selling price</label><input id="p-price" type="number" step="0.01" min="0" inputmode="decimal"></div>
       <div class="f"><label for="p-budget">Test budget</label><input id="p-budget" type="number" step="0.01" min="0" inputmode="decimal"><small>Max ad money before you decide</small></div>
       <div class="f"><label for="p-units">Test stock (units)</label><input id="p-units" type="number" step="1" min="0" inputmode="numeric"></div>
+      <div class="f"><label for="p-confirm_rate">Orders confirmed (%)</label><input id="p-confirm_rate" type="number" step="1" min="0" max="100" inputmode="numeric"><small id="p-confirm-hint">Empty = the number in ⚙ Settings</small></div>
+      <div class="f"><label for="p-return_rate">Packages returned (%)</label><input id="p-return_rate" type="number" step="1" min="0" max="100" inputmode="numeric"><small id="p-return-hint">Empty = the number in ⚙ Settings</small></div>
     </fieldset>
     <fieldset><legend>Test results</legend>
       <div class="f"><label for="p-spend">Ad spend so far</label><input id="p-spend" type="number" step="0.01" min="0" inputmode="decimal"></div>
@@ -887,6 +892,8 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="f full"><label for="set-store1">Store 1 link</label><input id="set-store1" type="url" maxlength="300" placeholder="https://koujinatna.converty.shop"></div>
       <div class="f full"><label for="set-store2">Store 2 link</label><input id="set-store2" type="url" maxlength="300"></div>
       <div class="f"><label for="set-delivery">Delivery cost per order (DT)</label><input id="set-delivery" type="number" step="0.5" min="0" inputmode="decimal"><small>Used to work out profit</small></div>
+      <div class="f"><label for="set-confirm">Orders confirmed (%)</label><input id="set-confirm" type="number" step="1" min="0" max="100" inputmode="numeric"><small>Out of 100 orders, how many say yes on the phone and get shipped. Take it from Converty.</small></div>
+      <div class="f"><label for="set-returns">Packages returned (%)</label><input id="set-returns" type="number" step="1" min="0" max="100" inputmode="numeric"><small>Out of 100 shipped, how many come back unpaid.</small></div>
     </fieldset>
   </div>
   <div class="df"><span class="msg" id="setMsg"></span><button type="button" class="btn ghost" data-close>Close</button><button type="submit" class="btn primary">Save settings</button></div>
@@ -916,6 +923,8 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 <script>
 const SB_URL="https://caajpoyjvmbxmyblmuun.supabase.co",SB_KEY="sb_publishable_L-Q_0wU-nZ6j9W9RrzlpFA_dfOK2dJS";
 let DELIVERY=8; // DT courier cost per order, used for profit; overridden by settings
+let CONFIRM=70,RETURNS=15; // % of cash-on-delivery orders confirmed, % of shipped packages returned; overridden by settings
+const P_MODE={general:"🏪 General",brand:"💎 Brand"};
 const P_STATUS={idea:"Idea",sourcing:"Sourcing",testing:"Testing",winner:"Winner",stopped:"Stopped"};
 const S_STATUS={to_contact:"To contact",waiting:"Waiting reply",quoted:"Quoted",chosen:"Chosen",rejected:"Rejected"};
 const $=id=>document.getElementById(id);
@@ -930,10 +939,24 @@ let sb=null,products=[],suppliers=[],tasks=[],tFilter="all",pFilter="all",sFilte
 function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
 function sync(t,c){$("syncText").textContent=t;$("syncWrap").title=t;$("dot").style.background=c}
 
+/* real break-even with cash on delivery: the most ads can cost per order received.
+   Only some orders get confirmed, and returned packages still cost the delivery. */
+function rates(p){return{c:(num(p?.confirm_rate)??CONFIRM)/100,r:(num(p?.return_rate)??RETURNS)/100}}
+function breakEven(price,cost,p){
+  if(price==null||cost==null)return null;
+  const{c,r}=rates(p);
+  return c*((1-r)*(price-cost-DELIVERY)-r*DELIVERY);
+}
+function beExplain(price,cost,p){
+  if(price==null||cost==null)return "";
+  const{c,r}=rates(p);
+  return `${fmt(price)} − ${fmt(cost)} − ${fmt(DELIVERY)} delivery = ${fmt(price-cost-DELIVERY,1)} DT if every order is paid. But only ${fmt(c*100,0)}% of orders get confirmed, and ${fmt(r*100,0)}% of packages come back (we still pay ${fmt(DELIVERY)} DT delivery on them).`;
+}
+
 /* math for one product */
 function calc(p){
   const cost=num(p.cost),price=num(p.price),spend=num(p.spend),orders=num(p.orders);
-  const margin=price!=null&&cost!=null?price-cost-DELIVERY:null;
+  const margin=breakEven(price,cost,p);
   const cpo=spend!=null&&orders?spend/orders:null;
   const profit=margin!=null&&cpo!=null?margin-cpo:null;
   return{cost,price,spend,orders,margin,cpo,profit};
@@ -943,7 +966,7 @@ function verdict(p,m){
     ?{c:"good",t:`Each order makes about ${fmt(m.profit,1)} DT after the product, delivery and ads.`}
     :{c:"bad",t:`Each order loses about ${fmt(-m.profit,1)} DT after the product, delivery and ads.`};
   if(m.spend&&!m.orders)return{c:"bad",t:`${fmt(m.spend)} DT spent with no orders yet.`};
-  if(m.margin!=null)return{c:"idle",t:`You can spend up to ${fmt(m.margin,1)} DT on ads per order and still break even (after ${DELIVERY} DT delivery).`};
+  if(m.margin!=null)return{c:"idle",t:`You can spend up to ${fmt(m.margin,1)} DT on ads per order and still break even (after delivery, unconfirmed orders and returns).`};
   return{c:"idle",t:"Add the cost and price to see if it can make money."};
 }
 
@@ -961,17 +984,17 @@ function renderProducts(){
   if(!list.length){G.innerHTML=products.length?`<div class="empty">No products match.</div>`:`<div class="empty">No products yet.<br><button class="btn primary" onclick="openPForm()">+ Add your first product</button></div>`;return}
   G.innerHTML=list.map(p=>{const m=calc(p);const pr=m.profit!=null?m.profit:m.margin;
     return `<button class="pcard" data-id="${p.id}">
-      <div class="pimg">${isUrl(p.image)?`<img src="${esc(p.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${p.status}">${P_STATUS[p.status]}</span></div>
+      <div class="pimg">${isUrl(p.image)?`<img src="${esc(p.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${p.status}">${P_STATUS[p.status]}</span><span class="mtag">${P_MODE[p.mode]||P_MODE.general}</span></div>
       <div class="pbody"><div><p class="pname">${esc(p.name)}</p><p class="ptype">${esc(p.type||"")}</p></div>
       <div class="kpis"><div><span>Cost</span><b>${fmt(m.cost)}</b></div><div><span>Price</span><b>${fmt(m.price)}</b></div>
-      <div><span>${m.profit!=null?"Profit/order":"Margin"}</span><b class="${pr==null?"":pr>0?"pos":"neg"}">${fmt(pr,1)}</b></div></div></div></button>`}).join("");
+      <div><span>${m.profit!=null?"Profit/order":"Max ads/order"}</span><b class="${pr==null?"":pr>0?"pos":"neg"}">${fmt(pr,1)}</b></div></div></div></button>`}).join("");
   G.querySelectorAll(".pcard").forEach(b=>b.onclick=()=>openProduct(b.dataset.id));
 }
 function openProduct(id){
   const p=products.find(x=>x.id===id);if(!p)return;current={kind:"p",id};
   const m=calc(p),v=verdict(p,m);
   $("sideTitle").textContent=p.name;
-  $("sideMeta").innerHTML=`<span class="pill p-${p.status}">${P_STATUS[p.status]}</span>${p.type?`<span>${esc(p.type)}</span>`:""}<span>Updated ${new Date(p.updated_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span>`;
+  $("sideMeta").innerHTML=`<span class="pill p-${p.status}">${P_STATUS[p.status]}</span><span>${P_MODE[p.mode]||P_MODE.general}</span>${p.type?`<span>${esc(p.type)}</span>`:""}<span>Updated ${new Date(p.updated_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span>`;
   const sups=suppliers.filter(s=>s.product_id===p.id);
   const vc={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",idle:"var(--idle-bg);color:var(--idle)"}[v.c];
   $("sideBody").innerHTML=`
@@ -979,17 +1002,22 @@ function openProduct(id){
     ${p.problem?`<div class="sec"><h3>Problem it solves</h3><p class="text">${esc(p.problem)}</p></div>`:""}
     <div class="sec"><h3>Money</h3>
       <div class="money">
-        <div><span>Cost</span><b>${fmt(m.cost)}</b></div><div><span>Price</span><b>${fmt(m.price)}</b></div><div><span>Margin after delivery</span><b>${fmt(m.margin,1)}</b></div>
+        <div><span>Cost</span><b>${fmt(m.cost)}</b></div><div><span>Price</span><b>${fmt(m.price)}</b></div><div><span>Max ads / order</span><b class="${m.margin==null?"":m.margin>0?"pos":"neg"}">${fmt(m.margin,1)}</b></div>
         <div><span>Ad spend</span><b>${fmt(m.spend)}</b></div><div><span>Orders</span><b>${fmt(m.orders,0)}</b></div><div><span>Ad cost / order</span><b>${fmt(m.cpo,1)}</b></div>
         <div><span>Test budget</span><b>${fmt(num(p.budget))}</b></div><div><span>Test stock</span><b>${fmt(num(p.units),0)}</b></div><div><span>Profit / order</span><b class="${m.profit==null?"":m.profit>0?"pos":"neg"}">${fmt(m.profit,1)}</b></div>
       </div>
       <p class="verdict" style="margin:10px 0 0;background:${vc}">${esc(v.t)}</p>
+      ${m.margin!=null?`<p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${esc(beExplain(m.price,m.cost,p))}</p>`:""}
     </div>
+    ${p.mode!=="brand"&&p.status==="winner"?`<div class="sec upg"><h3>🚀 This one sells</h3><p class="text">Turn it into a brand: a stronger offer, real reviews, customers who come back.</p><button class="btn primary sm" style="margin-top:8px" id="toBrand">Upgrade to Brand →</button></div>`:""}
     ${p.script?`<div class="sec"><h3>Ad script</h3><p class="script" dir="auto">${esc(p.script)}</p><button class="btn ghost sm" style="margin-top:8px" id="copyScript">Copy script</button></div>`:""}
     ${p.notes?`<div class="sec"><h3>Notes</h3><p class="text">${esc(p.notes)}</p></div>`:""}
     ${isUrl(p.source)?`<div class="sec"><h3>Link</h3><div class="mini"><a href="${esc(p.source)}" target="_blank" rel="noopener"><span>${esc(p.source.replace(/^https?:\/\/(www\.)?/,"").slice(0,50))}</span><span>Open ↗</span></a></div></div>`:""}
     <div class="sec"><h3>Suppliers (${sups.length})</h3>${sups.length?`<div class="mini">${sups.map(s=>`<a href="#" data-sid="${s.id}"><span>${esc(s.name)}</span><span class="pill p-${s.status}">${S_STATUS[s.status]}</span></a>`).join("")}</div>`:`<p class="text" style="color:var(--muted)">None yet. Add one in the Suppliers tab.</p>`}</div>`;
   $("sideBody").querySelectorAll("[data-sid]").forEach(a=>a.onclick=e=>{e.preventDefault();openSupplier(a.dataset.sid)});
+  const tb=$("toBrand");if(tb)tb.onclick=async()=>{tb.disabled=true;const r=await sb.from("products").update({mode:"brand",updated_at:new Date().toISOString()}).eq("id",p.id);
+    if(r.error){tb.disabled=false;toast("Couldn't change it: "+r.error.message);return}
+    toast(p.name+" is now a brand");await loadAll();openProduct(p.id)};
   const cs=$("copyScript");if(cs)cs.onclick=()=>navigator.clipboard.writeText(p.script).then(()=>toast("Script copied"),()=>toast("Couldn't copy"));
   showSide();
 }
@@ -997,8 +1025,9 @@ function openPForm(p){
   editingP=p?.id||null;pImage=p?.image||null;$("pMsg").textContent="";
   $("pDlgTitle").textContent=p?"Edit product":"Add product";$("pSave").textContent=p?"Save changes":"Save product";
   for(const k of["name","type","problem","script","source","notes"])$("p-"+k).value=p?.[k]||"";
-  for(const k of["cost","price","budget","units","spend","orders"])$("p-"+k).value=p?.[k]??"";
-  $("p-status").value=p?.status||"idea";$("p-image").value="";
+  for(const k of["cost","price","budget","units","spend","orders","confirm_rate","return_rate"])$("p-"+k).value=p?.[k]??"";
+  $("p-confirm_rate").placeholder=CONFIRM;$("p-return_rate").placeholder=RETURNS;
+  $("p-status").value=p?.status||"idea";$("p-mode").value=p?.mode||"general";$("p-image").value="";
   $("p-preview").hidden=!isUrl(pImage);if(isUrl(pImage))$("p-preview").src=pImage;
   hideSide();$("pDlg").showModal();$("p-name").focus();
 }
@@ -1006,9 +1035,10 @@ $("p-image").onchange=e=>{const f=e.target.files[0];if(f){$("p-preview").src=URL
 $("pForm").onsubmit=async e=>{
   e.preventDefault();
   if(!$("p-name").value.trim()){$("pMsg").textContent="Add a product name.";$("p-name").focus();return}
-  const d={name:$("p-name").value.trim(),status:$("p-status").value,image:pImage,updated_at:new Date().toISOString()};
+  const d={name:$("p-name").value.trim(),status:$("p-status").value,mode:$("p-mode").value,image:pImage,updated_at:new Date().toISOString()};
   for(const k of["type","problem","script","source","notes"])d[k]=$("p-"+k).value.trim()||null;
-  for(const k of["cost","price","budget","units","spend","orders"])d[k]=num($("p-"+k).value);
+  for(const k of["cost","price","budget","units","spend","orders","confirm_rate","return_rate"])d[k]=num($("p-"+k).value);
+  for(const k of["confirm_rate","return_rate"])if(d[k]!=null&&(d[k]<0||d[k]>100)){$("pMsg").textContent="Percent must be between 0 and 100.";$("p-"+k).focus();return}
   $("pMsg").textContent="Saving…";
   try{
     const f=$("p-image").files[0];
@@ -1383,11 +1413,13 @@ try{if(localStorage.getItem("pl_adsview")==="lib")setAdsView("lib")}catch(e){}
 
 /* ---------- Guide & settings ---------- */
 let settings={};
-const SET_KEYS=["act","pixel","store1","store2","delivery","mail_from"];
+const SET_KEYS=["act","pixel","store1","store2","delivery","confirm","returns","mail_from"];
 async function loadSettings(){
   const r=await sb.from("settings").select("*");if(r.error)return;
   settings=Object.fromEntries(r.data.map(x=>[x.key,x.value]));
   if(num(settings.delivery)!=null)DELIVERY=num(settings.delivery);
+  if(num(settings.confirm)!=null)CONFIRM=num(settings.confirm);
+  if(num(settings.returns)!=null)RETURNS=num(settings.returns);
 }
 function renderLinks(){
   const act=(settings.act||"").replace(/\D/g,""),px=(settings.pixel||"").replace(/\D/g,"");
@@ -1403,7 +1435,7 @@ async function tokenStatus(){
   $("tokenStatus").textContent=r.data?`✓ Token saved ${new Date(r.data).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}. Paste a new one only to replace it.`:"No token saved yet. Saved on the server only; it never shows again here.";
 }
 async function resendStatus(){const r=await sb.rpc("secret_status",{k:"resend_key"});$("resendStatus").textContent=r.data?`✓ Key saved ${new Date(r.data).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}. Paste a new one only to replace it.`:"No key saved yet. Saved on the server only; it never shows again here."}
-$("setBtn").onclick=()=>{for(const k of SET_KEYS)$("set-"+k).value=settings[k]??(k==="delivery"?DELIVERY:"");$("set-token").value="";$("set-resend").value="";$("setMsg").textContent="";renderLinks();tokenStatus();resendStatus();$("setDlg").showModal()};
+$("setBtn").onclick=()=>{for(const k of SET_KEYS)$("set-"+k).value=settings[k]??({delivery:DELIVERY,confirm:CONFIRM,returns:RETURNS}[k]??"");$("set-token").value="";$("set-resend").value="";$("setMsg").textContent="";renderLinks();tokenStatus();resendStatus();$("setDlg").showModal()};
 $("setForm").onsubmit=async e=>{
   e.preventDefault();$("setMsg").textContent="Saving…";
   const tok=$("set-token").value.trim();
@@ -1496,7 +1528,7 @@ function renderDecisions(){
     const meta=act(c.actions,PURCHASE)??act(c.actions,"omni_purchase")??act(c.actions,"purchase")??0;
     const extra=L.extra_orders||0,orders=meta+extra;
     const spendDT=toDT(+c.spend||0);
-    const be=p&&num(p.price)!=null&&num(p.cost)!=null?num(p.price)-num(p.cost)-DELIVERY:null;
+    const be=p?breakEven(num(p.price),num(p.cost),p):null;
     const f=decide(spendDT,orders,be,+c.impressions||0,+c.inline_link_click_ctr||0);
     return{c,p,pid,meta,extra,orders,spendDT,be,f};
   });
@@ -1506,8 +1538,9 @@ function renderDecisions(){
   D.innerHTML=`<p class="sth">What to do · by campaign</p>
     <details class="howto"><summary>كيفاش يخدم الـ flag؟ · How the flags work</summary><div class="guide">
       <h3>1. Break-even — قدّاش تنجم تصرف على كوموند وحدة</h3>
-      <p><b>Break-even = سوم البيع − سوم المنتوج − ${fmt(DELIVERY)} د.ت توصيل.</b></p>
-      <p>مثال PotLock: 40 − 11 − 8 = <b>21 د.ت</b>. يعني كان الإعلانات كلّفوك أكثر من 21 د.ت باش تجيب كوموند، راك تخسر.</p>
+      <p><b>Break-even = (سوم البيع − سوم المنتوج − ${fmt(DELIVERY)} د.ت توصيل)، مبعد نحسبو اللي ما يتأكّدش واللي يرجع.</b></p>
+      <p>مثال PotLock: 40 − 11 − 8 = 21 د.ت كان الكوموندات الكل تتخلّص. أما ${fmt(CONFIRM,0)}% برك يتأكّدو، و${fmt(RETURNS,0)}% من الكوليات يرجعو (والتوصيل نخلّصوه). يعني الحقيقة <b>${fmt(breakEven(40,11,null),1)} د.ت</b>. كان الإعلانات كلّفوك أكثر من هكا باش تجيب كوموند، راك تخسر.</p>
+      <p>تبدّل النسب في ⚙ Settings، ولا لكل منتوج وحدو في Edit.</p>
       <h3>2. Ads per order — قدّاش كلّفتنا الكوموند في الإعلانات</h3>
       <p><b>المصروف ÷ عدد الكوموندات.</b> المصروف يجي بالدولار من Meta ونحسبوه 1$ = 3 د.ت.</p>
       <p>الكوموندات = اللي حسبهم Meta + اللي زدتهم انت بـ <b>+</b> (WhatsApp، Messenger، تليفون).</p>
@@ -1545,7 +1578,7 @@ function renderDecisions(){
         <label>Orders from messages / calls <span class="step"><button type="button" data-minus="${i}" aria-label="Remove one">−</button><b>${r.extra}</b><button type="button" data-plus="${i}" aria-label="Add one">+</button></span></label>
       </div>
     </div>`).join("")}</div>
-    <p class="stnote">Break-even = selling price − product cost − ${fmt(DELIVERY)} DT delivery. Dollars are counted at 3 DT. Add orders that came by WhatsApp, Messenger or phone with +.</p>`;
+    <p class="stnote">Break-even = (selling price − product cost − ${fmt(DELIVERY)} DT delivery), counting only the ${fmt(CONFIRM,0)}% of orders that get confirmed and the ${fmt(RETURNS,0)}% of packages that come back. Dollars are counted at 3 DT. Add orders that came by WhatsApp, Messenger or phone with +.</p>`;
   const save=async(i,patch)=>{const r=rows[i];const cur=links[r.c.campaign_name]||{campaign_name:r.c.campaign_name,product_id:r.pid,extra_orders:r.extra};
     const next={...cur,...patch,campaign_name:r.c.campaign_name,updated_at:new Date().toISOString()};links[r.c.campaign_name]=next;renderDecisions();
     const q=await sb.from("campaign_links").upsert(next);if(q.error)toast("Couldn't save: "+q.error.message)};
@@ -1637,7 +1670,7 @@ const checksDone=i=>CHECKS.filter(([k])=>i[k]).length;
 function openIdea(id){
   const i=ideas.find(x=>x.id===id);if(!i)return;current={kind:"i",id};
   const R=rules(i),s=scoreOf(i),name=me(),myVote=name?i.votes?.[name]:null;
-  const margin=num(i.price)!=null&&num(i.cost)!=null?num(i.price)-num(i.cost)-DELIVERY:null;
+  const margin=breakEven(num(i.price),num(i.cost),null);
   $("sideTitle").textContent=i.name;
   $("sideMeta").innerHTML=`<span class="pill p-${i.status==="test"?"winner":i.status==="skip"?"stopped":i.status==="moved"?"sourcing":"idea"}">${I_STATUS[i.status]}</span><span class="score ${scoreCls(s)}" style="position:static">${s}/6 rules</span>`;
   $("sideBody").innerHTML=`
@@ -1647,7 +1680,7 @@ function openIdea(id){
     ${i.why?`<div class="sec"><h3>Why it could sell</h3><p class="text">${esc(i.why)}</p></div>`:""}
     ${(()=>{const A=priceAdvice(i),m=A.m;const tc={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",idle:"var(--idle-bg);color:var(--idle)"}[A.tone];
       return `<div class="sec"><h3>Price (DT)</h3><div class="money">
-      <div><span>Cost</span><b>${fmt(num(i.cost))}</b></div><div><span>Our price</span><b>${fmt(num(i.price))}</b></div><div><span>Margin after delivery</span><b class="${margin==null?"":margin>0?"pos":"neg"}">${fmt(margin,1)}</b></div>
+      <div><span>Cost</span><b>${fmt(num(i.cost))}</b></div><div><span>Our price</span><b>${fmt(num(i.price))}</b></div><div><span>Max ads / order</span><b class="${margin==null?"":margin>0?"pos":"neg"}">${fmt(margin,1)}</b></div>
       <div><span>Competitors in Tunisia</span><b>${m.n}${m.hot?` · 🔥${m.hot}`:""}</b>${m.abroad?`<em style="font-style:normal;font-size:12px;color:var(--muted);display:block">+ ${m.abroad} abroad (inspiration)</em>`:""}</div><div><span>Market price</span><b>${m.min!=null?(m.min===m.max?fmt(m.min,0):fmt(m.min,0)+"–"+fmt(m.max,0)):"—"}</b></div><div><span>Suggested</span><b class="pos">${A.suggest!=null?fmt(A.suggest,0):"—"}</b></div></div>
       ${A.warn?`<p class="verdict" style="margin:8px 0 0;background:var(--bad-bg);color:var(--bad)">⚠ ${esc(A.warn)}</p>`:""}
       <p class="verdict" style="margin:8px 0 0;background:${tc}">${esc(A.msg)}</p>
@@ -1838,7 +1871,7 @@ async function renderHome(){
   if(!C.length){$("hAds").innerHTML=`<p class="hmuted">No ads ran in the last 7 days.</p>`;return}
   const rows=C.map(c=>{const L=links[c.campaign_name]||{};const pid=L.product_id!==undefined?L.product_id:guessProduct(c.campaign_name);const p=products.find(x=>x.id===pid);
     const o=(act(c.actions,PURCHASE)??act(c.actions,"omni_purchase")??0)+(L.extra_orders||0);const sp=toDT(+c.spend||0,d7.currency);
-    const be=p&&num(p.price)!=null&&num(p.cost)!=null?num(p.price)-num(p.cost)-DELIVERY:null;return{c,o,sp,f:decide(sp,o,be,+c.impressions||0,+c.inline_link_click_ctr||0)}});
+    const be=p?breakEven(num(p.price),num(p.cost),p):null;return{c,o,sp,f:decide(sp,o,be,+c.impressions||0,+c.inline_link_click_ctr||0)}});
   const col={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",warn:"var(--warn-bg);color:var(--warn)",idle:"var(--idle-bg);color:var(--idle)"};
   $("hAds").innerHTML=rows.map(r=>`<div class="hrow"><span><b style="font-weight:500">${esc(r.c.campaign_name)}</b><small style="display:block;color:var(--muted);font-size:12px">${fmt(r.sp,0)} DT · ${r.o} order${r.o===1?"":"s"}</small></span><span class="flag" style="background:${col[r.f.c]}">${r.f.l}</span></div>`).join("")+`<button class="btn ghost sm" style="margin-top:10px" onclick="setTab('stats')">Open Stats</button>`;
   // add Stop / Scale flags to attention
