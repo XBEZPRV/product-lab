@@ -34,6 +34,8 @@ a{color:inherit}
 .sync b{width:7px;height:7px;border-radius:50%;background:var(--muted)}
 
 main{padding-block:28px 96px}
+.gform{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.gform label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.gform input{height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;color:var(--ink);background:var(--card)}.gform small{font-size:12px}.gform .btn{grid-column:1/-1;justify-self:start}
 .nstep{display:flex;gap:12px;align-items:center;justify-content:space-between;border-radius:12px;padding:12px 14px;margin-bottom:14px}
 .nstep small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.nstep b{font-size:16px;font-weight:600}.nstep p{margin:2px 0 0;font-size:13px;color:var(--ink)}.nstep .btn{flex:none}
 .subnav{display:flex;width:max-content;max-width:100%;overflow-x:auto;margin:0 0 18px}.subnav[hidden]{display:none}.subnav::-webkit-scrollbar{display:none}.subnav{scrollbar-width:none}.subnav button{flex:none;white-space:nowrap}
@@ -753,6 +755,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <li><b>🕘 Activity</b> يحلّ السجل: شكون زاد ولا بدّل ولا فسخ أي حاجة، ووقتاش (منتوج، فكرة، كامبانيا، موافقة، مهمة…).</li>
     </ul>
 
+    <p><b>🎯 Go / No-Go</b>: قبل ما تبدا التست، في المنتوج اكتب <b>Max ads per order</b> (التطبيق يقترح 80% من الـ Break-even)، الميزانية، وقدّاش من نهار. وقت التست يقلك ⏳ ما تقرّرش قبل الوقت، إلا كان صرفت 2 مرات الـ target وما جاتش حتى كوموند (🔴 Stop now). في الآخر: <b>🟢 GO</b> (تحت الـ target: Winner)، <b>🟡 Almost</b> (تحت الـ Break-even: بدّل حاجة وحدة وعاود)، ولا <b>🔴 NO-GO</b> (وقّفو وجرّب منتوج آخر).</p>
     <p><b>5 تابات برك:</b> Home · Ideas · Products · Ads · Stats. Tasks ولاّت في Home، Competitors في Ideas، Suppliers في Products، و Plans في Ads (من المينيو الصغير تحت التاب).</p>
     <h3>0. Ideas — أفكار المنتوجات</h3>
     <ul>
@@ -972,6 +975,43 @@ function verdict(p,m){
   return{c:"idle",t:"Add the cost and price to see if it can make money."};
 }
 
+/* Go / No-Go: targets written BEFORE the test, verdict after (Bechir's rule). */
+const localDay=()=>{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())};
+const todayStr=()=>new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
+const dayNo=d=>d?Math.round((localDay()-new Date(d+"T00:00:00"))/864e5)+1:null;
+function goNoGo(p,m){
+  const be=m.margin;if(be==null)return null;
+  const tgt=num(p.target_cpa);if(tgt==null)return{k:"plan"};
+  const spend=m.spend||0,orders=m.orders||0,budget=num(p.budget),days=num(p.test_days),day=dayNo(p.test_start);
+  const cpo=orders?spend/orders:null;
+  const over=(budget!=null&&spend>=budget)||(days!=null&&day!=null&&day>days);
+  const where=[day!=null&&days?`Day ${Math.min(day,days)} of ${days}`:null,budget!=null?`${fmt(spend,0)} of ${fmt(budget,0)} DT spent`:`${fmt(spend,0)} DT spent`].filter(Boolean).join(" · ");
+  if(!spend)return{k:"wait",c:"idle",l:"⏳ Not started",t:"Targets are set. Start the ads, then update spend and orders with Edit."};
+  if(!orders&&spend>=2*tgt)return{k:"nogo",c:"bad",l:"🔴 Stop now",t:`${fmt(spend,0)} DT spent with 0 orders. That's 2× your target (${fmt(tgt,0)} DT). Don't wait for the end.`};
+  if(orders>=3&&cpo>be)return{k:"nogo",c:"bad",l:"🔴 Stop now",t:`Each order costs ${fmt(cpo,0)} DT in ads, more than the ${fmt(be,0)} DT you can pay. Every order loses money.`};
+  if(!over)return{k:"run",c:"info",l:"⏳ Test running",t:`${where}. ${orders?`${orders} order${orders>1?"s":""} at ${fmt(cpo,0)} DT each (target ${fmt(tgt,0)}).`:`No orders yet (target ${fmt(tgt,0)} DT per order).`} Decide at the end, not before.`};
+  if(orders&&cpo<=tgt)return{k:"go",c:"good",l:"🟢 GO",t:`Test done. ${orders} orders at ${fmt(cpo,0)} DT each, under your ${fmt(tgt,0)} DT target. Mark it Winner and scale slowly (+20–30% every 2–3 days).`};
+  if(orders&&cpo<=be)return{k:"fix",c:"warn",l:"🟡 Almost",t:`Test done. ${fmt(cpo,0)} DT per order: above your ${fmt(tgt,0)} DT target but under break-even (${fmt(be,0)}). Fix one thing (hook, offer or page) and test again.`};
+  return{k:"nogo",c:"bad",l:"🔴 NO-GO",t:orders?`Test done. ${fmt(cpo,0)} DT per order, more than break-even (${fmt(be,0)} DT). Stop it and test the next product.`:`Test done with 0 orders for ${fmt(spend,0)} DT. Stop it and test the next product.`};
+}
+function gngSection(p,m,G){
+  const be=m.margin;
+  if(!G)return `<div class="sec"><h3>Go / No-Go</h3><p class="text" style="color:var(--muted)">Add cost and price first.</p></div>`;
+  const form=()=>{const sug=Math.max(1,Math.floor(be*.8));const today=todayStr();
+    return `<div class="gform"><label>Max ads per order (DT)<input id="g-tgt" type="number" min="0" step="0.5" value="${p.target_cpa??(be>0?sug:"")}"><small>${be>0?`Break-even is ${fmt(be,1)}. We suggest ${sug}.`:"Break-even is under 0: fix the price first."}</small></label>
+      <label>Test budget (DT)<input id="g-bud" type="number" min="0" step="1" value="${p.budget??""}"><small>Max money before you decide</small></label>
+      <label>Test days<input id="g-days" type="number" min="1" max="30" step="1" value="${p.test_days??4}"></label>
+      <label>Start<input id="g-start" type="date" value="${p.test_start??today}"></label>
+      <button class="btn primary sm" id="gSave" type="button">Save targets</button></div>`};
+  if(G.k==="plan")return `<div class="sec" id="gng"><h3>Go / No-Go</h3><p class="text">Write the targets <b>before</b> the test. After, the app tells you Go or No-Go, so we don't fool ourselves.</p>${form()}</div>`;
+  const col={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",warn:"var(--warn-bg);color:var(--warn)",info:"var(--info-bg);color:var(--info)",idle:"var(--idle-bg);color:var(--idle)"}[G.c];
+  return `<div class="sec" id="gng"><h3>Go / No-Go</h3>
+    <div class="money"><div><span>Target / order</span><b>${fmt(num(p.target_cpa),1)}</b></div><div><span>Real / order</span><b class="${m.cpo==null?"":m.cpo<=num(p.target_cpa)?"pos":"neg"}">${fmt(m.cpo,1)}</b></div><div><span>Test</span><b>${p.test_days?p.test_days+" days":"—"}${p.budget!=null?" · "+fmt(num(p.budget),0)+" DT":""}</b></div></div>
+    <p class="verdict" style="margin:10px 0 0;background:${col}"><b>${G.l}</b> · ${esc(G.t)}</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${G.k==="go"&&p.status!=="winner"?`<button class="btn primary sm" data-gst="winner">Mark as Winner</button>`:""}${G.k==="nogo"&&p.status!=="stopped"?`<button class="btn primary sm" data-gst="stopped">Stop this product</button>`:""}<button class="btn ghost sm" id="gEdit">Change targets</button></div>
+    <div id="gFormWrap" hidden>${form()}</div></div>`;
+}
+
 /* ---------- Products ---------- */
 function renderProducts(){
   const sum=k=>products.reduce((a,p)=>a+(num(p[k])||0),0);
@@ -986,7 +1026,7 @@ function renderProducts(){
   if(!list.length){G.innerHTML=products.length?`<div class="empty">No products match.</div>`:`<div class="empty">No products yet.<br><button class="btn primary" onclick="openPForm()">+ Add your first product</button></div>`;return}
   G.innerHTML=list.map(p=>{const m=calc(p);const pr=m.profit!=null?m.profit:m.margin;
     return `<button class="pcard" data-id="${p.id}">
-      <div class="pimg">${isUrl(p.image)?`<img src="${esc(p.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${p.status}">${P_STATUS[p.status]}</span><span class="mtag">${P_MODE[p.mode]||P_MODE.general}</span></div>
+      <div class="pimg">${isUrl(p.image)?`<img src="${esc(p.image)}" alt="" loading="lazy">`:"No photo"}<span class="pill p-${p.status}">${P_STATUS[p.status]}</span><span class="mtag">${P_MODE[p.mode]||P_MODE.general}</span>${(()=>{const G=goNoGo(p,m);return G&&["go","fix","nogo"].includes(G.k)?`<span class="score ${G.c==="good"?"s-hi":G.c==="warn"?"s-mid":"s-lo"}" style="top:auto;bottom:10px;right:10px">${G.l}</span>`:""})()}</div>
       <div class="pbody"><div><p class="pname">${esc(p.name)}</p><p class="ptype">${esc(p.type||"")}</p></div>
       <div class="kpis"><div><span>Cost</span><b>${fmt(m.cost)}</b></div><div><span>Price</span><b>${fmt(m.price)}</b></div>
       <div><span>${m.profit!=null?"Profit/order":"Max ads/order"}</span><b class="${pr==null?"":pr>0?"pos":"neg"}">${fmt(pr,1)}</b></div></div></div></button>`}).join("");
@@ -994,7 +1034,7 @@ function renderProducts(){
 }
 function openProduct(id){
   const p=products.find(x=>x.id===id);if(!p)return;current={kind:"p",id};
-  const m=calc(p),v=verdict(p,m);
+  const m=calc(p),v=verdict(p,m),G=goNoGo(p,m);
   $("sideTitle").textContent=p.name;
   $("sideMeta").innerHTML=`<span class="pill p-${p.status}">${P_STATUS[p.status]}</span><span>${P_MODE[p.mode]||P_MODE.general}</span>${p.type?`<span>${esc(p.type)}</span>`:""}<span>Updated ${new Date(p.updated_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span>`;
   const sups=suppliers.filter(s=>s.product_id===p.id);
@@ -1011,15 +1051,23 @@ function openProduct(id){
       <p class="verdict" style="margin:10px 0 0;background:${vc}">${esc(v.t)}</p>
       ${m.margin!=null?`<p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${esc(beExplain(m.price,m.cost,p))}</p>`:""}
     </div>
+    ${gngSection(p,m,G)}
     ${p.mode!=="brand"&&p.status==="winner"?`<div class="sec upg"><h3>🚀 This one sells</h3><p class="text">Turn it into a brand: a stronger offer, real reviews, customers who come back.</p><button class="btn primary sm" style="margin-top:8px" id="toBrand">Upgrade to Brand →</button></div>`:""}
     ${p.script?`<div class="sec"><h3>Ad script</h3><p class="script" dir="auto">${esc(p.script)}</p><button class="btn ghost sm" style="margin-top:8px" id="copyScript">Copy script</button></div>`:""}
     ${p.notes?`<div class="sec"><h3>Notes</h3><p class="text">${esc(p.notes)}</p></div>`:""}
     ${isUrl(p.source)?`<div class="sec"><h3>Link</h3><div class="mini"><a href="${esc(p.source)}" target="_blank" rel="noopener"><span>${esc(p.source.replace(/^https?:\/\/(www\.)?/,"").slice(0,50))}</span><span>Open ↗</span></a></div></div>`:""}
-    <div class="sec"><h3>Suppliers (${sups.length})</h3>${sups.length?`<div class="mini">${sups.map(s=>`<a href="#" data-sid="${s.id}"><span>${esc(s.name)}</span><span class="pill p-${s.status}">${S_STATUS[s.status]}</span></a>`).join("")}</div>`:`<p class="text" style="color:var(--muted)">None yet. Add one in the Suppliers tab.</p>`}</div>`;
+    <div class="sec"><h3>Suppliers (${sups.length})</h3>${sups.length?`<div class="mini">${sups.map(s=>`<a href="#" data-sid="${s.id}"><span>${esc(s.name)}</span><span class="pill p-${s.status}">${S_STATUS[s.status]}</span></a>`).join("")}</div>`:`<p class="text" style="color:var(--muted)">None yet. Add one in Products → 🚚 Suppliers.</p>`}</div>`;
   $("sideBody").querySelectorAll("[data-sid]").forEach(a=>a.onclick=e=>{e.preventDefault();openSupplier(a.dataset.sid)});
   const tb=$("toBrand");if(tb)tb.onclick=async()=>{tb.disabled=true;const r=await sb.from("products").update({mode:"brand",updated_at:new Date().toISOString()}).eq("id",p.id);
     if(r.error){tb.disabled=false;toast("Couldn't change it: "+r.error.message);return}
     toast(p.name+" is now a brand");await loadAll();openProduct(p.id)};
+  const upd=async(patch,msg)=>{const r=await sb.from("products").update({...patch,updated_at:new Date().toISOString()}).eq("id",p.id);
+    if(r.error){toast("Couldn't save: "+r.error.message);return}toast(msg);await loadAll();openProduct(p.id)};
+  const gs=$("gSave");if(gs)gs.onclick=()=>{const t=num($("g-tgt").value),b=num($("g-bud").value),d=num($("g-days").value);
+    if(t==null||t<=0){toast("Write the max ads per order");$("g-tgt").focus();return}
+    upd({target_cpa:t,budget:b,test_days:d==null?null:Math.round(d),test_start:$("g-start").value||null},"Targets saved")};
+  const ge=$("gEdit");if(ge)ge.onclick=()=>{$("gFormWrap").hidden=!$("gFormWrap").hidden};
+  $("sideBody").querySelectorAll("[data-gst]").forEach(b=>b.onclick=()=>upd({status:b.dataset.gst},b.dataset.gst==="winner"?"Marked as Winner":"Product stopped"));
   const cs=$("copyScript");if(cs)cs.onclick=()=>navigator.clipboard.writeText(p.script).then(()=>toast("Script copied"),()=>toast("Couldn't copy"));
   showSide();
 }
