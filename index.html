@@ -34,6 +34,7 @@ a{color:inherit}
 .sync b{width:7px;height:7px;border-radius:50%;background:var(--muted)}
 
 main{padding-block:28px 96px}
+.subnav{display:flex;width:max-content;max-width:100%;overflow-x:auto;margin:0 0 18px}.subnav[hidden]{display:none}.subnav::-webkit-scrollbar{display:none}.subnav{scrollbar-width:none}.subnav button{flex:none;white-space:nowrap}
 .headrow{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
 h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacing:-.02em;margin:0}
 .sub{color:var(--muted);margin:6px 0 0}
@@ -464,18 +465,13 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 <div class="top"><div class="wrap">
   <div class="brand"><i></i><span>Product Lab</span></div>
   <nav class="nav" role="tablist">
-    <button role="tab" id="tab-home" aria-selected="false">Home</button>
-    <i class="sep" aria-hidden="true"></i>
+    <button role="tab" id="tab-home" aria-selected="false">Home <span id="taskBadge" class="badge" hidden></span></button>
     <button role="tab" id="tab-ideas" aria-selected="false">Ideas</button>
-    <button role="tab" id="tab-comp" aria-selected="false">Competitors</button>
-    <button role="tab" id="tab-suppliers" aria-selected="false">Suppliers</button>
-    <i class="sep" aria-hidden="true"></i>
     <button role="tab" id="tab-products" aria-selected="true">Products</button>
     <button role="tab" id="tab-ads" aria-selected="false">Ads</button>
-    <button role="tab" id="tab-plans" aria-selected="false">Plans</button>
-    <i class="sep" aria-hidden="true"></i>
     <button role="tab" id="tab-stats" aria-selected="false">Stats</button>
-    <button role="tab" id="tab-tasks" aria-selected="false">Tasks <span id="taskBadge" class="badge" hidden></span></button>
+    <!-- merged into the 5 tabs above; kept hidden so old links still work -->
+    <button role="tab" id="tab-comp" hidden>Competitors</button><button role="tab" id="tab-suppliers" hidden>Suppliers</button><button role="tab" id="tab-plans" hidden>Plans</button><button role="tab" id="tab-tasks" hidden>Tasks</button>
   </nav>
   <div class="sync" title="Connecting…" id="syncWrap"><b id="dot"></b><span id="syncText" class="sr">Connecting…</span></div>
   <div class="menuwrap">
@@ -491,6 +487,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 </div></div>
 
 <main class="wrap">
+  <div class="seg subnav" id="subnav" hidden></div>
   <!-- PRODUCTS -->
   <section id="view-products">
     <div class="headrow">
@@ -530,7 +527,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
   <section id="view-ideas" hidden>
     <div class="headrow">
       <div><h1>Product ideas</h1><p class="sub">Find products on our sources, score them on our 6 rules, vote together, then test the best ones.</p></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="seg"><button id="vIdeas" aria-pressed="true">💡 Ideas</button><button id="vSources" aria-pressed="false">🔎 Where to look</button></span><button class="btn primary" id="addIdea">+ Add idea</button></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="seg" hidden><button id="vIdeas" aria-pressed="true">💡 Ideas</button><button id="vSources" aria-pressed="false">🔎 Where to look</button></span><button class="btn primary" id="addIdea">+ Add idea</button></div>
     </div>
     <div id="ideasView">
       <div class="tools"><div class="chips" id="iChips"></div></div>
@@ -754,6 +751,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <li><b>🕘 Activity</b> يحلّ السجل: شكون زاد ولا بدّل ولا فسخ أي حاجة، ووقتاش (منتوج، فكرة، كامبانيا، موافقة، مهمة…).</li>
     </ul>
 
+    <p><b>5 تابات برك:</b> Home · Ideas · Products · Ads · Stats. Tasks ولاّت في Home، Competitors في Ideas، Suppliers في Products، و Plans في Ads (من المينيو الصغير تحت التاب).</p>
     <h3>0. Ideas — أفكار المنتوجات</h3>
     <ul>
       <li>كل منتوج تلقاه (TikTok، AliExpress، حانوت…) زيدو هنا بـ <b>+ Add idea</b>، حتى قبل ما تعرف سومو.</li>
@@ -1931,7 +1929,7 @@ function editSource(x){
       if(r.error)return r.error.message.includes("duplicate")?"That source already exists":r.error.message;await loadSources();renderSources()});
 }
 $("addSource").onclick=()=>editSource();
-function setIdeasView(v){$("vIdeas").setAttribute("aria-pressed",v==="ideas");$("vSources").setAttribute("aria-pressed",v==="sources");$("ideasView").hidden=v!=="ideas";$("sourcesView").hidden=v!=="sources";if(v==="sources")renderSources()}
+function setIdeasView(v){setTimeout(()=>{if(!$("view-ideas").hidden)renderSubnav("ideas")});$("vIdeas").setAttribute("aria-pressed",v==="ideas");$("vSources").setAttribute("aria-pressed",v==="sources");$("ideasView").hidden=v!=="ideas";$("sourcesView").hidden=v!=="sources";if(v==="sources")renderSources()}
 $("vIdeas").onclick=()=>setIdeasView("ideas");$("vSources").onclick=()=>setIdeasView("sources");
 
 /* ---------- Generic form ---------- */
@@ -2202,14 +2200,26 @@ $("pSearch").oninput=renderProducts;$("sSearch").oninput=renderSuppliers;
 Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
+// 5 tabs. Each tab can hold a few pages, picked from the sub-menu under the tabs.
+const PARENT={home:"home",tasks:"home",ideas:"ideas",comp:"ideas",products:"products",suppliers:"products",ads:"ads",plans:"ads",stats:"stats"};
+const SUB={home:[["home","🏠 Today"],["tasks","✅ Tasks"]],ideas:[["ideas","💡 Ideas"],["sources","🔎 Where to look"],["comp","🏷 Competitors"]],
+  products:[["products","📦 Products"],["suppliers","🚚 Suppliers"]],ads:[["plans","🗂 Plans"],["ads","🎬 Ad library"]]};
+function renderSubnav(t){
+  const g=PARENT[t],n=$("subnav"),items=SUB[g]||[];n.hidden=!items.length;
+  const on=t==="ideas"&&!$("sourcesView").hidden?"sources":t;
+  n.innerHTML=items.map(([k,l])=>`<button type="button" data-sub="${k}" aria-pressed="${k===on}">${l}</button>`).join("");
+  n.querySelectorAll("button").forEach(b=>b.onclick=()=>{const k=b.dataset.sub;
+    if(k==="ideas"||k==="sources"){setTab("ideas");setIdeasView(k)}else setTab(k)});
+}
 function setTab(t){
-  for(const x of["home","ideas","products","suppliers","comp","ads","plans","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===t);$("view-"+x).hidden=x!==t}
+  for(const x of["home","ideas","products","suppliers","comp","ads","plans","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===PARENT[t]);$("view-"+x).hidden=x!==t}
+  renderSubnav(t);
   if(t==="stats"&&!stLoaded&&sb)loadStats();
   if(t==="home"&&sb)renderHome();
   if(t==="ads"&&!adsSynced&&sb)syncAds();
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
-$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("ads");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");$("tab-home").onclick=()=>setTab("home");$("tab-comp").onclick=()=>setTab("comp");
+$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("plans");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");$("tab-home").onclick=()=>setTab("home");$("tab-comp").onclick=()=>setTab("comp");
 let startTab="home";try{const t=localStorage.getItem("pl_tab");if(["products","ideas","suppliers","comp","ads","plans","stats","tasks"].includes(t))startTab=t}catch(e){}
 
 /* ---------- Data ---------- */
