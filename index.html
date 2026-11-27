@@ -2055,6 +2055,24 @@ function renderPlans(){
 }
 function showPlan(id){openPlan=id;$("planList").hidden=true;$("planView").hidden=false;renderPlanView();window.scrollTo(0,0)}
 function closePlan(){openPlan=null;$("planList").hidden=false;$("planView").hidden=true}
+// ABO = budget on each ad set (fair test of each angle). CBO = budget on the campaign (Meta moves money to what sells).
+function budgetTip(c,prod,sets){
+  const cb=num(c.daily_budget),sb_=sets.map(s=>num(s.daily_budget)),withSet=sb_.filter(x=>x!=null&&x>0);
+  const now=cb>0&&withSet.length?"both":cb>0?"cbo":withSet.length?"abo":"none";
+  const scale=prod?.status==="winner";
+  if(scale){
+    if(now==="cbo")return{tone:"good",t:"✓ CBO, good for scaling",d:"Meta sends the money to the ad sets that bring orders. Raise the campaign budget 20–30% every 2–3 days."};
+    return{tone:"info",t:"Scale with CBO",d:`${prod.name} is a winner. Put the budget on the campaign (CBO) with only your winning ad sets, and leave the ad set budgets empty.${now==="both"?" Right now both are set: keep one.":""}`};
+  }
+  if(now==="both")return{tone:"warn",t:"Pick one: ABO or CBO",d:"You set a campaign budget and ad set budgets. In Meta it's one or the other. For a test, use ad set budgets (ABO) and leave the campaign budget empty."};
+  if(sets.length<2)return{tone:"info",t:"Test with ABO",d:"Add 2–3 ad sets (one angle each) and give each the same daily budget. Then each angle gets a fair test."};
+  if(now==="cbo")return{tone:"warn",t:"For a test, use ABO",d:`With a campaign budget (CBO), Meta can put all the money on one ad set early, so the other angles never get tested. Give each ad set about ${fmt(cb/sets.length,0)} DT/day and leave the campaign budget empty.`};
+  if(now==="abo"){const eq=withSet.length===sets.length&&Math.max(...withSet)-Math.min(...withSet)<1;
+    return eq?{tone:"good",t:"✓ ABO, good for testing",d:"Each angle gets the same money. After the test, keep the winners and move them to a CBO campaign to scale."}
+      :{tone:"warn",t:"ABO: make the budgets equal",d:"Give every ad set the same daily budget, so the test is fair."}}
+  const per=prod&&num(prod.budget)&&num(prod.test_days)?Math.round(num(prod.budget)/num(prod.test_days)/sets.length):null;
+  return{tone:"info",t:"Test with ABO",d:`Put the budget on each ad set (same amount)${per?`, about ${per} DT/day each from your test budget`:""}, and leave the campaign budget empty.`};
+}
 function renderPlanView(){
   const c=campaigns.find(x=>x.id===openPlan);if(!c){closePlan();return}
   const prod=products.find(p=>p.id===c.product_id);
@@ -2079,6 +2097,7 @@ function renderPlanView(){
     <div><span>Start</span><b>${c.start_date?fmtDate(c.start_date):"Not set"}</b></div>
     <div><span>Ads ready</span><b class="${pa.length&&pa.every(a=>a.ready)?"pos":""}">${pa.filter(a=>a.ready).length} / ${pa.length}</b></div>
   </div>
+  ${(BT=>`<div class="nstep" style="background:var(--${BT.tone}-bg)"><div><small>Budget · ABO or CBO</small><b style="color:var(--${BT.tone})">${esc(BT.t)}</b><p>${esc(BT.d)}</p></div></div>`)(budgetTip(c,prod,sets))}
   ${c.rules?`<div class="rules"><h3>Rules for this test</h3>${esc(c.rules)}</div>`:""}
   <div class="adsets">
     ${sets.map((s,i)=>{const sa=pa.filter(a=>a.adset_id===s.id);
