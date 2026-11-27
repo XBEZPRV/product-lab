@@ -463,6 +463,7 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .lhead small{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}.lhead h1{font-size:26px;font-weight:600;margin:2px 0}.lhead p{margin:0;color:var(--muted)}
 .lbody{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:14px;font-size:15px}
 .lbody .sbox{font-size:15px}.lbody .dm-area{height:360px}
+.ldz{background:var(--info-bg);border-radius:14px;padding:14px 16px;margin-bottom:14px}.ldz small{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--info);font-weight:600}.ldz p{margin:4px 0 0;font-size:15.5px;line-height:1.55;color:var(--ink)}
 .lnav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 30px}.lnb{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;font:inherit;color:var(--ink)}.lnb.nx{text-align:right}
 .lnb small{display:block;color:var(--muted);font-size:12px}.lnb b{font-weight:600;font-size:14px}
 @media(max-width:560px){.lhero{padding:20px}.lhero h1{font-size:24px}.lcards{grid-template-columns:1fr 1fr}.lcard{padding:12px}.lct b{font-size:14.5px}.lct small{display:none}.lbody{padding:14px}.lhead{padding:14px}.lhead h1{font-size:21px}.lhead .lic{width:48px;height:48px;font-size:26px}}
@@ -2165,6 +2166,19 @@ function renderCourse(){
     "Research: need to know":["research",null,["🏷 Competitors","comp"]],"N.T.P.M.A":["research",null,["💡 Ideas","ideas"]],
     "Format → Concept → Angles":["creative","Basics",["🗂 Plans","plans"]],"Creative diversification":["creative","Basics",["🗂 Plans","plans"]],"Ad building blocks":["creative","Basics",["🗂 Plans","plans"]],"Creative strategy flywheel":["creative",null,["📚 Learnings","learn"]],
     "The real break-even (COD)":["money",null,["📦 Products","products"]],"Go / No-Go":["money",null,["📦 Products","products"]],"ABO vs CBO":["money",null,["🗂 Plans","plans"]]};
+  const DZ={"The full method":"Kol produit yemchi b nafs el tri9: tal9a el idea, t3tiha score, tekteb el targets 9bal ma tsrf, ta3mel plan lel ads, tlanci, w ba3d el ar9am y9oulou GO walla NO-GO. W fi lekher tekteb chnowa t3allemt, bech el produit el jey ykoun a7sen.",
+    "PMF validation":"9bal ma techri stock, a9ra kifech yetba3 el produit fil marché el barra (US / EU). Ekteb el targets 9bal el test (CPA, CVR, marge, budget), ta3mel test sghir, w el ar9am ya7kmou. Ken GO: techri stock w tebni el brand. Ken el produit walla winner, ra9eb el signals w badel 7aja wa7da bark kol mara.",
+    "The offer ($100M Offer)":"El produit howa chnowa tbi3, ama el offre hiya 3lech el client ychri. Zouz ybi3ou nafs el produit: elli 3andou offre a9wa yerba7. Offre bel garantie, bel valeur, w b reason bech ychri taw. W lazemha tekhdem m3a nes ma ya3rfoukch (cold), mouch ken m3a elli dejà y7ebbou ychriw.",
+    "General or Brand":"🏪 General: testi fissa3, bi3 fissa3, produit khfif w rkhis. 💎 Brand: tebni esm 7ol produit wa7ed, b offre a9wa w clients yarja3ou. El winner mta3 general ynajem ywalli brand ba3d.",
+    "Research: need to know":"9bal ma ta3mel ay ad, lazem ta3ref 3 7ajet: chnowa el content elli ye5dem m3a el nes, kifech enti mo9arnin bel concurrents (prix, offre), w chnowa el 7asis elli ykhalli el client ychri (wja3, khouf, status…).",
+    "N.T.P.M.A":"5 as2ila l kol idea brand: chkoun ychri (Niche), chnowa yetbaddel 3andou (Transformation), el prix ma39oul (Price), 3lech ye5dem (Mechanism), w najmou nousloulou bel ads (Access). Lazem 4 / 5 9bal ma ttesti.",
+    "Format → Concept → Angles":"El format howa chnowa ta3mel (video, image). El concept howa el style mta3 el ad (before & after, unboxing, review). El angle howa el fayda elli t7ki 3liha (beauté, résultat fissa3, sahel). Concept wa7ed, testih b barcha angles.",
+    "Creative diversification":"Ma t3melch el ads el kol nafs el type. Fama ads l nes ma ya3rfoukch (unboxing, cadeau), ads l nes 3andhom fekra (reviews, benefits), w ads l nes 7adhrin ychriw (offre, before & after). 3al a9al wa7da men kol no3.",
+    "Ad building blocks":"Kol ad = Hook (3 secondes el louwla bech ywa99ef el scroll) + Body (el sawer: unboxing, demo, benefits…) + CTA (3lech ychri taw). Ta3mel el sawer mara wa7da, w tretbhom b 3 tri9at: 3 ads b 3 hooks.",
+    "Creative strategy flywheel":"Kol creative yemchi f dora: research, idea, brief (el hypothesis), ta3mel el ad, t3ayyrou, tlanci, w ba3d tchouf el hypothesis s7i7a walla le. El lesson trja3 lel research mta3 el produit el jey.",
+    "The real break-even (COD)":"Fil paiement à la livraison, mouch kol commande tetconfirma, w fama colis yarja3ou (w tkhalles el livraison). Ya3ni el ra9m elli tnajem tsrfou fil ads 3al commande as8ar barcha men (prix − coût − livraison). El app t7asbou b settings mte3ek.",
+    "Go / No-Go":"Tekteb el targets 9bal el test: 9addech max tsrf 3al commande, el budget, w 9addech men nhar. Ba3d el test: ta7t el target = GO, ta7t el break-even = 9rib (sala7 7aja), fou9 el break-even = NO-GO. W ken srafet 2× el target w 0 commandes, 7abes taw.",
+    "ABO vs CBO":"ABO: el budget 3la kol ad set, nafs el flous, bech kol angle ya5ou fersa — hedha lel test. CBO: el budget 3al campagne, Meta y7ott el flous win fama bi3 — hedha lel scale ba3d ma tal9a el winner."};
   const GROUPS=[["start","Start here","The method, validating a product, and the offer"],["research","Research & ideas","What to look for before you test"],["creative","Creatives","How to build ads that find buyers"],["money","Money & decisions","Numbers that decide for you"]];
   const L_=S.map(([ic,t,sub,body])=>{const m=META[t]||["start",null,null];return{ic,t,sub,body,g:m[0],tag:m[1],go:m[2]}});
   const order=GROUPS.flatMap(([g])=>L_.filter(x=>x.g===g));
@@ -2176,6 +2190,7 @@ function renderCourse(){
     const pv=order[courseOpen-1],nx=order[courseOpen+1];
     L.innerHTML=`<div class="lesson g-${x.g}"><button class="back" id="lsBack">← All lessons</button>
       <div class="lhead"><span class="lic">${x.ic}</span><div><small>${g[1]}${x.tag?" · "+x.tag:""}</small><h1>${x.t}</h1><p>${x.sub}</p></div></div>
+      ${DZ[x.t]?`<div class="ldz"><small>🇹🇳 Bil darija</small><p dir="auto">${DZ[x.t]}</p></div>`:""}
       <div class="lbody sbody">${x.body}</div>
       ${x.go?`<button class="btn primary" id="lsGo">Use it in the app: ${x.go[0]} →</button>`:""}
       <div class="lnav">${pv?`<button class="lnb" data-ls="${courseOpen-1}"><small>← Previous</small><b>${pv.ic} ${pv.t}</b></button>`:"<span></span>"}${nx?`<button class="lnb nx" data-ls="${courseOpen+1}"><small>Next →</small><b>${nx.ic} ${nx.t}</b></button>`:"<span></span>"}</div></div>`;
