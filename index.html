@@ -422,6 +422,14 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .dm-dot.on i{background:var(--ink);box-shadow:0 0 0 3px var(--action)}.dm-dot.on span{color:var(--ink);font-weight:600}
 .dm-x{grid-column:2;display:flex;justify-content:space-between;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .dm-wrap{margin-top:8px}.dm-wrap summary{cursor:pointer;font-size:13px;color:var(--info)}
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}@media(max-width:560px){.bgrid{grid-template-columns:1fr}}
+.brec{background:var(--soft);border-radius:10px;padding:10px}.bh{font-weight:800;font-size:15px;margin-bottom:6px}
+.brow{display:grid;grid-template-columns:44px 1fr;gap:6px;align-items:start;margin-bottom:6px}.brow small{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:4px}
+.brow>span:not(.bk){display:flex;flex-direction:column;gap:3px}
+.bk{display:inline-block;font-size:12.5px;padding:3px 8px;border-radius:6px;background:#fde0e0}.bk.hk{background:#dff3e4}.bk.ct{background:#dff3e4}
+.bbuild{grid-column:1/-1;margin-bottom:4px}.bbuild #bbBox{margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:10px;display:grid;gap:8px}
+.bbuild label{display:grid;gap:4px;font-size:13px;color:var(--muted)}.bbuild select{height:34px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font:inherit;color:var(--ink);background:var(--card)}
+.bbb{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bbr{display:flex;gap:6px;flex-wrap:wrap}.bbt{margin:0;font-size:13px}
 .lgrp{margin-bottom:22px}.lgrp h2{font-size:17px;font-weight:600;margin:0 0 8px}
 .lrow{display:flex;gap:12px;background:var(--card,#fff);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--line)}
 .lrow.lt{border-left-color:var(--good)}.lrow.lf{border-left-color:var(--bad)}
@@ -2020,6 +2028,7 @@ function renderCourse(){
     <div class="tcol">${[["Angle 1","Beauty"],["Angle 2","Fast results"],["Angle 3","Ease of use"]].map(([a,b])=>`<div class="sbox or"><b>${a}</b><small>${b}</small></div>`).join("")}</div></div>
     <ul class="sli"><li><b>Format</b> = what you make (image, video, gif).</li><li><b>Concept</b> = the style of the ad (before & after, unboxing, testimonial).</li><li><b>Angle</b> = the benefit you push (beauty, fast results, ease of use).</li></ul>`+dz("Concept wa7ed, testih b barcha angles. Badel 7aja wa7da bark f kol test bech ta3ref chkoun 3mal el farq.")],
   ["🧩","Creative diversification","Not all ads the same kind",diversMap([],true)+`<ul class="sli"><li><b>Up</b> = Discovery: people who don't know you (unboxing, occasions, relatable problems).</li><li><b>Down</b> = Action: people ready to buy (offers, before & after).</li><li><b>Left</b> = functional (facts, results) · <b>Right</b> = emotional (feelings).</li><li>Per product, test at least <b>one ad up, one in the middle, one down</b>.</li></ul>`+dz("Ma t3melch el ads el kol « before & after + prix ». Farra9hom 3al map bech Meta yal9a clients jdod.")],
+  ["🧱","Ad building blocks","Hook → Body → CTA",blockSchema()+`<ul class="sli"><li><b>Hook</b> = the first 3 seconds: makes people stop scrolling.</li><li><b>Body</b> = the blocks you film once: unboxing, demo, benefits, before & after…</li><li><b>CTA</b> = the end: why order now.</li><li>Film the blocks <b>once</b>, reorder them into <b>3 ads</b>. Mostly the hook changes.</li></ul>`+dz("Ta3mel tsawer mara wa7da, w t3awed tretbhom: 3 ads b 3 hooks mokhtalfin. El hook howa elli ywa99ef el scroll.")],
   ["💎","N.T.P.M.A","Brand ideas need 4 / 5",`<div class="slet">${[["N","Niche","We can name who buys it"],["T","Transformation","Clear before → after"],["P","Price","Sells for 3× its cost"],["M","Mechanism","A simple reason it works"],["A","Access","We can reach them with ads"]].map(([l,t,d])=>`<div class="sl"><span>${l}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div>`+dz("4–5 / 5 → testih. Ta7t 4 → badel el idea walla 7assenha.")],
   ["🚦","Go / No-Go","Targets before, verdict after",`<div class="sgrid2"><div class="sbox"><b>Before the test</b><small>Max ads / order (under break-even) · Test budget · Test days (usually 4)</small></div><div class="sbox"><b>After the test</b><small><span class="vg">🟢 GO</span> under target → winner<br><span class="vy">🟡 Almost</span> under break-even → fix hook, offer or page<br><span class="vr">🔴 NO-GO</span> over break-even → stop</small></div></div><div class="sbox rd" style="margin-top:8px"><b>🔴 Stop early</b><small>2× the target spent and 0 orders</small></div>`+dz("Nekteb el targets 9bal. Ba3d, el ar9am ya7kmou, mouch el feeling.")],
   ["💰","The real break-even (COD)","With your settings",`<div class="calcs"><div><span>Price − cost − delivery</span><b>${pr} − ${co} − ${fmt(DELIVERY,0)} = ${fmt(g,0)} DT</b></div><div><span>Orders confirmed</span><b>${CONFIRM}%</b></div><div><span>Packages returned</span><b>${RETURNS}%</b></div><div class="big"><span>Max ads / order</span><b>${fmt(be,1)} DT</b></div></div>`+dz(`Mouch ${fmt(g,0)} DT. Ba3d el confirmation w el retour, el ra9m el s7i7 howa ${fmt(be,1)} DT.`)],
@@ -2147,6 +2156,17 @@ function mixCheck(ads){
   const same=new Set(ps).size===1&&ps.length>1;
   return{tone:miss.length>=2?"warn":"info",t:same?`All ${ps.length} ads are ${ps[0]}`:`Mix: ${st.size} of 3 stages`,d:miss[0][1],ps};
 }
+/* Ad building blocks (course): every ad = Hook → Body → CTA, built from the same filmed blocks. */
+const BLOCKS={problem:["Show problem","Show the pain or the mess in the first 3 seconds"],beforeafter:["Before & after","Same person or place, before → after"],result:["Desired result","Show the end result they want"],
+  intro:["Intro product","Show the product and say what it is"],unboxing:["Unboxing","Open the package, show what's inside"],demo:["Demo","Use it on camera, step by step"],
+  benefits:["Benefits","2–3 short benefits on screen"],experience:["Buying experience","Pay at the door, fast delivery, how to order"]};
+const RECIPES={A:["problem",["unboxing","demo","benefits","beforeafter"],"result"],B:["beforeafter",["intro","demo","benefits","experience"],"result"],C:["result",["unboxing","benefits","demo","beforeafter"],"experience"]};
+const blocksText=(h,body,cta)=>[`HOOK (0–3 s): ${BLOCKS[h][0]}: ${BLOCKS[h][1]}`,"BODY:",...body.map((b,i)=>`  ${i+1}. ${BLOCKS[b][0]}: ${BLOCKS[b][1]}`),`CTA: ${BLOCKS[cta][0]}: ${BLOCKS[cta][1]}`].join("\n");
+const recipeOf=v=>{const m=/^HOOK \(0–3 s\): ([^:]+):/.exec(v||"");return m?Object.keys(RECIPES).find(k=>BLOCKS[RECIPES[k][0]][0]===m[1]):null};
+function blockSchema(){return `<div class="bgrid">${Object.entries(RECIPES).map(([k,[h,b,c]])=>`<div class="brec"><div class="bh">${k}</div>
+  <div class="brow"><small>Hook</small><span class="bk hk">${BLOCKS[h][0]}</span></div>
+  <div class="brow"><small>Body</small><span>${b.map(x=>`<span class="bk">${BLOCKS[x][0]}</span>`).join("")}</span></div>
+  <div class="brow"><small>CTA</small><span class="bk ct">${BLOCKS[c][0]}</span></div></div>`).join("")}</div>`}
 /* Short darija help behind the "?" next to a field. */
 const TIP={
   angle:"Angle = 3lech ychri. El reason elli t7ottha 9odem el client: back pain, cadeau, saves time… Kol ad set = angle wa7ed.",
@@ -2266,11 +2286,11 @@ function renderPlanView(){
         return `<div class="pad"><div class="thumb">${isUrl(th)?`<img src="${esc(th)}" alt="">`:"To make"}</div><div class="pb">
         <b>${esc(a.name)}</b>
         <div class="fca"><span title="Format">${a.format?esc(a.format):'<i>No format</i>'}</span><span title="Concept">${a.concept?esc(a.concept):'<i>No concept</i>'}</span><span title="Angle">${s.angle?esc(s.angle):'<i>No angle</i>'}</span></div>
-        ${a.visual?`<div><div class="lbl">Video / image</div>${esc(a.visual)}</div>`:""}
+        ${a.visual?`<div><div class="lbl">Video / image</div><div style="white-space:pre-wrap">${esc(a.visual)}</div></div>`:""}
         ${a.script?`<div><div class="lbl">Primary text</div><div class="sc" dir="auto">${esc(a.script)}</div></div>`:""}
         ${a.headline?`<div><div class="lbl">Headline</div><span dir="auto">${esc(a.headline)}</span></div>`:""}
         ${a.cta?`<div><div class="lbl">Button</div>${esc(a.cta)}</div>`:""}
-        <div class="row"><label class="rd"><input type="checkbox" data-ready="${a.id}" ${a.ready?"checked":""}> Ready</label><span><button class="btn ghost sm" data-ead="${a.id}">Edit</button> <button class="btn danger sm" data-dad="${a.id}">✕</button></span></div>
+        <div class="row"><label class="rd"><input type="checkbox" data-ready="${a.id}" ${a.ready?"checked":""}> Ready</label><span><button class="btn ghost sm" data-var="${a.id}" title="Make the other recipes as new ads">⧉ A/B/C</button> <button class="btn ghost sm" data-ead="${a.id}">Edit</button> <button class="btn danger sm" data-dad="${a.id}">✕</button></span></div>
         </div></div>`}).join("")}
         <button class="addcard" data-addad="${s.id}">+ Add ad to this ad set</button></div></div>`}).join("")}
     <button class="addcard" id="pvAddSet" style="min-height:64px">+ Add ad set</button>
@@ -2310,6 +2330,14 @@ function renderPlanView(){
   q("[data-ead]").forEach(b=>b.onclick=()=>{const a=planAds.find(x=>x.id===b.dataset.ead);editPlanAd(a.adset_id,a,c)});
   q("[data-dad]").forEach(b=>b.onclick=async()=>{if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Delete?";return}
     await sb.from("plan_ads").delete().eq("id",b.dataset.dad);refreshPlans()});
+  q("[data-var]").forEach(b=>b.onclick=async()=>{const a=planAds.find(x=>x.id===b.dataset.var);
+    const cur=recipeOf(a.visual),base=a.name.replace(/ · [ABC]$/,""),others=Object.keys(RECIPES).filter(k=>k!==cur).slice(0,cur?2:3);
+    if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent=`Add ${others.length} ads?`;return}
+    const n=planAds.filter(x=>x.adset_id===a.adset_id).length;
+    const rows=others.map((k,i)=>{const [h,bd,ct]=RECIPES[k];return{adset_id:a.adset_id,position:n+i,name:`${base} · ${k}`,format:a.format,concept:a.concept,ad_id:null,script:a.script,headline:a.headline,cta:a.cta,ready:false,visual:blocksText(h,bd,ct)}});
+    const r=await sb.from("plan_ads").insert(rows);if(r.error)return toast("Couldn't add: "+r.error.message);
+    if(cur&&!/ · [ABC]$/.test(a.name))await sb.from("plan_ads").update({name:`${base} · ${cur}`}).eq("id",a.id);
+    toast(`Added ${others.map(k=>base+" · "+k).join(", ")}`);refreshPlans()});
   q("[data-ready]").forEach(b=>b.onchange=async()=>{await sb.from("plan_ads").update({ready:b.checked}).eq("id",b.dataset.ready);refreshPlans()});
   $("cForm").onsubmit=async e=>{e.preventDefault();const body=$("cBody").value.trim();if(!body)return;
     const r=await sb.from("plan_comments").insert({campaign_id:c.id,who:me()||null,body});if(r.error)return toast("Couldn't send");refreshPlans()};
@@ -2361,6 +2389,29 @@ function editPlanAd(setId,a,c){
       const r=a?await sb.from("plan_ads").update(d).eq("id",a.id):await sb.from("plan_ads").insert({...d,adset_id:setId,position:n});
       if(r.error)return r.error.message;refreshPlans();
     });
+  blockBuilder();
+}
+function blockBuilder(){
+  const vis=$("g-visual");if(!vis)return;
+  const opt=(sel)=>`<option value="">—</option>`+Object.entries(BLOCKS).map(([k,[l]])=>`<option value="${k}" ${k===sel?"selected":""}>${l}</option>`).join("");
+  const w=document.createElement("div");w.className="bbuild";
+  w.innerHTML=`<button type="button" class="btn ghost sm" id="bbOpen">🧱 Build with blocks</button><div id="bbBox" hidden>
+    <p class="bbt">Pick a recipe, or choose the blocks yourself. <button type="button" class="qm" id="bbQ">?</button></p>
+    <p class="tipbox" id="bbTip" hidden dir="auto">Kol ad = Hook (3 s el louwla) → Body (el blocks) → CTA. Ta3mel tsawer el blocks mara wa7da, w tbadel el hook bech ta3mel 3 ads.</p>
+    <div class="bbr">${Object.keys(RECIPES).map(k=>`<button type="button" class="btn ghost sm" data-rec="${k}">Recipe ${k}</button>`).join("")}</div>
+    <label>Hook<select id="bbH">${opt()}</select></label>
+    <label>Body (in order)<span class="bbb">${[0,1,2,3].map(i=>`<select data-bb="${i}">${opt()}</select>`).join("")}</span></label>
+    <label>CTA<select id="bbC">${opt()}</select></label>
+    <button type="button" class="btn primary sm" id="bbWrite">Write it below ↓</button></div>`;
+  vis.closest(".f").before(w);
+  $("bbOpen").onclick=()=>{$("bbBox").hidden=!$("bbBox").hidden};
+  $("bbQ").onclick=()=>{$("bbTip").hidden=!$("bbTip").hidden};
+  const set=([h,b,c])=>{$("bbH").value=h;w.querySelectorAll("[data-bb]").forEach((x,i)=>x.value=b[i]||"");$("bbC").value=c};
+  const cur=recipeOf(vis.value);if(cur)set(RECIPES[cur]);
+  w.querySelectorAll("[data-rec]").forEach(b=>b.onclick=()=>{set(RECIPES[b.dataset.rec]);w.querySelectorAll("[data-rec]").forEach(x=>{x.classList.toggle("primary",x===b);x.classList.toggle("ghost",x!==b)})});
+  $("bbWrite").onclick=()=>{const h=$("bbH").value,c=$("bbC").value,body=[...w.querySelectorAll("[data-bb]")].map(x=>x.value).filter(Boolean);
+    if(!h||!c||!body.length){toast("Pick a hook, at least one body block and a CTA");return}
+    vis.value=blocksText(h,body,c);toast("Written. Add your own details per scene.")};
 }
 function renderLearn(){
   const L=$("learnList");if(!L)return;
