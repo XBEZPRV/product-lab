@@ -413,6 +413,15 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .vg{color:var(--good);font-weight:600}.vy{color:var(--warn);font-weight:600}.vr{color:var(--bad);font-weight:600}
 .calcs{display:grid;gap:4px}.calcs>div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}.calcs>div:first-child{border-top:0}.calcs span{color:var(--muted)}
 .calcs .big{background:var(--panel);color:#fff;border-radius:10px;padding:12px 14px;margin-top:6px;border:0}.calcs .big span{color:#cfcac4}.calcs .big b{color:var(--action);font-size:20px}
+.dmap{display:grid;grid-template-columns:auto 1fr;grid-template-rows:1fr auto;gap:4px 6px;margin-top:6px}
+.dm-y{writing-mode:vertical-rl;transform:rotate(180deg);display:flex;justify-content:space-between;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.dm-area{position:relative;height:300px;border-left:2px solid var(--ink);border-bottom:2px solid var(--ink);background:#fbf8ef;border-radius:0 8px 0 0;overflow:hidden}
+.dm-band{position:absolute;left:0;right:0;border-top:1px dashed var(--line);font-size:10px;color:#b7b2aa;text-transform:uppercase;letter-spacing:.06em;padding:3px 6px;text-align:left}
+.dm-dot{position:absolute;transform:translate(-50%,50%);display:flex;flex-direction:column;align-items:center;gap:2px;max-width:30%;text-align:center}
+.dm-dot i{width:10px;height:10px;border-radius:50%;background:#cfcac4}.dm-dot span{font-size:11px;line-height:1.2;color:var(--muted)}
+.dm-dot.on i{background:var(--ink);box-shadow:0 0 0 3px var(--action)}.dm-dot.on span{color:var(--ink);font-weight:600}
+.dm-x{grid-column:2;display:flex;justify-content:space-between;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.dm-wrap{margin-top:8px}.dm-wrap summary{cursor:pointer;font-size:13px;color:var(--info)}
 .lgrp{margin-bottom:22px}.lgrp h2{font-size:17px;font-weight:600;margin:0 0 8px}
 .lrow{display:flex;gap:12px;background:var(--card,#fff);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--line)}
 .lrow.lt{border-left-color:var(--good)}.lrow.lf{border-left-color:var(--bad)}
@@ -2010,6 +2019,7 @@ function renderCourse(){
     <div class="tcol">${[["Concept 1","Before & after"],["Concept 2","Unboxing"],["Concept 3","Testimonial"]].map(([a,b],i)=>`<div class="sbox bl ${i?"dim":""}"><b>${a}</b><small>${b}</small></div>`).join("")}</div>
     <div class="tcol">${[["Angle 1","Beauty"],["Angle 2","Fast results"],["Angle 3","Ease of use"]].map(([a,b])=>`<div class="sbox or"><b>${a}</b><small>${b}</small></div>`).join("")}</div></div>
     <ul class="sli"><li><b>Format</b> = what you make (image, video, gif).</li><li><b>Concept</b> = the style of the ad (before & after, unboxing, testimonial).</li><li><b>Angle</b> = the benefit you push (beauty, fast results, ease of use).</li></ul>`+dz("Concept wa7ed, testih b barcha angles. Badel 7aja wa7da bark f kol test bech ta3ref chkoun 3mal el farq.")],
+  ["🧩","Creative diversification","Not all ads the same kind",diversMap([],true)+`<ul class="sli"><li><b>Up</b> = Discovery: people who don't know you (unboxing, occasions, relatable problems).</li><li><b>Down</b> = Action: people ready to buy (offers, before & after).</li><li><b>Left</b> = functional (facts, results) · <b>Right</b> = emotional (feelings).</li><li>Per product, test at least <b>one ad up, one in the middle, one down</b>.</li></ul>`+dz("Ma t3melch el ads el kol « before & after + prix ». Farra9hom 3al map bech Meta yal9a clients jdod.")],
   ["💎","N.T.P.M.A","Brand ideas need 4 / 5",`<div class="slet">${[["N","Niche","We can name who buys it"],["T","Transformation","Clear before → after"],["P","Price","Sells for 3× its cost"],["M","Mechanism","A simple reason it works"],["A","Access","We can reach them with ads"]].map(([l,t,d])=>`<div class="sl"><span>${l}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div>`+dz("4–5 / 5 → testih. Ta7t 4 → badel el idea walla 7assenha.")],
   ["🚦","Go / No-Go","Targets before, verdict after",`<div class="sgrid2"><div class="sbox"><b>Before the test</b><small>Max ads / order (under break-even) · Test budget · Test days (usually 4)</small></div><div class="sbox"><b>After the test</b><small><span class="vg">🟢 GO</span> under target → winner<br><span class="vy">🟡 Almost</span> under break-even → fix hook, offer or page<br><span class="vr">🔴 NO-GO</span> over break-even → stop</small></div></div><div class="sbox rd" style="margin-top:8px"><b>🔴 Stop early</b><small>2× the target spent and 0 orders</small></div>`+dz("Nekteb el targets 9bal. Ba3d, el ar9am ya7kmou, mouch el feeling.")],
   ["💰","The real break-even (COD)","With your settings",`<div class="calcs"><div><span>Price − cost − delivery</span><b>${pr} − ${co} − ${fmt(DELIVERY,0)} = ${fmt(g,0)} DT</b></div><div><span>Orders confirmed</span><b>${CONFIRM}%</b></div><div><span>Packages returned</span><b>${RETURNS}%</b></div><div class="big"><span>Max ads / order</span><b>${fmt(be,1)} DT</b></div></div>`+dz(`Mouch ${fmt(g,0)} DT. Ba3d el confirmation w el retour, el ra9m el s7i7 howa ${fmt(be,1)} DT.`)],
@@ -2107,10 +2117,40 @@ $("vIdeas").onclick=()=>setIdeasView("ideas");$("vSources").onclick=()=>setIdeas
 
 /* ---------- Generic form ---------- */
 let gSave=null;
+/* Creative diversification map (course): y = funnel stage (1 discovery → 0 action), x = language (0 functional → 1 emotional). */
+const CONCEPTS=[
+  ["Offers / promos","« -30% today », « 2 for 99 DT »",.1,.1],
+  ["Product results","Before & after",.35,.16],
+  ["Reviews / testimonial","« I used it and never looked back »",.18,.36],
+  ["Product benefits","« The secret to… »",.5,.34],
+  ["Tips / hacks","« 3 ways to… »",.33,.56],
+  ["Product use","« How to… » demo",.62,.64],
+  ["Relatable problems","« Tired of waking up like a zombie? »",.88,.52],
+  ["Unboxing","« Try this viral… »",.5,.86],
+  ["Occasions","« The perfect gift for Mother's Day »",.82,.86]];
+const conceptOf=v=>CONCEPTS.find(c=>c[0]===v);
+const stageOf=c=>c[3]>=.6?"discovery":c[3]>=.3?"consideration":"action";
+function diversMap(points,all){
+  const dot=(c,lbl,on)=>`<div class="dm-dot ${on?"on":""}" style="left:${8+c[2]*84}%;bottom:${8+c[3]*80}%"><i></i><span>${esc(lbl)}</span></div>`;
+  return `<div class="dmap"><div class="dm-y"><span>Action</span><span>Discovery</span></div><div class="dm-area">
+    <div class="dm-band" style="bottom:0;height:30%">Purchase</div><div class="dm-band" style="bottom:30%;height:30%">Consideration</div><div class="dm-band" style="bottom:60%;height:40%">Awareness</div>
+    ${all?CONCEPTS.map(c=>dot(c,c[0],true)).join(""):CONCEPTS.map(c=>dot(c,points.filter(p=>p===c[0]).length?`${c[0]} ×${points.filter(p=>p===c[0]).length}`:c[0],points.includes(c[0]))).join("")}</div>
+    <div class="dm-x"><span>Functional</span><span>Emotional</span></div></div>`;
+}
+function mixCheck(ads){
+  const ps=ads.map(a=>a.concept).filter(v=>conceptOf(v));
+  if(!ads.length)return null;
+  if(!ps.length)return{tone:"info",t:"Creative mix",d:"Pick a concept for each ad (Edit ad → Concept) to check that your ads are not all the same kind."};
+  const st=new Set(ps.map(v=>stageOf(conceptOf(v))));
+  const miss=[["discovery","No Discovery ad. Add an unboxing, occasion or relatable problem ad to reach new people."],["action","No Action ad. Add product results (before & after) or an offer, to close the sale."],["consideration","Add a middle one: reviews, product benefits or tips."]].filter(([k])=>!st.has(k));
+  if(!miss.length)return{tone:"good",t:"✓ Good mix: discovery, consideration and action",d:"Your ads reach cold people, warm people and ready buyers.",ps};
+  const same=new Set(ps).size===1&&ps.length>1;
+  return{tone:miss.length>=2?"warn":"info",t:same?`All ${ps.length} ads are ${ps[0]}`:`Mix: ${st.size} of 3 stages`,d:miss[0][1],ps};
+}
 /* Short darija help behind the "?" next to a field. */
 const TIP={
   angle:"Angle = 3lech ychri. El reason elli t7ottha 9odem el client: back pain, cadeau, saves time… Kol ad set = angle wa7ed.",
-  concept:"Concept = el fekra mta3 el ad: kifech twarri el angle. Ex: before / after, problem → solution, POV story, unboxing, reaction.",
+  concept:"Concept = el style mta3 el ad: unboxing, before & after, review, offer… Kol wa7ed 3andou blastou fil funnel: discovery (ynajem yjib nes jdod) walla action (ykhalli ychri taw). Ma t3melch el ads el kol nafs el type.",
   format:"Format = chnowa el support: UGC video (personne t7ki), video produit, image, carousel. Nafs el concept ynajem yetna3mal b formats mokhtalfin.",
   triangle:"Format × Concept × Angle = ad wa7da. F kol test badel 7aja wa7da bark, bech ta3ref chkoun 3mal el farq.",
   hypothesis:"Hypothesis = chnowa nesta7dhrou w 3lech. Ex: « Les mamans ychriw 3al back pain. Win ken cost / order ta7t 25 DT. » Ba3d el test t9oul ✅ walla ❌.",
@@ -2213,6 +2253,7 @@ function renderPlanView(){
   </div>
   ${(BT=>`<div class="nstep" style="background:var(--${BT.tone}-bg)"><div><small>Budget · ABO or CBO</small><b style="color:var(--${BT.tone})">${esc(BT.t)}</b><p>${esc(BT.d)}</p></div></div>`)(budgetTip(c,prod,sets))}
   ${c.rules?`<div class="rules"><h3>Rules for this test</h3>${esc(c.rules)}</div>`:""}
+  ${(M=>M?`<div class="nstep" style="background:var(--${M.tone}-bg);display:block"><small>Creative mix · diversification</small><b style="color:var(--${M.tone})">${esc(M.t)}</b><p>${esc(M.d)}</p>${M.ps?`<details class="dm-wrap"><summary>See the map</summary>${diversMap(M.ps)}</details>`:""}</div>`:"")(mixCheck(pa))}
   <p class="tipbox" style="margin:0 0 12px" dir="auto"><b>🎞 Format × 💡 Concept × 🎯 Angle</b> = ad wa7da. F kol test badel 7aja wa7da bark, bech ta3ref chkoun 3mal el farq.</p>
   <div class="adsets">
     ${sets.map((s,i)=>{const sa=pa.filter(a=>a.adset_id===s.id);
@@ -2308,14 +2349,14 @@ function editPlanAd(setId,a,c){
   gForm(a?"Edit ad":"New ad",[
     {k:"name",label:"Ad name",req:true,ph:"Mum video"},
     {k:"format",label:"Format",type:"select",opts:[["","—"],["UGC video","UGC video"],["Video","Video"],["Image","Image"],["Carousel","Carousel"]],full:false,tip:"format"},
-    {k:"concept",label:"Concept",max:300,full:false,ph:"Before / after",tip:"concept"},
+    {k:"concept",label:"Concept",type:"select",opts:[["","—"],...CONCEPTS.map(c=>[c[0],`${{discovery:"⬆",consideration:"↔",action:"⬇"}[stageOf(c)]} ${c[0]} · ${c[1]}`]),...(a?.concept&&!conceptOf(a.concept)?[[a.concept,a.concept+" (old)"]]:[])],full:false,tip:"concept",hint:"⬆ discovery · ↔ consideration · ⬇ action"},
     {k:"ad_id",label:"Use an ad from the library",type:"select",opts:libOpts,hint:"Pick an existing video or image, or leave empty if it still needs to be made"},
     {k:"visual",label:"Video / image to make",type:"textarea",max:1000,ph:"What the video shows, scene by scene"},
     {k:"script",label:"Primary text (ad copy)",type:"textarea",max:3000},
     {k:"headline",label:"Headline",full:false},
     {k:"cta",label:"Button",type:"select",opts:[["Shop now","Shop now"],["Order now","Order now"],["Learn more","Learn more"],["Send message","Send message"]],full:false}],
     a||{cta:"Shop now"},async d=>{
-      d.ad_id=d.ad_id||null;d.format=d.format||null;
+      d.ad_id=d.ad_id||null;d.format=d.format||null;d.concept=d.concept||null;
       const n=planAds.filter(x=>x.adset_id===setId).length;
       const r=a?await sb.from("plan_ads").update(d).eq("id",a.id):await sb.from("plan_ads").insert({...d,adset_id:setId,position:n});
       if(r.error)return r.error.message;refreshPlans();
