@@ -446,6 +446,26 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .sg b{font-size:14px;font-weight:600}.sg small{display:block;font-size:12.5px;color:var(--muted)}.sugg{font-style:normal;font-size:11.5px;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:1px 7px}
 .shd{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:6px}
 .aw{display:flex;flex-direction:column;align-items:center;gap:3px}.awl{background:#c9d6ff;color:#1d3a8a;text-align:center;font-size:12.5px;font-weight:600;padding:6px 4px;clip-path:polygon(0 0,100% 0,96% 100%,4% 100%)}.awl.w{background:#7f9cf5;color:#fff}
+#tab-course .tl{display:inline}@media(max-width:560px){#tab-course .tl{display:none}}
+.lhero{display:flex;gap:20px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;background:var(--panel);color:#fff;border-radius:18px;padding:24px 24px 22px;margin-bottom:22px}
+.lhero small{color:var(--action);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px}.lhero h1{font-size:30px;font-weight:600;margin:6px 0 6px;color:#fff}.lhero p{margin:0;color:#cfcac4;max-width:520px;font-size:15px;line-height:1.45}
+.lprog{min-width:150px}.lprog b{font-size:26px;color:var(--action)}.lprog span{color:#cfcac4;margin-left:6px;font-size:14px}.lbar{height:6px;background:#3a3836;border-radius:9px;margin-top:8px;overflow:hidden}.lbar i{display:block;height:100%;background:var(--action)}
+.lgrp2{margin-bottom:26px}.lgh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding-left:12px;border-left:4px solid var(--gc)}.lgh h2{font-size:19px;font-weight:600;margin:0}.lgh p{margin:0;color:var(--muted);font-size:14px}
+.g-start{--gc:#e4f222;--gb:#f7fbd0}.g-research{--gc:#8b7cf6;--gb:#ece8ff}.g-creative{--gc:#f59e6b;--gb:#fde4cf}.g-money{--gc:#3fae6a;--gb:#e3f4ea}
+.lcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.lcard{display:flex;flex-direction:column;gap:10px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;font:inherit;color:var(--ink);transition:transform .12s,box-shadow .12s}
+.lcard:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.07)}
+.lcard .lic{width:44px;height:44px;border-radius:12px;background:var(--gb);display:flex;align-items:center;justify-content:center;font-size:23px}
+.lct b{display:block;font-size:16px;font-weight:600}.lct small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+.lmeta{display:flex;gap:6px;margin-top:auto}.lmeta em,.lmeta i{font-style:normal;font-size:11.5px;border-radius:999px;padding:2px 8px;background:var(--soft);color:var(--muted)}.lmeta em{background:var(--gb);color:var(--ink);font-weight:600}.lmeta i.rd{background:var(--good-bg);color:var(--good)}
+.lesson{max-width:780px;margin:0 auto}.lhead{display:flex;gap:16px;align-items:center;background:var(--gb);border-radius:18px;padding:20px 22px;margin:12px 0 16px}
+.lhead .lic{flex:none;width:60px;height:60px;border-radius:16px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:32px}
+.lhead small{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}.lhead h1{font-size:26px;font-weight:600;margin:2px 0}.lhead p{margin:0;color:var(--muted)}
+.lbody{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:14px;font-size:15px}
+.lbody .sbox{font-size:15px}.lbody .dm-area{height:360px}
+.lnav{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 30px}.lnb{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;font:inherit;color:var(--ink)}.lnb.nx{text-align:right}
+.lnb small{display:block;color:var(--muted);font-size:12px}.lnb b{font-weight:600;font-size:14px}
+@media(max-width:560px){.lhero{padding:20px}.lhero h1{font-size:24px}.lcards{grid-template-columns:1fr 1fr}.lcard{padding:12px}.lct b{font-size:14.5px}.lct small{display:none}.lbody{padding:14px}.lhead{padding:14px}.lhead h1{font-size:21px}.lhead .lic{width:48px;height:48px;font-size:26px}}
 .lgrp{margin-bottom:22px}.lgrp h2{font-size:17px;font-weight:600;margin:0 0 8px}
 .lrow{display:flex;gap:12px;background:var(--card,#fff);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--line)}
 .lrow.lt{border-left-color:var(--good)}.lrow.lf{border-left-color:var(--bad)}
@@ -546,9 +566,9 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <button role="tab" id="tab-ideas" aria-selected="false">Ideas</button>
     <button role="tab" id="tab-products" aria-selected="true">Products</button>
     <button role="tab" id="tab-ads" aria-selected="false">Ads</button>
-    <button role="tab" id="tab-stats" aria-selected="false">Stats</button>
+    <button role="tab" id="tab-stats" aria-selected="false">Stats</button><button role="tab" id="tab-course" aria-selected="false" aria-label="Learn">🎓<span class="tl"> Learn</span></button>
     <!-- merged into the 5 tabs above; kept hidden so old links still work -->
-    <button role="tab" id="tab-comp" hidden>Competitors</button><button role="tab" id="tab-suppliers" hidden>Suppliers</button><button role="tab" id="tab-plans" hidden>Plans</button><button role="tab" id="tab-tasks" hidden>Tasks</button><button role="tab" id="tab-learn" hidden>Learnings</button><button role="tab" id="tab-course" hidden>Learn</button>
+    <button role="tab" id="tab-comp" hidden>Competitors</button><button role="tab" id="tab-suppliers" hidden>Suppliers</button><button role="tab" id="tab-plans" hidden>Plans</button><button role="tab" id="tab-tasks" hidden>Tasks</button><button role="tab" id="tab-learn" hidden>Learnings</button>
   </nav>
   <div class="sync" title="Connecting…" id="syncWrap"><b id="dot"></b><span id="syncText" class="sr">Connecting…</span></div>
   <div class="menuwrap">
@@ -699,7 +719,6 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
 
   <!-- LEARN (course schemas) -->
   <section id="view-course" hidden>
-    <div class="headrow"><div><h1>Learn</h1><p class="sub">Bechir's frameworks as simple schemas. Tap one to open it.</p></div></div>
     <div id="courseList"></div>
   </section>
 
@@ -2109,6 +2128,7 @@ function editComp(c){
 $("addComp").onclick=()=>editComp();
 
 /* ---------- Learn: course schemas ---------- */
+let courseOpen=null;
 function renderCourse(){
   const L=$("courseList");if(!L)return;
   const st=(a)=>`<div class="sflow">${a.map((x,i)=>`${i?'<span class="sar">→</span>':""}<div class="sbox ${x[2]||""}"><b>${x[0]}</b>${x[1]?`<small>${x[1]}</small>`:""}</div>`).join("")}</div>`;
@@ -2141,9 +2161,32 @@ function renderCourse(){
   ["💰","The real break-even (COD)","With your settings",`<div class="calcs"><div><span>Price − cost − delivery</span><b>${pr} − ${co} − ${fmt(DELIVERY,0)} = ${fmt(g,0)} DT</b></div><div><span>Orders confirmed</span><b>${CONFIRM}%</b></div><div><span>Packages returned</span><b>${RETURNS}%</b></div><div class="big"><span>Max ads / order</span><b>${fmt(be,1)} DT</b></div></div>`+dz(`Mouch ${fmt(g,0)} DT. Ba3d el confirmation w el retour, el ra9m el s7i7 howa ${fmt(be,1)} DT.`)],
   ["💸","ABO vs CBO","Where the budget goes",`<div class="sgrid2"><div class="sbox gr"><b>ABO · to test</b><small>Budget on each ad set, same amount. Every angle gets a fair chance.</small></div><div class="sbox bl"><b>CBO · to scale</b><small>Budget on the campaign. Meta sends money to what sells. +20–30% every 2–3 days.</small></div></div>`+dz("Testi b ABO, scale b CBO.")],
   ["🏪","General or Brand","Two ways to sell",`<div class="sgrid2"><div class="sbox"><b>🏪 General</b><small>Test fast, sell fast · 6 quick rules · cheap & light</small></div><div class="sbox"><b>💎 Brand</b><small>A name around one product · N.T.P.M.A · strong offer · customers come back</small></div></div><div class="sbox hl" style="margin-top:8px;text-align:center"><b>🏪 Winner → 🚀 Upgrade to 💎 Brand</b></div>`+dz("El winner mta3 general ynajem ywalli brand.")]];
-  let open;try{open=localStorage.getItem("pl_course")}catch(e){}
-  L.innerHTML=S.map(([ic,t,sub,body],i)=>`<details class="sch" data-i="${i}" ${String(i)===open?"open":""}><summary><span class="sic">${ic}</span><span><b>${t}</b><small>${sub}</small></span><span class="car">▸</span></summary><div class="sbody">${body}</div></details>`).join("");
-  L.querySelectorAll("details").forEach(d=>d.ontoggle=()=>{if(d.open){L.querySelectorAll("details").forEach(o=>{if(o!==d)o.open=false});try{localStorage.setItem("pl_course",d.dataset.i)}catch(e){}}});
+  const META={"The full method":["start",null,["🏠 Today","home"]],"PMF validation":["start","Lesson 1",["📦 Open a product","products"]],"The offer ($100M Offer)":["start","Lesson 2",["📦 Open a product","products"]],"General or Brand":["start",null,["💡 Ideas","ideas"]],
+    "Research: need to know":["research",null,["🏷 Competitors","comp"]],"N.T.P.M.A":["research",null,["💡 Ideas","ideas"]],
+    "Format → Concept → Angles":["creative","Basics",["🗂 Plans","plans"]],"Creative diversification":["creative","Basics",["🗂 Plans","plans"]],"Ad building blocks":["creative","Basics",["🗂 Plans","plans"]],"Creative strategy flywheel":["creative",null,["📚 Learnings","learn"]],
+    "The real break-even (COD)":["money",null,["📦 Products","products"]],"Go / No-Go":["money",null,["📦 Products","products"]],"ABO vs CBO":["money",null,["🗂 Plans","plans"]]};
+  const GROUPS=[["start","Start here","The method, validating a product, and the offer"],["research","Research & ideas","What to look for before you test"],["creative","Creatives","How to build ads that find buyers"],["money","Money & decisions","Numbers that decide for you"]];
+  const L_=S.map(([ic,t,sub,body])=>{const m=META[t]||["start",null,null];return{ic,t,sub,body,g:m[0],tag:m[1],go:m[2]}});
+  const order=GROUPS.flatMap(([g])=>L_.filter(x=>x.g===g));
+  let read={};try{read=JSON.parse(localStorage.getItem("pl_read")||"{}")}catch(e){}
+  const nRead=order.filter(x=>read[x.t]).length;
+  if(courseOpen!=null&&order[courseOpen]){
+    const x=order[courseOpen],g=GROUPS.find(G=>G[0]===x.g);
+    if(!read[x.t]){read[x.t]=1;try{localStorage.setItem("pl_read",JSON.stringify(read))}catch(e){}}
+    const pv=order[courseOpen-1],nx=order[courseOpen+1];
+    L.innerHTML=`<div class="lesson g-${x.g}"><button class="back" id="lsBack">← All lessons</button>
+      <div class="lhead"><span class="lic">${x.ic}</span><div><small>${g[1]}${x.tag?" · "+x.tag:""}</small><h1>${x.t}</h1><p>${x.sub}</p></div></div>
+      <div class="lbody sbody">${x.body}</div>
+      ${x.go?`<button class="btn primary" id="lsGo">Use it in the app: ${x.go[0]} →</button>`:""}
+      <div class="lnav">${pv?`<button class="lnb" data-ls="${courseOpen-1}"><small>← Previous</small><b>${pv.ic} ${pv.t}</b></button>`:"<span></span>"}${nx?`<button class="lnb nx" data-ls="${courseOpen+1}"><small>Next →</small><b>${nx.ic} ${nx.t}</b></button>`:"<span></span>"}</div></div>`;
+    $("lsBack").onclick=()=>{courseOpen=null;renderCourse();window.scrollTo(0,0)};
+    const go=$("lsGo");if(go)go.onclick=()=>setTab(x.go[1]);
+  }else{
+    L.innerHTML=`<div class="lhero"><div><small>🎓 Learn</small><h1>Bechir's frameworks</h1><p>Every lesson as a simple schema, with a short darija line and a link to where you use it in the app.</p></div>
+      <div class="lprog"><b>${nRead} / ${order.length}</b><span>read</span><div class="lbar"><i style="width:${Math.round(nRead/order.length*100)}%"></i></div></div></div>
+      ${GROUPS.map(([g,t,d])=>{const items=order.map((x,i)=>[x,i]).filter(([x])=>x.g===g);return `<div class="lgrp2 g-${g}"><div class="lgh"><h2>${t}</h2><p>${d}</p></div><div class="lcards">${items.map(([x,i])=>`<button class="lcard" data-ls="${i}"><span class="lic">${x.ic}</span><span class="lct"><b>${x.t}</b><small>${x.sub}</small></span><span class="lmeta">${x.tag?`<em>${x.tag}</em>`:""}${read[x.t]?`<i class="rd">✓ Read</i>`:`<i>New</i>`}</span></button>`).join("")}</div></div>`}).join("")}`;
+  }
+  L.querySelectorAll("[data-ls]").forEach(b=>b.onclick=()=>{courseOpen=+b.dataset.ls;renderCourse();window.scrollTo(0,0)});
 }
 /* ---------- Home ---------- */
 let homeStats=null;
@@ -2631,8 +2674,8 @@ Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
 // 5 tabs. Each tab can hold a few pages, picked from the sub-menu under the tabs.
-const PARENT={home:"home",tasks:"home",course:"home",ideas:"ideas",comp:"ideas",products:"products",suppliers:"products",ads:"ads",plans:"ads",learn:"ads",stats:"stats"};
-const SUB={home:[["home","🏠 Today"],["tasks","✅ Tasks"],["course","🎓 Learn"]],ideas:[["ideas","💡 Ideas"],["sources","🔎 Where to look"],["comp","🏷 Competitors"]],
+const PARENT={home:"home",tasks:"home",course:"course",ideas:"ideas",comp:"ideas",products:"products",suppliers:"products",ads:"ads",plans:"ads",learn:"ads",stats:"stats"};
+const SUB={home:[["home","🏠 Today"],["tasks","✅ Tasks"]],ideas:[["ideas","💡 Ideas"],["sources","🔎 Where to look"],["comp","🏷 Competitors"]],
   products:[["products","📦 Products"],["suppliers","🚚 Suppliers"]],ads:[["plans","🗂 Plans"],["ads","🎬 Ad library"],["learn","📚 Learnings"]]};
 function renderSubnav(t){
   const g=PARENT[t],n=$("subnav"),items=SUB[g]||[];n.hidden=!items.length;
@@ -2651,7 +2694,7 @@ function setTab(t){
   if(t==="course")renderCourse();
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
-$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("plans");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");$("tab-home").onclick=()=>setTab("home");$("tab-comp").onclick=()=>setTab("comp");
+$("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("plans");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");$("tab-home").onclick=()=>setTab("home");$("tab-course").onclick=()=>{courseOpen=null;setTab("course")};$("tab-comp").onclick=()=>setTab("comp");
 let startTab="home";try{const t=localStorage.getItem("pl_tab");if(["products","ideas","suppliers","comp","ads","plans","learn","course","stats","tasks"].includes(t))startTab=t}catch(e){}
 
 /* ---------- Data ---------- */
