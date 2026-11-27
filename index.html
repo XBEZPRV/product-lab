@@ -447,6 +447,12 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .bbb{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bbr{display:flex;gap:6px;flex-wrap:wrap}.bbt{margin:0;font-size:13px}
 .pmfd summary{cursor:pointer;list-style:none}.pmfd summary::-webkit-details-marker{display:none}
 .pmfc{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:2px 8px;margin-left:6px}.pmfc.ok{background:var(--good-bg);color:var(--good)}
+.ovh{display:grid;grid-template-columns:1fr 1fr 1fr 28px;gap:6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:2px 0 4px}
+.ovr{display:grid;grid-template-columns:1fr 1fr 1fr 28px;gap:6px;margin-bottom:6px;align-items:start}
+.ovr input{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;font-size:13.5px;color:var(--ink);background:var(--card)}
+.ovr button{border:0;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:6px 0}
+.ovdz{margin:4px 0 10px;padding:8px 10px;border-radius:10px;background:var(--info-bg);color:var(--info);font-size:13px;line-height:1.45}
+@media(max-width:560px){.ovh{display:none}.ovr{grid-template-columns:1fr 28px;background:var(--canvas);border-radius:10px;padding:6px}.ovr input:nth-child(2),.ovr input:nth-child(3){grid-column:1}.ovr button{grid-row:1;grid-column:2}}
 .pmfl{display:grid;gap:3px;margin-bottom:10px}.pmfl b{font-size:14px;font-weight:600}.pmfl small{font-size:12.5px;color:var(--muted)}
 .pmfl textarea,.pmta{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--ink);background:var(--card);resize:vertical}
 .pmfres{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.pmfres h4,.pmft h4{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin:0 0 6px}.pmft h4{margin-top:14px}
@@ -1125,6 +1131,21 @@ const PMF_SIG=[["s1","Rising CPA, no creative explanation","The angle / transfor
   ["s3","Strong engagement, weak conversion","Price or mechanism problem: the offer isn't landing → fix the offer (P)."]];
 const pmfOf=p=>p.pmf||{};
 function pmfCvr(p){const v=num(pmfOf(p).visitors),o=num(p.orders);return v&&o!=null?o/v*100:null}
+function ovOf(p){const o=(p.research||{}).ov||{};return{how_t:o.how_t||"",how_s:o.how_s||"",rows:Array.isArray(o.rows)&&o.rows.length?o.rows:[{f:"",b:"",d:""}],usp:o.usp||""}}
+function overviewSec(p){
+  const o=ovOf(p),R=o.rows,has=k=>R.some(r=>(r[k]||"").trim());
+  const done=[(o.how_t+o.how_s).trim(),has("f"),has("b"),has("d"),o.usp.trim()].filter(Boolean).length;
+  return `<details class="sec pmfd" ${done<5?"open":""}><summary><h3 style="margin:0">🔬 Product overview <span class="pmfc ovc ${done===5?"ok":""}">${done}/5 steps</span></h3></summary>
+    <p class="text" style="color:var(--muted);font-size:13px;margin:6px 0 4px">Creative Strategy 2.0 · understand the product before any ad. People buy what it does for them, not the product.</p>
+    <p class="ovdz" dir="auto">🇹🇳 Ekteb kifech ye5dem, ba3d kol feature: chnowa ya3mel lel client (benefit), w 3lech yest7a99ou (desire). Kol benefit = angle tnajem ttestih.</p>
+    <label class="pmfl"><b>How it works · technical</b><small>The process: what it does and how it gets the result.</small><textarea data-ov="how_t" rows="2" maxlength="600" dir="auto" placeholder="Red light at 630–660 nm reaches the deep skin layers and stimulates collagen">${esc(o.how_t)}</textarea></label>
+    <label class="pmfl"><b>How it works · simple words</b><small>So a 12-year-old gets it.</small><textarea data-ov="how_s" rows="2" maxlength="400" dir="auto" placeholder="The light helps your skin repair itself">${esc(o.how_s)}</textarea></label>
+    <div class="pmfl" style="margin-bottom:4px"><b>Feature → Benefit → Desire</b><small>For each feature: what does it DO for the customer? Then: why do they want that?</small></div>
+    <div class="ovh"><span>Feature</span><span>→ Benefit</span><span>→ Desire</span><span></span></div>
+    ${R.map((r,i)=>`<div class="ovr"><input data-ovr="${i}" data-k="f" maxlength="150" dir="auto" value="${esc(r.f||"")}" placeholder="${i?"Feature":"Red LED light"}"><input data-ovr="${i}" data-k="b" maxlength="200" dir="auto" value="${esc(r.b||"")}" placeholder="${i?"→ Benefit":"→ Fewer fine lines"}"><input data-ovr="${i}" data-k="d" maxlength="200" dir="auto" value="${esc(r.d||"")}" placeholder="${i?"→ Desire":"→ Look younger, feel confident"}"><button type="button" data-ovx="${i}" title="Remove" aria-label="Remove row">×</button></div>`).join("")}
+    <button class="btn ghost sm" id="ovAdd" type="button" style="margin:2px 0 12px">+ Add a feature</button>
+    <label class="pmfl"><b>New mechanisms (USPs)</b><small>What makes it different from everyone making the same promise?</small><textarea data-ov="usp" rows="2" maxlength="600" dir="auto" placeholder="At-home clinic light · 10 min a day instead of clinic sessions">${esc(o.usp)}</textarea></label></details>`;
+}
 function researchSec(p){
   const r=p.research||{},done=PMF_L.filter(([k])=>(r[k]||"").trim()).length;
   const nAb=comps.filter(c=>(c.product_id===p.id||ideas.some(i=>i.product_id===p.id&&c.idea_id===i.id))&&abroad(c)).length;
@@ -1173,6 +1194,12 @@ function pmfBind(p){
   const save=async(col,patch,msg="Saved")=>{const val={...(p[col]||{}),...patch};const r=await sb.from("products").update({[col]:val,updated_at:new Date().toISOString()}).eq("id",p.id);
     if(r.error)return toast("Couldn't save: "+r.error.message),false;p[col]=val;toast(msg);return true};
   B.querySelectorAll("[data-rs]").forEach(t=>t.onchange=()=>save("research",{[t.dataset.rs]:t.value.trim()}).then(ok=>{if(ok){const r=p.research,d=PMF_L.filter(([k])=>(r[k]||"").trim()).length;const c=B.querySelector(".pmfc");if(c){c.textContent=d+"/5 written";c.classList.toggle("ok",d===5)}}}));
+  const ovCount=()=>{const o=ovOf(p),h=k=>o.rows.some(r=>(r[k]||"").trim()),d=[(o.how_t+o.how_s).trim(),h("f"),h("b"),h("d"),o.usp.trim()].filter(Boolean).length,c=B.querySelector(".ovc");if(c){c.textContent=d+"/5 steps";c.classList.toggle("ok",d===5)}};
+  const ovSave=(o,again)=>save("research",{ov:o}).then(ok=>{if(!ok)return;again?openProduct(p.id):ovCount()});
+  B.querySelectorAll("[data-ov]").forEach(t=>t.onchange=()=>ovSave({...ovOf(p),[t.dataset.ov]:t.value.trim()}));
+  B.querySelectorAll("[data-ovr]").forEach(t=>t.onchange=()=>{const o=ovOf(p);o.rows=o.rows.map(r=>({...r}));o.rows[+t.dataset.ovr][t.dataset.k]=t.value.trim();ovSave(o)});
+  B.querySelectorAll("[data-ovx]").forEach(b=>b.onclick=()=>{const o=ovOf(p);o.rows=o.rows.filter((_,i)=>i!==+b.dataset.ovx);ovSave(o,1)});
+  const oa=$("ovAdd");if(oa)oa.onclick=()=>{const o=ovOf(p);if(o.rows.length>=15)return toast("15 features max");o.rows=[...o.rows,{f:"",b:"",d:""}];p.research={...(p.research||{}),ov:o};openProduct(p.id);setTimeout(()=>{const x=[...$("sideBody").querySelectorAll('[data-k="f"]')].pop();x&&x.focus()},50)};
   const re=async(patch,msg)=>{if(await save("pmf",patch,msg))openProduct(p.id)};
   const on=(id,f)=>{const e=$(id);if(e)e.onchange=f};
   on("pmVis",e=>re({visitors:num(e.target.value)},"Visitors saved"));
@@ -1239,6 +1266,7 @@ function openProduct(id){
   $("sideBody").innerHTML=`
     ${isUrl(p.image)?`<img class="hero" src="${esc(p.image)}" alt="">`:""}
     ${p.problem?`<div class="sec"><h3>Problem it solves</h3><p class="text">${esc(p.problem)}</p></div>`:""}
+    ${overviewSec(p)}
     ${researchSec(p)}
     ${researchBox(comps.filter(c=>c.product_id===p.id||ideas.some(i=>i.product_id===p.id&&c.idea_id===i.id)),num(p.price))}
     <div class="sec"><h3>Money</h3>
