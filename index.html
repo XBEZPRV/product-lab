@@ -383,6 +383,7 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .vbtns{display:flex;gap:8px;margin:4px 0 8px}.verdict input{width:100%;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;color:var(--ink);background:var(--card)}
 .btn.on-good{background:var(--good-bg);color:var(--good);border-color:var(--good)}.btn.on-bad{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
 .lnk{background:none;border:0;padding:0;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit}
+.rline{display:grid;grid-template-columns:150px 1fr;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px;line-height:1.45}.rline:first-of-type{border-top:0}.rline small{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}.rline em{color:var(--muted)}@media(max-width:480px){.rline{grid-template-columns:1fr;gap:2px}}
 .lgrp{margin-bottom:22px}.lgrp h2{font-size:17px;font-weight:600;margin:0 0 8px}
 .lrow{display:flex;gap:12px;background:var(--card,#fff);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--line)}
 .lrow.lt{border-left-color:var(--good)}.lrow.lf{border-left-color:var(--bad)}
@@ -1058,6 +1059,7 @@ function openProduct(id){
   $("sideBody").innerHTML=`
     ${isUrl(p.image)?`<img class="hero" src="${esc(p.image)}" alt="">`:""}
     ${p.problem?`<div class="sec"><h3>Problem it solves</h3><p class="text">${esc(p.problem)}</p></div>`:""}
+    ${researchBox(comps.filter(c=>c.product_id===p.id||ideas.some(i=>i.product_id===p.id&&c.idea_id===i.id)),num(p.price))}
     <div class="sec"><h3>Money</h3>
       <div class="money">
         <div><span>Cost</span><b>${fmt(m.cost)}</b></div><div><span>Price</span><b>${fmt(m.price)}</b></div><div><span>Max ads / order</span><b class="${m.margin==null?"":m.margin>0?"pos":"neg"}">${fmt(m.margin,1)}</b></div>
@@ -1733,6 +1735,28 @@ function priceAdvice(i){
   else if(price!=null&&floor!=null&&price<floor)warn=`Your price is under 3× your cost (${fmt(floor,0)} DT), so there's little room for ads.`;
   return{m,floor,suggest,tone,msg,warn};
 }
+const TRIG={pain:"😣 Pain / problem",fear:"😨 Fear",status:"👑 Status / looks",time:"⏱ Saves time",money:"💸 Saves money",gift:"❤️ Gift / love",desire:"😍 Desire"};
+const ENG={low:"Low",medium:"Medium",high:"🔥 High"};
+/* Research summary (course: content that engages, how we compare, emotional triggers).
+   Each ad counts 1, +1 for medium engagement, +2 for high, +1 if running 30+ days. */
+function researchBox(cs,ourPrice){
+  if(!cs.length)return"";
+  const w=c=>1+(c.engagement==="medium"?1:c.engagement==="high"?2:0)+((daysRunning(c)??0)>=30?1:0);
+  const tally=k=>{const t={};for(const c of cs)if(c[k])t[c[k]]=(t[c[k]]||0)+w(c);return Object.entries(t).sort((a,b)=>b[1]-a[1])};
+  const cnt=(k,v)=>cs.filter(c=>c[k]===v).length;
+  const F=tally("format"),T=tally("trigger"),hi=cs.filter(c=>c.engagement==="high").length;
+  const tn=cs.filter(c=>!abroad(c)),ps=tn.map(c=>num(c.price)).filter(v=>v!=null);
+  const lo=ps.length?Math.min(...ps):null,hiP=ps.length?Math.max(...ps):null;
+  const offers=tn.map(c=>c.offer).filter(Boolean);
+  const line=(h,b)=>`<div class="rline"><small>${h}</small><span>${b}</span></div>`;
+  const content=F.length?F.slice(0,3).map(([f],i)=>`${i?"":"<b>"}${esc(f)} ×${cnt("format",f)}${i?"":"</b>"}`).join(" · ")+(hi?` · 🔥 ${hi} with high engagement`:""):`<em>Add the format to your competitor ads.</em>`;
+  const trig=T.length?T.slice(0,3).map(([t],i)=>`${i?"":"<b>"}${TRIG[t]} ×${cnt("trigger",t)}${i?"":"</b>"}`).join(" · "):`<em>Add the emotional trigger to your competitor ads.</em>`;
+  const comp=ps.length?`Tunisia: ${fmt(lo,0)}${lo!==hiP?"–"+fmt(hiP,0):""} DT${ourPrice!=null?` · ours ${fmt(ourPrice,0)} DT ${ourPrice>hiP?"⚠ above all":ourPrice<lo?"✓ cheapest":"✓ inside the range"}`:""}${offers.length?`<br><span style="color:var(--muted);font-size:13px">Offers: ${offers.slice(0,3).map(esc).join(" · ")}</span>`:""}`:`<em>No Tunisian prices yet.</em>`;
+  const tip=T.length?`Start your first ad set with the <b>${TRIG[T[0][0]]}</b> angle${F.length?` in a <b>${esc(F[0][0])}</b>`:""}, and write it as the hypothesis in Plans.`:"";
+  return `<div class="sec research"><h3>🔎 Research summary · ${cs.length} competitor ad${cs.length===1?"":"s"}</h3>
+    ${line("Content that engages",content)}${line("How we compare",comp)}${line("Emotional triggers",trig)}
+    ${tip?`<p class="verdict" style="margin:8px 0 0;background:var(--info-bg);color:var(--info)">${tip}</p>`:""}</div>`;
+}
 function compList(i){
   const cs=comps.filter(c=>c.idea_id===i.id||(i.product_id&&c.product_id===i.product_id));
   if(!cs.length)return"";
@@ -1780,6 +1804,7 @@ function openIdea(id){
       ${compList(i)}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${A.suggest!=null&&A.suggest!==num(i.price)?`<button class="btn ghost sm" id="iUsePrice">Use ${fmt(A.suggest,0)} DT</button>`:""}<button class="btn ghost sm" id="iAddComp">+ Add a competitor ad</button></div>
       <p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${margin!=null?`At our price, you could pay up to ${fmt(margin,0)} DT in ads per order and still break even.`:"Add cost and price with Edit."}</p></div>`})()}
+    ${researchBox(comps.filter(c=>c.idea_id===i.id||(i.product_id&&c.product_id===i.product_id)),num(i.price))}
     <div class="sec" id="iRules"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">${i.mode==="brand"?"N.T.P.M.A check":"The 6 rules"}</h3>
       <span class="seg" id="iMode"><button type="button" data-m="general" aria-pressed="${i.mode!=="brand"}">🏪 General</button><button type="button" data-m="brand" aria-pressed="${i.mode==="brand"}">💎 Brand</button></span></div>
       <p class="text" style="color:var(--muted);font-size:13px;margin:6px 0 8px">${i.mode==="brand"?"Brand: one product we build a name around. It must pass 4 of these 5 before we test.":"General store: quick product, sold fast. These 6 rules keep it cheap and easy to sell."}</p>
@@ -1866,6 +1891,7 @@ function renderComps(){
   const card=c=>`<button class="pcard" data-id="${c.id}"><div class="pimg">${isUrl(c.image)?`<img src="${esc(c.image)}" alt="" loading="lazy">`:"No screenshot"}<span style="position:absolute;top:10px;left:10px">${runBadge(c)}</span></div>
     <div class="pbody"><div><p class="pname">${esc(c.name)}</p><p class="ptype">${abroad(c)?`🌍 ${esc(c.country)} · inspiration · `:"🇹🇳 "}${esc(forName(c)||"Not linked")}</p></div>
     ${c.angle?`<p style="margin:0;font-size:13px;color:var(--muted)">${esc(c.angle)}</p>`:""}
+    ${c.trigger||c.engagement?`<p style="margin:0;font-size:12.5px">${c.trigger?TRIG[c.trigger]:""}${c.trigger&&c.engagement?" · ":""}${c.engagement?"Engagement "+ENG[c.engagement]:""}</p>`:""}
     <div class="kpis"><div><span>Price</span><b>${c.price!=null?fmt(c.price)+" DT":"—"}${abroad(c)?`<em style="font-style:normal;font-size:11px;color:var(--muted);display:block">not used</em>`:""}</b></div><div style="grid-column:span 2"><span>Offer</span><b style="font-size:13px" dir="auto">${esc(c.offer||"—")}</b></div></div></div></button>`;
   // one section per idea / product, Tunisia first then inspiration
   const groups=[...new Set(list.map(forKey))];
@@ -1889,7 +1915,7 @@ function openComp(id){
   const back=backTo&&backTo.kind==="i"&&c.idea_id===backTo.id?backTo:(c.idea_id?{kind:"i",id:c.idea_id}:null);backTo=null;
   const d=daysRunning(c),mine=products.find(p=>p.id===c.product_id)||ideas.find(i=>i.id===c.idea_id);
   $("sideTitle").textContent=c.name;
-  $("sideMeta").innerHTML=`${runBadge(c)}<span>${abroad(c)?"🌍 "+esc(c.country)+" · inspiration":"🇹🇳 Tunisia"}</span>${forName(c)?`<span>${esc(forName(c))}</span>`:""}${c.format?`<span>${esc(c.format)}</span>`:""}`;
+  $("sideMeta").innerHTML=`${runBadge(c)}<span>${abroad(c)?"🌍 "+esc(c.country)+" · inspiration":"🇹🇳 Tunisia"}</span>${forName(c)?`<span>${esc(forName(c))}</span>`:""}${c.format?`<span>${esc(c.format)}</span>`:""}${c.trigger?`<span>${TRIG[c.trigger]}</span>`:""}${c.engagement?`<span>Engagement: ${ENG[c.engagement]}</span>`:""}`;
   const ourPrice=num(mine?.price);
   $("sideBody").innerHTML=`${back?`<button class="back" id="cBack" style="margin:0">← Back to idea: ${esc(ideas.find(x=>x.id===back.id)?.name||"")}</button>`:""}
     ${isUrl(c.image)?`<img class="hero" style="aspect-ratio:auto;max-height:60vh;object-fit:contain;background:var(--soft)" src="${esc(c.image)}" alt="">`:""}
@@ -1924,6 +1950,8 @@ function editComp(c){
     {k:"offer",label:"Their offer",ph:"2 for 59 DT, free delivery"},
     {k:"angle",label:"Their angle",ph:"Problem: dirt falls between stove and counter"},
     {k:"format",label:"Format",type:"select",opts:[["","—"],["Video","Video"],["Image","Image"],["Carousel","Carousel"],["UGC video","UGC video"]],full:false},
+    {k:"engagement",label:"Engagement",type:"select",opts:[["","—"],...Object.entries(ENG)],full:false,hint:"From the comments and shares you see"},
+    {k:"trigger",label:"Emotional trigger",type:"select",opts:[["","—"],...Object.entries(TRIG)],full:false,hint:"Why do people buy from this ad?"},
     {k:"notes",label:"What we learned",type:"textarea",ph:"Their hook, comments, what we can do better"}],
     c?{...c,for:c.product_id?"p"+c.product_id:c.idea_id?"i"+c.idea_id:""}:{country:"Tunisia"},
     async d=>{const f=d.for||"";delete d.for;d.product_id=f.startsWith("p")?f.slice(1):null;d.idea_id=f.startsWith("i")?f.slice(1):null;
