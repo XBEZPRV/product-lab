@@ -389,6 +389,30 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .tipbox{margin:0 0 4px;padding:8px 10px;border-radius:8px;background:var(--info-bg);color:var(--info);font-size:13px;line-height:1.45;font-weight:400}
 .fca{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0 2px}.fca span{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--soft)}.fca span i{color:var(--muted)}
 .fca span:nth-child(1)::before{content:"🎞 "}.fca span:nth-child(2)::before{content:"💡 "}.fca span:nth-child(3)::before{content:"🎯 "}
+.sch{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.sch summary{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;list-style:none}.sch summary::-webkit-details-marker{display:none}
+.sch summary b{display:block;font-weight:600;font-size:16px}.sch summary small{color:var(--muted);font-size:13px}
+.sch .sic{font-size:24px}.sch .car{margin-left:auto;color:var(--muted);transition:transform .15s}.sch[open] .car{transform:rotate(90deg)}
+.sbody{padding:4px 16px 16px}
+.sflow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.sar{color:var(--muted)}
+.sbox{background:var(--soft);border-radius:10px;padding:9px 11px;font-size:14px}.sbox b{display:block;font-weight:600}.sbox small{display:block;color:var(--muted);font-size:12.5px;line-height:1.4;margin-top:2px}
+.sbox.hl{background:var(--action)}.sbox.pu{background:#ece8ff}.sbox.bl{background:#dbe7ff}.sbox.or{background:#fde4cf}.sbox.gr{background:var(--good-bg)}.sbox.rd{background:var(--bad-bg)}.sbox.dim{opacity:.55}
+.sdz{margin:12px 0 0;padding:9px 11px;border-radius:10px;background:var(--info-bg);color:var(--info);font-size:13.5px;line-height:1.45}
+.ring{display:grid;gap:6px}.rstep{display:flex;gap:10px;align-items:center;background:var(--soft);border-radius:10px;padding:8px 10px}
+.rstep>span{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--action);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.rstep b{font-weight:600;font-size:14px}.rstep small{display:block;color:var(--muted);font-size:12.5px}
+.rback{text-align:center;font-weight:600;font-size:14px;padding:6px;border:2px dashed var(--line);border-radius:10px}
+.sgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sgrid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:560px){.sgrid3,.sgrid2{grid-template-columns:1fr}}
+.tree{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:18px;align-items:center;position:relative}.tcol{display:flex;flex-direction:column;gap:8px;position:relative}
+.tcol+.tcol::before{content:"→";position:absolute;left:-15px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700}
+.tree .tcol:nth-child(3) .sbox{position:relative}
+.sli{margin:12px 0 0;padding-left:18px;font-size:14px;line-height:1.6}
+.slet{display:grid;gap:6px}.sl{display:flex;gap:10px;align-items:center;background:var(--soft);border-radius:10px;padding:8px 10px}
+.sl>span{flex:none;width:34px;height:34px;border-radius:9px;background:var(--ink);color:var(--action);font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center}.sl b{font-weight:600}.sl small{display:block;color:var(--muted);font-size:12.5px}
+.vg{color:var(--good);font-weight:600}.vy{color:var(--warn);font-weight:600}.vr{color:var(--bad);font-weight:600}
+.calcs{display:grid;gap:4px}.calcs>div{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}.calcs>div:first-child{border-top:0}.calcs span{color:var(--muted)}
+.calcs .big{background:var(--panel);color:#fff;border-radius:10px;padding:12px 14px;margin-top:6px;border:0}.calcs .big span{color:#cfcac4}.calcs .big b{color:var(--action);font-size:20px}
 .lgrp{margin-bottom:22px}.lgrp h2{font-size:17px;font-weight:600;margin:0 0 8px}
 .lrow{display:flex;gap:12px;background:var(--card,#fff);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--line)}
 .lrow.lt{border-left-color:var(--good)}.lrow.lf{border-left-color:var(--bad)}
@@ -491,7 +515,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <button role="tab" id="tab-ads" aria-selected="false">Ads</button>
     <button role="tab" id="tab-stats" aria-selected="false">Stats</button>
     <!-- merged into the 5 tabs above; kept hidden so old links still work -->
-    <button role="tab" id="tab-comp" hidden>Competitors</button><button role="tab" id="tab-suppliers" hidden>Suppliers</button><button role="tab" id="tab-plans" hidden>Plans</button><button role="tab" id="tab-tasks" hidden>Tasks</button><button role="tab" id="tab-learn" hidden>Learnings</button>
+    <button role="tab" id="tab-comp" hidden>Competitors</button><button role="tab" id="tab-suppliers" hidden>Suppliers</button><button role="tab" id="tab-plans" hidden>Plans</button><button role="tab" id="tab-tasks" hidden>Tasks</button><button role="tab" id="tab-learn" hidden>Learnings</button><button role="tab" id="tab-course" hidden>Learn</button>
   </nav>
   <div class="sync" title="Connecting…" id="syncWrap"><b id="dot"></b><span id="syncText" class="sr">Connecting…</span></div>
   <div class="menuwrap">
@@ -638,6 +662,12 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <p id="stLoginMsg" style="margin:0;color:var(--bad);font-size:14px"></p>
     </form>
     <div id="stBody"></div>
+  </section>
+
+  <!-- LEARN (course schemas) -->
+  <section id="view-course" hidden>
+    <div class="headrow"><div><h1>Learn</h1><p class="sub">Bechir's frameworks as simple schemas. Tap one to open it.</p></div></div>
+    <div id="courseList"></div>
   </section>
 
   <!-- TASKS -->
@@ -1965,6 +1995,30 @@ function editComp(c){
 }
 $("addComp").onclick=()=>editComp();
 
+/* ---------- Learn: course schemas ---------- */
+function renderCourse(){
+  const L=$("courseList");if(!L)return;
+  const st=(a)=>`<div class="sflow">${a.map((x,i)=>`${i?'<span class="sar">→</span>':""}<div class="sbox ${x[2]||""}"><b>${x[0]}</b>${x[1]?`<small>${x[1]}</small>`:""}</div>`).join("")}</div>`;
+  const dz=t=>`<p class="sdz" dir="auto">${t}</p>`;
+  const c=CONFIRM/100,r=RETURNS/100,pr=79,co=15,g=pr-co-DELIVERY,be=c*((1-r)*g-r*DELIVERY);
+  const S=[
+  ["🧭","The full method","From idea to scale",st([["1 Research","Ideas, competitors"],["2 Score","6 rules / N.T.P.M.A"],["3 Targets","before the test"],["4 Plan","ABO + hypothesis"],["5 Launch","Meta"],["6 Go / No-Go","the numbers"],["7 Lesson","📚 Learnings","hl"]])+dz("Kol produit yet3adda b nafs el steps. Ma nekhdmouch bel feeling.")],
+  ["🔄","Creative strategy flywheel","The loop for every creative",`<div class="ring">${[["01","Research","Comments, personas, competitors"],["02","Ideation","Plan of attack"],["03","Briefing","Hypothesis + goal"],["04","Content creation","Asset + variations"],["05","Evaluation","Matches the brief?"],["06","Launch","Run the ads"],["07","Creative analysis","Hypothesis ✅ / ❌ → save it"]].map(([n,t,d])=>`<div class="rstep"><span>${n}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}<div class="rback">↻ back to 01 Research</div></div>`+dz("Kol test y3allmek 7aja. El lesson trja3 lel research mta3 el produit el jey.")],
+  ["🔎","Research: need to know","Before you make any ad",`<div class="sgrid3">${[["Content that engages","Which formats and concepts get comments, shares, long-running ads"],["How we compare","Their price, offer and angle vs ours"],["Emotional triggers","Why people buy: pain, fear, status, time, money, gift, desire"]].map(([t,d])=>`<div class="sbox pu"><b>${t}</b><small>${d}</small></div>`).join("")}</div>`+dz("Fil app: Competitors (trigger + engagement) → 🔎 Research summary 3la kol produit.")],
+  ["🌳","Format → Concept → Angles","Basics you must know",`<div class="tree">
+    <div class="tcol"><div class="sbox pu"><b>Format</b><small>Image, video, gif…</small></div></div>
+    <div class="tcol">${[["Concept 1","Before & after"],["Concept 2","Unboxing"],["Concept 3","Testimonial"]].map(([a,b],i)=>`<div class="sbox bl ${i?"dim":""}"><b>${a}</b><small>${b}</small></div>`).join("")}</div>
+    <div class="tcol">${[["Angle 1","Beauty"],["Angle 2","Fast results"],["Angle 3","Ease of use"]].map(([a,b])=>`<div class="sbox or"><b>${a}</b><small>${b}</small></div>`).join("")}</div></div>
+    <ul class="sli"><li><b>Format</b> = what you make (image, video, gif).</li><li><b>Concept</b> = the style of the ad (before & after, unboxing, testimonial).</li><li><b>Angle</b> = the benefit you push (beauty, fast results, ease of use).</li></ul>`+dz("Concept wa7ed, testih b barcha angles. Badel 7aja wa7da bark f kol test bech ta3ref chkoun 3mal el farq.")],
+  ["💎","N.T.P.M.A","Brand ideas need 4 / 5",`<div class="slet">${[["N","Niche","We can name who buys it"],["T","Transformation","Clear before → after"],["P","Price","Sells for 3× its cost"],["M","Mechanism","A simple reason it works"],["A","Access","We can reach them with ads"]].map(([l,t,d])=>`<div class="sl"><span>${l}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div>`+dz("4–5 / 5 → testih. Ta7t 4 → badel el idea walla 7assenha.")],
+  ["🚦","Go / No-Go","Targets before, verdict after",`<div class="sgrid2"><div class="sbox"><b>Before the test</b><small>Max ads / order (under break-even) · Test budget · Test days (usually 4)</small></div><div class="sbox"><b>After the test</b><small><span class="vg">🟢 GO</span> under target → winner<br><span class="vy">🟡 Almost</span> under break-even → fix hook, offer or page<br><span class="vr">🔴 NO-GO</span> over break-even → stop</small></div></div><div class="sbox rd" style="margin-top:8px"><b>🔴 Stop early</b><small>2× the target spent and 0 orders</small></div>`+dz("Nekteb el targets 9bal. Ba3d, el ar9am ya7kmou, mouch el feeling.")],
+  ["💰","The real break-even (COD)","With your settings",`<div class="calcs"><div><span>Price − cost − delivery</span><b>${pr} − ${co} − ${fmt(DELIVERY,0)} = ${fmt(g,0)} DT</b></div><div><span>Orders confirmed</span><b>${CONFIRM}%</b></div><div><span>Packages returned</span><b>${RETURNS}%</b></div><div class="big"><span>Max ads / order</span><b>${fmt(be,1)} DT</b></div></div>`+dz(`Mouch ${fmt(g,0)} DT. Ba3d el confirmation w el retour, el ra9m el s7i7 howa ${fmt(be,1)} DT.`)],
+  ["💸","ABO vs CBO","Where the budget goes",`<div class="sgrid2"><div class="sbox gr"><b>ABO · to test</b><small>Budget on each ad set, same amount. Every angle gets a fair chance.</small></div><div class="sbox bl"><b>CBO · to scale</b><small>Budget on the campaign. Meta sends money to what sells. +20–30% every 2–3 days.</small></div></div>`+dz("Testi b ABO, scale b CBO.")],
+  ["🏪","General or Brand","Two ways to sell",`<div class="sgrid2"><div class="sbox"><b>🏪 General</b><small>Test fast, sell fast · 6 quick rules · cheap & light</small></div><div class="sbox"><b>💎 Brand</b><small>A name around one product · N.T.P.M.A · strong offer · customers come back</small></div></div><div class="sbox hl" style="margin-top:8px;text-align:center"><b>🏪 Winner → 🚀 Upgrade to 💎 Brand</b></div>`+dz("El winner mta3 general ynajem ywalli brand.")]];
+  let open;try{open=localStorage.getItem("pl_course")}catch(e){}
+  L.innerHTML=S.map(([ic,t,sub,body],i)=>`<details class="sch" data-i="${i}" ${String(i)===open?"open":""}><summary><span class="sic">${ic}</span><span><b>${t}</b><small>${sub}</small></span><span class="car">▸</span></summary><div class="sbody">${body}</div></details>`).join("");
+  L.querySelectorAll("details").forEach(d=>d.ontoggle=()=>{if(d.open){L.querySelectorAll("details").forEach(o=>{if(o!==d)o.open=false});try{localStorage.setItem("pl_course",d.dataset.i)}catch(e){}}});
+}
 /* ---------- Home ---------- */
 let homeStats=null;
 async function metaCall(body){try{return await fetch(SB_URL+"/functions/v1/meta-stats",{method:"POST",headers:{"Content-Type":"application/json","apikey":SB_KEY},body:JSON.stringify(body)}).then(r=>r.json())}catch(e){return{error:"offline"}}}
@@ -2378,8 +2432,8 @@ Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
 // 5 tabs. Each tab can hold a few pages, picked from the sub-menu under the tabs.
-const PARENT={home:"home",tasks:"home",ideas:"ideas",comp:"ideas",products:"products",suppliers:"products",ads:"ads",plans:"ads",learn:"ads",stats:"stats"};
-const SUB={home:[["home","🏠 Today"],["tasks","✅ Tasks"]],ideas:[["ideas","💡 Ideas"],["sources","🔎 Where to look"],["comp","🏷 Competitors"]],
+const PARENT={home:"home",tasks:"home",course:"home",ideas:"ideas",comp:"ideas",products:"products",suppliers:"products",ads:"ads",plans:"ads",learn:"ads",stats:"stats"};
+const SUB={home:[["home","🏠 Today"],["tasks","✅ Tasks"],["course","🎓 Learn"]],ideas:[["ideas","💡 Ideas"],["sources","🔎 Where to look"],["comp","🏷 Competitors"]],
   products:[["products","📦 Products"],["suppliers","🚚 Suppliers"]],ads:[["plans","🗂 Plans"],["ads","🎬 Ad library"],["learn","📚 Learnings"]]};
 function renderSubnav(t){
   const g=PARENT[t],n=$("subnav"),items=SUB[g]||[];n.hidden=!items.length;
@@ -2389,16 +2443,17 @@ function renderSubnav(t){
     if(k==="ideas"||k==="sources"){setTab("ideas");setIdeasView(k)}else setTab(k)});
 }
 function setTab(t){
-  for(const x of["home","ideas","products","suppliers","comp","ads","plans","learn","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===PARENT[t]);$("view-"+x).hidden=x!==t}
+  for(const x of["home","ideas","products","suppliers","comp","ads","plans","learn","course","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===PARENT[t]);$("view-"+x).hidden=x!==t}
   renderSubnav(t);
   if(t==="stats"&&!stLoaded&&sb)loadStats();
   if(t==="home"&&sb)renderHome();
   if(t==="ads"&&!adsSynced&&sb)syncAds();
   if(t==="learn")renderLearn();
+  if(t==="course")renderCourse();
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
 $("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("plans");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");$("tab-home").onclick=()=>setTab("home");$("tab-comp").onclick=()=>setTab("comp");
-let startTab="home";try{const t=localStorage.getItem("pl_tab");if(["products","ideas","suppliers","comp","ads","plans","learn","stats","tasks"].includes(t))startTab=t}catch(e){}
+let startTab="home";try{const t=localStorage.getItem("pl_tab");if(["products","ideas","suppliers","comp","ads","plans","learn","course","stats","tasks"].includes(t))startTab=t}catch(e){}
 
 /* ---------- Data ---------- */
 async function loadAll(){
