@@ -377,6 +377,16 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .rules{background:var(--warn-bg);color:#4a3600;border-radius:14px;padding:14px 16px;margin-bottom:20px;white-space:pre-wrap;font-size:14px}
 .rules h3,.review h3,.adsets h3{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin:0 0 6px;color:inherit;opacity:.8}
 .adsets{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.hyp,.verdict{margin:12px 16px 0;padding:10px 12px;border-radius:10px;background:var(--info-bg);font-size:14px;line-height:1.45}
+.hyp small,.verdict small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.hyp.none{background:var(--warn-bg)}.verdict{background:var(--idle-bg)}
+.vbtns{display:flex;gap:8px;margin:4px 0 8px}.verdict input{width:100%;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;color:var(--ink);background:var(--card)}
+.btn.on-good{background:var(--good-bg);color:var(--good);border-color:var(--good)}.btn.on-bad{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.lnk{background:none;border:0;padding:0;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit}
+.lgrp{margin-bottom:22px}.lgrp h2{font-size:17px;font-weight:600;margin:0 0 8px}
+.lrow{display:flex;gap:12px;background:var(--card,#fff);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--line)}
+.lrow.lt{border-left-color:var(--good)}.lrow.lf{border-left-color:var(--bad)}
+.lrow .lic{font-size:18px}.lrow b{font-weight:600}.lrow p{margin:3px 0 4px;font-size:15px}.lrow small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
 .aset{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .aset-h{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:linear-gradient(var(--card),var(--card))}
 .aset-h .t{min-width:0;flex:1}
@@ -475,7 +485,7 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
     <button role="tab" id="tab-ads" aria-selected="false">Ads</button>
     <button role="tab" id="tab-stats" aria-selected="false">Stats</button>
     <!-- merged into the 5 tabs above; kept hidden so old links still work -->
-    <button role="tab" id="tab-comp" hidden>Competitors</button><button role="tab" id="tab-suppliers" hidden>Suppliers</button><button role="tab" id="tab-plans" hidden>Plans</button><button role="tab" id="tab-tasks" hidden>Tasks</button>
+    <button role="tab" id="tab-comp" hidden>Competitors</button><button role="tab" id="tab-suppliers" hidden>Suppliers</button><button role="tab" id="tab-plans" hidden>Plans</button><button role="tab" id="tab-tasks" hidden>Tasks</button><button role="tab" id="tab-learn" hidden>Learnings</button>
   </nav>
   <div class="sync" title="Connecting…" id="syncWrap"><b id="dot"></b><span id="syncText" class="sr">Connecting…</span></div>
   <div class="menuwrap">
@@ -595,6 +605,12 @@ legend{float:left;width:100%;font-size:11px;font-weight:500;letter-spacing:.06em
       <div class="plist" id="pList"><div class="empty">Loading plans…</div></div>
     </div>
     <div id="planView" hidden></div>
+  </section>
+
+  <!-- LEARNINGS -->
+  <section id="view-learn" hidden>
+    <div class="headrow"><div><h1>Learnings</h1><p class="sub">Bechir's creative flywheel: Research → Ideation → Brief → Create → Review → Launch → Analysis → back to Research. Every tested angle ends up here. Read this before planning a new product.</p></div></div>
+    <div id="learnList"><div class="empty">Loading…</div></div>
   </section>
 
   <!-- STATS -->
@@ -2103,6 +2119,9 @@ function renderPlanView(){
     ${sets.map((s,i)=>{const sa=pa.filter(a=>a.adset_id===s.id);
       return `<div class="aset"><div class="aset-h"><div class="t"><h2>${esc(s.name)}</h2><p>${esc([s.angle&&"Angle: "+s.angle,s.audience&&"Audience: "+s.audience,s.daily_budget!=null&&fmt(s.daily_budget)+" DT/day"].filter(Boolean).join(" · "))}</p></div>
       <button class="btn ghost sm" data-eset="${s.id}">Edit</button><button class="btn danger sm" data-dset="${s.id}">Delete</button></div>
+      ${s.hypothesis?`<div class="hyp"><small>💭 Hypothesis</small><span dir="auto">${esc(s.hypothesis)}</span></div>`:`<div class="hyp none"><small>💭 Hypothesis</small><span>None yet. <button class="lnk" data-eset="${s.id}">Write it</button> before launch.</span></div>`}
+      ${c.status==="live"||c.status==="done"?`<div class="verdict"><small>📊 Result: was the hypothesis right?</small><div class="vbtns"><button class="btn sm ${s.result==="true"?"on-good":"ghost"}" data-res="${s.id}" data-v="true">✅ True</button><button class="btn sm ${s.result==="false"?"on-bad":"ghost"}" data-res="${s.id}" data-v="false">❌ False</button></div>
+        <input data-learn="${s.id}" maxlength="500" dir="auto" placeholder="Lesson in one line, e.g. back pain works, the gift angle doesn't" value="${esc(s.learning||"")}"></div>`:""}
       <div class="aset-ads">${sa.map(a=>{const lib=ads.find(x=>x.id===a.ad_id);const th=lib&&(lib.poster||(lib.format==="image"?lib.media:""));
         return `<div class="pad"><div class="thumb">${isUrl(th)?`<img src="${esc(th)}" alt="">`:"To make"}</div><div class="pb">
         <b>${esc(a.name)}</b>
@@ -2141,6 +2160,9 @@ function renderPlanView(){
     const r=await sb.from("campaigns").delete().eq("id",c.id);if(r.error)return toast("Couldn't delete");closePlan();toast("Plan deleted");refreshPlans()};
   $("pvAddSet").onclick=()=>editSet(c,null,sets.length);
   q("[data-eset]").forEach(b=>b.onclick=()=>editSet(c,adsets.find(s=>s.id===b.dataset.eset)));
+  const setUpd=async(id,d,msg)=>{const r=await sb.from("adsets").update(d).eq("id",id);if(r.error)return toast("Couldn't save");Object.assign(adsets.find(x=>x.id===id)||{},d);toast(msg);refreshPlans()};
+  q("[data-res]").forEach(b=>b.onclick=()=>{const s=adsets.find(x=>x.id===b.dataset.res);const v=s.result===b.dataset.v?null:b.dataset.v;setUpd(s.id,{result:v},v?"Saved: "+(v==="true"?"✅ True":"❌ False"):"Result cleared")});
+  q("[data-learn]").forEach(i=>i.onchange=()=>setUpd(i.dataset.learn,{learning:i.value.trim()||null},"Lesson saved"));
   q("[data-dset]").forEach(b=>b.onclick=async()=>{if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Delete ad set + its ads?";return}
     await sb.from("adsets").delete().eq("id",b.dataset.dset);refreshPlans()});
   q("[data-addad]").forEach(b=>b.onclick=()=>editPlanAd(b.dataset.addad,null,c));
@@ -2174,7 +2196,8 @@ function editSet(c,s,pos){
     {k:"name",label:"Ad set name",req:true,ph:"A · Mum and the mess"},
     {k:"angle",label:"Angle",ph:"Story: shoes all over the house"},
     {k:"audience",label:"Audience",ph:"Tunisia, women 25–50, broad"},
-    {k:"daily_budget",label:"Daily budget (DT)",type:"number",full:false}],
+    {k:"daily_budget",label:"Daily budget (DT)",type:"number",full:false},
+    {k:"hypothesis",label:"Hypothesis (the brief)",type:"textarea",max:500,ph:"Moms will buy because of back pain from carrying the baby. Win if cost per order is under 25 DT.",hint:"Write it before launch: who buys, why, and what counts as a win."}],
     s,async d=>{
       const r=s?await sb.from("adsets").update(d).eq("id",s.id):await sb.from("adsets").insert({...d,campaign_id:c.id,position:pos||0});
       if(r.error)return r.error.message;refreshPlans();
@@ -2196,7 +2219,24 @@ function editPlanAd(setId,a,c){
       if(r.error)return r.error.message;refreshPlans();
     });
 }
-async function refreshPlans(){await loadPlans();renderPlans();if(typeof renderPlanTree==="function"){renderPlanTree();if(selPlan&&!$("treeSide").contains(document.activeElement))renderPlanSide()}}
+function renderLearn(){
+  const L=$("learnList");if(!L)return;
+  const done=adsets.filter(s=>s.result||s.learning);
+  const open=adsets.filter(s=>!s.result&&["live","done"].includes(campaigns.find(c=>c.id===s.campaign_id)?.status)).length;
+  if(!done.length){L.innerHTML=`<div class="empty">No learnings yet. When a campaign is live or finished, open it in 🗂 Plans and mark each ad set ✅ True or ❌ False with a one-line lesson.</div>`;return}
+  const groups={};for(const s of done){const c=campaigns.find(x=>x.id===s.campaign_id);const pid=c?.product_id||"";(groups[pid]??=[]).push({s,c})}
+  const T=done.filter(s=>s.result==="true").length,F=done.filter(s=>s.result==="false").length;
+  L.innerHTML=`<p class="sub" style="margin:0 0 14px">✅ ${T} worked · ❌ ${F} didn't${open?` · ${open} ad set${open===1?"":"s"} still waiting for a result`:""}</p>`+Object.entries(groups).map(([pid,list])=>{
+    const p=products.find(x=>x.id===pid);
+    return `<div class="lgrp"><h2>${esc(p?.name||"No product")}</h2>${list.map(({s,c})=>`<div class="lrow ${s.result==="true"?"lt":s.result==="false"?"lf":""}">
+      <div class="lic">${s.result==="true"?"✅":s.result==="false"?"❌":"•"}</div><div>
+      <b dir="auto">${esc(s.angle||s.name)}</b>
+      ${s.learning?`<p dir="auto">${esc(s.learning)}</p>`:""}
+      ${s.hypothesis?`<small dir="auto">💭 ${esc(s.hypothesis)}</small>`:""}
+      <small>${esc(c?.name||"")} · <button class="lnk" data-lopen="${s.campaign_id}">Open plan</button></small></div></div>`).join("")}</div>`}).join("");
+  L.querySelectorAll("[data-lopen]").forEach(b=>b.onclick=()=>{setTab("plans");showPlan(b.dataset.lopen)});
+}
+async function refreshPlans(){await loadPlans();renderPlans();if(!$("view-learn").hidden)renderLearn();if(typeof renderPlanTree==="function"){renderPlanTree();if(selPlan&&!$("treeSide").contains(document.activeElement))renderPlanSide()}}
 $("addPlan").onclick=newPlan;
 
 /* ---------- Tasks ---------- */
@@ -2290,9 +2330,9 @@ Object.entries(P_STATUS).forEach(([k,l])=>$("p-status").add(new Option(l,k)));
 Object.entries(S_STATUS).forEach(([k,l])=>$("s-status").add(new Option(l,k)));
 
 // 5 tabs. Each tab can hold a few pages, picked from the sub-menu under the tabs.
-const PARENT={home:"home",tasks:"home",ideas:"ideas",comp:"ideas",products:"products",suppliers:"products",ads:"ads",plans:"ads",stats:"stats"};
+const PARENT={home:"home",tasks:"home",ideas:"ideas",comp:"ideas",products:"products",suppliers:"products",ads:"ads",plans:"ads",learn:"ads",stats:"stats"};
 const SUB={home:[["home","🏠 Today"],["tasks","✅ Tasks"]],ideas:[["ideas","💡 Ideas"],["sources","🔎 Where to look"],["comp","🏷 Competitors"]],
-  products:[["products","📦 Products"],["suppliers","🚚 Suppliers"]],ads:[["plans","🗂 Plans"],["ads","🎬 Ad library"]]};
+  products:[["products","📦 Products"],["suppliers","🚚 Suppliers"]],ads:[["plans","🗂 Plans"],["ads","🎬 Ad library"],["learn","📚 Learnings"]]};
 function renderSubnav(t){
   const g=PARENT[t],n=$("subnav"),items=SUB[g]||[];n.hidden=!items.length;
   const on=t==="ideas"&&!$("sourcesView").hidden?"sources":t;
@@ -2301,15 +2341,16 @@ function renderSubnav(t){
     if(k==="ideas"||k==="sources"){setTab("ideas");setIdeasView(k)}else setTab(k)});
 }
 function setTab(t){
-  for(const x of["home","ideas","products","suppliers","comp","ads","plans","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===PARENT[t]);$("view-"+x).hidden=x!==t}
+  for(const x of["home","ideas","products","suppliers","comp","ads","plans","learn","stats","tasks"]){$("tab-"+x).setAttribute("aria-selected",x===PARENT[t]);$("view-"+x).hidden=x!==t}
   renderSubnav(t);
   if(t==="stats"&&!stLoaded&&sb)loadStats();
   if(t==="home"&&sb)renderHome();
   if(t==="ads"&&!adsSynced&&sb)syncAds();
+  if(t==="learn")renderLearn();
   try{localStorage.setItem("pl_tab",t)}catch(e){}
 }
 $("tab-products").onclick=()=>setTab("products");$("tab-suppliers").onclick=()=>setTab("suppliers");$("tab-tasks").onclick=()=>setTab("tasks");$("tab-ads").onclick=()=>setTab("plans");$("tab-plans").onclick=()=>setTab("plans");$("tab-stats").onclick=()=>setTab("stats");$("tab-ideas").onclick=()=>setTab("ideas");$("tab-home").onclick=()=>setTab("home");$("tab-comp").onclick=()=>setTab("comp");
-let startTab="home";try{const t=localStorage.getItem("pl_tab");if(["products","ideas","suppliers","comp","ads","plans","stats","tasks"].includes(t))startTab=t}catch(e){}
+let startTab="home";try{const t=localStorage.getItem("pl_tab");if(["products","ideas","suppliers","comp","ads","plans","learn","stats","tasks"].includes(t))startTab=t}catch(e){}
 
 /* ---------- Data ---------- */
 async function loadAll(){
