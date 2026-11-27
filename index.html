@@ -394,7 +394,22 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .sch summary b{display:block;font-weight:600;font-size:16px}.sch summary small{color:var(--muted);font-size:13px}
 .sch .sic{font-size:24px}.sch .car{margin-left:auto;color:var(--muted);transition:transform .15s}.sch[open] .car{transform:rotate(90deg)}
 .sbody{padding:4px 16px 16px}
-.sflow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.sar{color:var(--muted)}
+.flowh{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:22px;margin:4px 0}
+.fh{position:relative;background:var(--soft);border-radius:12px;padding:12px 12px 11px;font-size:14px}
+.fh+.fh::before{content:"";position:absolute;left:-17px;top:50%;width:12px;height:12px;border-top:2px solid #b9b4ad;border-right:2px solid #b9b4ad;transform:translateY(-50%) rotate(45deg)}
+.fh b{display:block;font-weight:600;margin-top:6px}.fh small{display:block;color:var(--muted);font-size:12.5px;line-height:1.35;margin-top:2px}
+.fn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:11.5px;font-weight:700}
+.fh.hl{background:var(--action)}.fh.hl .fn{color:var(--action)}
+.flowv{list-style:none;margin:4px 0;padding:0;position:relative}
+.flowv li{position:relative;display:flex;gap:12px;align-items:flex-start;padding:0 0 14px}
+.flowv li:not(:last-child)::before{content:"";position:absolute;left:12px;top:26px;bottom:2px;width:2px;background:#cfcac4}
+.flowv .fn{flex:none;width:26px;height:26px;font-size:12px;position:relative;z-index:1}
+.flowv li>div{flex:1;background:var(--soft);border-radius:10px;padding:8px 12px;margin-top:-3px}.flowv b{font-weight:600;font-size:14.5px}.flowv small{display:block;color:var(--muted);font-size:12.5px}
+.flowv li.hl>div{background:var(--action)}.flowv li.hl .fn{background:var(--ink);color:var(--action)}
+.phase{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.phase span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--ink);color:var(--action);border-radius:999px;padding:3px 9px}
+.phase b{font-size:16px;font-weight:600}.phase small{color:var(--muted);font-size:13px}
+@media(max-width:560px){.flowh{grid-template-columns:1fr;gap:14px}.fh{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;padding:9px 12px}.fh b{margin-top:0}.fh small{grid-column:2;margin-top:0}.fh+.fh::before{left:50%;top:-13px;transform:translateX(-50%) rotate(135deg)}}
 .sbox{background:var(--soft);border-radius:10px;padding:9px 11px;font-size:14px}.sbox b{display:block;font-weight:600}.sbox small{display:block;color:var(--muted);font-size:12.5px;line-height:1.4;margin-top:2px}
 .sbox.hl{background:var(--action)}.sbox.pu{background:#ece8ff}.sbox.bl{background:#dbe7ff}.sbox.or{background:#fde4cf}.sbox.gr{background:var(--good-bg)}.sbox.rd{background:var(--bad-bg)}.sbox.dim{opacity:.55}
 .sdz{margin:12px 0 0;padding:9px 11px;border-radius:10px;background:var(--info-bg);color:var(--info);font-size:13.5px;line-height:1.45}
@@ -2132,7 +2147,10 @@ $("addComp").onclick=()=>editComp();
 let courseOpen=null;
 function renderCourse(){
   const L=$("courseList");if(!L)return;
-  const st=(a)=>`<div class="sflow">${a.map((x,i)=>`${i?'<span class="sar">→</span>':""}<div class="sbox ${x[2]||""}"><b>${x[0]}</b>${x[1]?`<small>${x[1]}</small>`:""}</div>`).join("")}</div>`;
+  const st=(a)=>a.length<=4
+    ?`<div class="flowh" style="--n:${a.length}">${a.map((x,i)=>`<div class="fh ${x[2]||""}"><span class="fn">${i+1}</span><b>${x[0]}</b>${x[1]?`<small>${x[1]}</small>`:""}</div>`).join("")}</div>`
+    :`<ol class="flowv">${a.map((x,i)=>`<li class="${x[2]||""}"><span class="fn">${i+1}</span><div><b>${x[0]}</b>${x[1]?`<small>${x[1]}</small>`:""}</div></li>`).join("")}</ol>`;
+  const phase=(n,t,d)=>`<div class="phase"><span>Phase ${n}</span><b>${t}</b><small>${d}</small></div>`;
   const dz=t=>`<p class="sdz" dir="auto">${t}</p>`;
   const c=CONFIRM/100,r=RETURNS/100,pr=79,co=15,g=pr-co-DELIVERY,be=c*((1-r)*g-r*DELIVERY);
   const S=[
@@ -2146,8 +2164,8 @@ function renderCourse(){
     <ul class="sli"><li><b>Format</b> = what you make (image, video, gif).</li><li><b>Concept</b> = the style of the ad (before & after, unboxing, testimonial).</li><li><b>Angle</b> = the benefit you push (beauty, fast results, ease of use).</li></ul>`+dz("Concept wa7ed, testih b barcha angles. Badel 7aja wa7da bark f kol test bech ta3ref chkoun 3mal el farq.")],
   ["🧩","Creative diversification","Not all ads the same kind",diversMap([],true)+`<ul class="sli"><li><b>Up</b> = Discovery: people who don't know you (unboxing, occasions, relatable problems).</li><li><b>Down</b> = Action: people ready to buy (offers, before & after).</li><li><b>Left</b> = functional (facts, results) · <b>Right</b> = emotional (feelings).</li><li>Per product, test at least <b>one ad up, one in the middle, one down</b>.</li></ul>`+dz("Ma t3melch el ads el kol « before & after + prix ». Farra9hom 3al map bech Meta yal9a clients jdod.")],
   ["🧱","Ad building blocks","Hook → Body → CTA",blockSchema()+`<ul class="sli"><li><b>Hook</b> = the first 3 seconds: makes people stop scrolling.</li><li><b>Body</b> = the blocks you film once: unboxing, demo, benefits, before & after…</li><li><b>CTA</b> = the end: why order now.</li><li>Film the blocks <b>once</b>, reorder them into <b>3 ads</b>. Mostly the hook changes.</li></ul>`+dz("Ta3mel tsawer mara wa7da, w t3awed tretbhom: 3 ads b 3 hooks mokhtalfin. El hook howa elli ywa99ef el scroll.")],
-  ["🧪","PMF validation","Validate before you scale",`<div class="ph2"><div class="sbox pu"><b>Phase 1 · before you spend</b><small>Protects your capital</small></div>`+st([["1.1 Research","N.T.P.M.A from US / EU"],["1.2 Targets","CPA · CVR · margin · budget"],["Minimum test","Simple page · 2–3 creatives · broad"],["1.3 Results","Target vs actual"],["1.4 Decision","GO / NO-GO + why","hl"]])+`<div class="sgrid2" style="margin-top:8px"><div class="sbox gr"><b>GO</b><small>Targets hit → buy first stock → build the brand</small></div><div class="sbox rd"><b>NO-GO</b><small>Diagnose one letter → tweak angle / offer and retest, or kill</small></div></div>
-    <div class="sbox pu" style="margin-top:14px"><b>Phase 2 · after you commit</b><small>Protects your growth</small></div>`+st([["2.1 Levers","N · T · P · M · A, which one limits?"],["2.2 Last change","What + why"],["2.3 Signals","3 warnings"],["2.4 Next","ONE lever","hl"]])+`<div class="ring" style="margin-top:8px">${PMF_SIG.map(([k,t,d],i)=>`<div class="rstep"><span>${i+1}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div></div>`+dz("Fil app: kol produit fih el worksheet. Section 1 l kol test. Section 2 tban ki el produit ywalli Winner walla 💎 Brand. COD: el CPA el s7i7 howa 3al commandes confirmées.")],
+  ["🧪","PMF validation","Validate before you scale",`<div class="ph2">`+phase(1,"Before you spend","Protects your capital")+st([["1.1 Research","N.T.P.M.A from US / EU"],["1.2 Targets","CPA · CVR · margin · budget"],["Minimum test","Simple page · 2–3 creatives · broad"],["1.3 Results","Target vs actual"],["1.4 Decision","GO / NO-GO + why","hl"]])+`<div class="sgrid2" style="margin-top:8px"><div class="sbox gr"><b>GO</b><small>Targets hit → buy first stock → build the brand</small></div><div class="sbox rd"><b>NO-GO</b><small>Diagnose one letter → tweak angle / offer and retest, or kill</small></div></div>
+    <div style="height:18px"></div>`+phase(2,"After you commit","Protects your growth")+st([["2.1 Levers","N · T · P · M · A, which one limits?"],["2.2 Last change","What + why"],["2.3 Signals","3 warnings"],["2.4 Next","ONE lever","hl"]])+`<div class="ring" style="margin-top:8px">${PMF_SIG.map(([k,t,d],i)=>`<div class="rstep"><span>${i+1}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div></div>`+dz("Fil app: kol produit fih el worksheet. Section 1 l kol test. Section 2 tban ki el produit ywalli Winner walla 💎 Brand. COD: el CPA el s7i7 howa 3al commandes confirmées.")],
   ["🎁","The offer ($100M Offer)","Lesson 2 · the offer is the business",`<p class="text" style="margin:0 0 8px">Your product is what you sell. <b>Your offer is why someone buys.</b> Two brands can sell the same product: the better offer wins on CPA, CVR and margin.</p>
     <small class="shd">The offer contains</small>`+st([["Transformation","promised"],["Price","+ perceived value"],["Risk reversal","guarantee"],["Reason to buy now","","hl"]])+`
     <small class="shd" style="margin-top:14px">You need a cold-friendly offer</small>
