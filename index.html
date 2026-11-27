@@ -430,6 +430,20 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .bbuild{grid-column:1/-1;margin-bottom:4px}.bbuild #bbBox{margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:10px;display:grid;gap:8px}
 .bbuild label{display:grid;gap:4px;font-size:13px;color:var(--muted)}.bbuild select{height:34px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font:inherit;color:var(--ink);background:var(--card)}
 .bbb{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bbr{display:flex;gap:6px;flex-wrap:wrap}.bbt{margin:0;font-size:13px}
+.pmfd summary{cursor:pointer;list-style:none}.pmfd summary::-webkit-details-marker{display:none}
+.pmfc{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:2px 8px;margin-left:6px}.pmfc.ok{background:var(--good-bg);color:var(--good)}
+.pmfl{display:grid;gap:3px;margin-bottom:10px}.pmfl b{font-size:14px;font-weight:600}.pmfl small{font-size:12.5px;color:var(--muted)}
+.pmfl textarea,.pmta{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--ink);background:var(--card);resize:vertical}
+.pmfres{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.pmfres h4,.pmft h4{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin:0 0 6px}.pmft h4{margin-top:14px}
+.ptab>div{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.ptab>div:first-child{border-top:0}.ptab .ph span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ptab span{color:var(--muted)}.ptab b{font-weight:600}
+.lev{display:grid;gap:6px}.lr{display:grid;grid-template-columns:1.3fr 1fr auto;gap:8px;align-items:center;background:var(--soft);border-radius:10px;padding:7px 10px}.lr.lim{background:var(--warn-bg)}
+.lr b{font-size:14px;font-weight:600}.lr select{height:32px;border:1px solid var(--line);border-radius:8px;padding:0 6px;font:inherit;font-size:13px;background:var(--card);color:var(--ink)}.lim-r{font-size:12.5px;color:var(--muted);display:flex;gap:4px;align-items:center;white-space:nowrap}
+@media(max-width:480px){.lr{grid-template-columns:1fr 1fr}.lim-r{grid-column:1/-1}}
+.lchg{display:flex;gap:8px;align-items:flex-start}.lchg textarea{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;resize:vertical}
+.clog{margin-top:6px;display:grid;gap:4px}.clog>div{display:flex;gap:8px;font-size:13px}.clog small{color:var(--muted);flex:none;width:48px}
+.sigs{display:grid;gap:6px}.sg{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border-radius:10px;padding:8px 10px;cursor:pointer}.sg.on{background:var(--bad-bg)}
+.sg b{font-size:14px;font-weight:600}.sg small{display:block;font-size:12.5px;color:var(--muted)}.sugg{font-style:normal;font-size:11.5px;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:1px 7px}
 .lgrp{margin-bottom:22px}.lgrp h2{font-size:17px;font-weight:600;margin:0 0 8px}
 .lrow{display:flex;gap:12px;background:var(--card,#fff);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--line)}
 .lrow.lt{border-left-color:var(--good)}.lrow.lf{border-left-color:var(--bad)}
@@ -1063,6 +1077,79 @@ function goNoGo(p,m){
   if(orders&&cpo<=be)return{k:"fix",c:"warn",l:"🟡 Almost",t:`Test done. ${fmt(cpo,0)} DT per order: above your ${fmt(tgt,0)} DT target but under break-even (${fmt(be,0)}). Fix one thing (hook, offer or page) and test again.`};
   return{k:"nogo",c:"bad",l:"🔴 NO-GO",t:orders?`Test done. ${fmt(cpo,0)} DT per order, more than break-even (${fmt(be,0)} DT). Stop it and test the next product.`:`Test done with 0 orders for ${fmt(spend,0)} DT. Stop it and test the next product.`};
 }
+/* ---------- PMF validation worksheet (course: Lesson 1) ---------- */
+const PMF_L=[["n","N · Niche","Who exactly has this problem? A precise person in a precise situation.","Office workers 25–45 who sit 8 h a day"],
+  ["t","T · Transformation","The before → after you promise. Not features.","Back pain and bent posture → straight back, no pain after work"],
+  ["p","P · Price","What do mature markets (US / EU) charge? What fits Tunisia?","€30–40 in France → 69 DT here"],
+  ["m","M · Mechanism","How does the product deliver the transformation?","Pulls the shoulders back gently, the body learns good posture"],
+  ["a","A · Access channel","How is it sold in US / EU? Platforms, angles, creative formats that work.","Facebook + TikTok, UGC videos, 'back pain at work' angle"]];
+const PMF_SIG=[["s1","Rising CPA, no creative explanation","The angle / transformation no longer resonates. Market shifting → test a new angle (T / A)."],
+  ["s2","High CVR, low repeat purchases","The product doesn't deliver the promise. Mechanism misaligned → check quality (M)."],
+  ["s3","Strong engagement, weak conversion","Price or mechanism problem: the offer isn't landing → fix the offer (P)."]];
+const pmfOf=p=>p.pmf||{};
+function pmfCvr(p){const v=num(pmfOf(p).visitors),o=num(p.orders);return v&&o!=null?o/v*100:null}
+function researchSec(p){
+  const r=p.research||{},done=PMF_L.filter(([k])=>(r[k]||"").trim()).length;
+  const nAb=comps.filter(c=>(c.product_id===p.id||ideas.some(i=>i.product_id===p.id&&c.idea_id===i.id))&&abroad(c)).length;
+  return `<details class="sec pmfd" ${done<5?"open":""}><summary><h3 style="margin:0">1.1 Research · N.T.P.M.A <span class="pmfc ${done===5?"ok":""}">${done}/5 written</span></h3></summary>
+    <p class="text" style="color:var(--muted);font-size:13px;margin:6px 0 8px">Study how it already sells in mature markets (US / EU) before testing here. Read real data, don't guess.${nAb?` You saved ${nAb} competitor ad${nAb===1?"":"s"} from abroad: use them for P and A.`:""}</p>
+    ${PMF_L.map(([k,l,h,ph])=>`<label class="pmfl"><b>${l}</b><small>${h}</small><textarea data-rs="${k}" rows="2" maxlength="600" dir="auto" placeholder="${esc(ph)}">${esc(r[k]||"")}</textarea></label>`).join("")}
+    <label class="pmfl"><b>Research conclusion</b><small>Best angle to test first + the price that makes sense in Tunisia.</small><textarea data-rs="conclusion" rows="2" maxlength="600" dir="auto" placeholder="First angle: back pain at work · 69 DT · offer 2 for 99 DT">${esc(r.conclusion||"")}</textarea></label></details>`;
+}
+function pmfResults(p,m){
+  const P=pmfOf(p),cvr=pmfCvr(p),tc=num(P.cvr_t),tm=num(P.margin_t),tg=num(p.target_cpa);
+  const ok=(a,t,up)=>a==null||t==null?"":(up?a>=t:a<=t)?"pos":"neg";
+  let diag="";
+  if(m.cpo!=null&&tg!=null&&m.cpo>tg){diag=cvr!=null&&tc!=null&&cvr<tc?"CVR is under target: people come but don't order → the page or the offer (P), or the promise (T / M).":cvr!=null&&tc!=null?"CVR is fine but each order costs too much → the ads: angle, creative or audience (A / N).":"Add visitors to see if the problem is the page (CVR) or the ads."}
+  if(diag===""&&cvr!=null&&tc!=null&&cvr<tc)diag="CVR is under target → check the page and the offer (P).";
+  return `<div class="pmfres"><h4>1.3 Results · target vs actual</h4>
+    <div class="ptab"><div class="ph"><span></span><span>Target</span><span>Actual</span></div>
+      <div><span>CPA (ads / order)</span><b>${fmt(tg,1)}</b><b class="${ok(m.cpo,tg)}">${fmt(m.cpo,1)}</b></div>
+      <div><span>CVR (orders / visitors)</span><b>${tc!=null?fmt(tc,1)+"%":"—"}</b><b class="${ok(cvr,tc,1)}">${cvr!=null?fmt(cvr,1)+"%":"—"}</b></div>
+      <div><span>Margin (profit / order)</span><b>${fmt(tm,1)}</b><b class="${ok(m.profit,tm,1)}">${fmt(m.profit,1)}</b></div></div>
+    <div class="gform" style="margin-top:8px"><label>Page visitors (from Converty / pixel)<input id="pmVis" type="number" min="0" step="1" value="${P.visitors??""}"><small>For the CVR. Orders come from the product's numbers.</small></label>
+      <label>Engagement<select id="pmEng"><option value="">—</option>${[["low","Low"],["medium","Medium"],["high","🔥 High"]].map(([k,l])=>`<option value="${k}" ${P.eng===k?"selected":""}>${l}</option>`).join("")}</select><small>Comments, shares, DMs</small></label></div>
+    <label class="pmfl"><small>Engagement signals: what people say</small><textarea id="pmEngN" rows="2" maxlength="600" dir="auto" placeholder="Lots of « bkadech? », people tag friends, 3 DMs asking about sizes">${esc(P.eng_note||"")}</textarea></label>
+    ${diag?`<p class="verdict" style="margin:8px 0 0;background:var(--info-bg);color:var(--info)">🔍 ${esc(diag)}</p>`:""}
+    <h4 style="margin-top:12px">1.4 My decision and the reasoning</h4>
+    <textarea id="pmDec" class="pmta" rows="2" maxlength="800" dir="auto" placeholder="GO: CPA 21 < 25, margin holds, back-pain angle works. Buy first stock.">${esc(P.decision||"")}</textarea>
+    <p class="text" style="color:var(--muted);font-size:12.5px;margin-top:4px">GO → buy first inventory, build the brand. NO-GO → diagnose one letter (N, T, P, M, A), tweak angle / offer and retest, or kill it.</p></div>`;
+}
+function pmfTracker(p,m){
+  if(!(p.status==="winner"||p.mode==="brand"))return"";
+  const P=pmfOf(p),lev=P.lev||{},sig=P.sig||{},cvr=pmfCvr(p),tc=num(P.cvr_t),log=P.log||[];
+  const sug={s3:P.eng==="high"&&cvr!=null&&tc!=null&&cvr<tc};
+  return `<div class="sec pmft"><h3>Section 2 · PMF iteration tracker</h3><p class="text" style="color:var(--muted);font-size:13px;margin:0 0 8px">PMF is not one-shot. Come back every time the numbers move. Pull one lever at a time.</p>
+    <h4>2.1 Each lever now</h4><div class="lev">${PMF_L.map(([k,l])=>`<div class="lr ${P.limit===k?"lim":""}"><b>${l}</b>
+      <select data-lev="${k}"><option value="">—</option>${[["ok","✓ OK"],["weak","⚠ Weak"],["unknown","? Unknown"]].map(([v,t])=>`<option value="${v}" ${lev[k]===v?"selected":""}>${t}</option>`).join("")}</select>
+      <label class="lim-r"><input type="radio" name="pmLim" value="${k}" ${P.limit===k?"checked":""}> Limits growth</label></div>`).join("")}</div>
+    <h4>2.2 Last change made</h4>
+    <div class="lchg"><textarea id="pmChg" rows="2" maxlength="500" dir="auto" placeholder="Price 69 → 59 DT, because engagement was high but sales low"></textarea><button class="btn ghost sm" id="pmChgSave" type="button">Log it</button></div>
+    ${log.length?`<div class="clog">${log.slice(0,5).map(x=>`<div><small>${new Date(x.d).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</small><span dir="auto">${esc(x.t)}</span></div>`).join("")}</div>`:""}
+    <h4>2.3 Warning signals</h4><div class="sigs">${PMF_SIG.map(([k,t,d])=>`<label class="sg ${sig[k]?"on":""}"><input type="checkbox" data-sig="${k}" ${sig[k]?"checked":""}><span><b>${t}</b>${sug[k]&&!sig[k]?` <em class="sugg">Suggested: high engagement, CVR under target</em>`:""}<small>${d}</small></span></label>`).join("")}</div>
+    <h4>2.4 Next variable to test</h4>
+    <div class="gform"><label>The ONE lever<select id="pmNext"><option value="">—</option>${PMF_L.map(([k,l])=>`<option value="${k}" ${P.next===k?"selected":""}>${l}</option>`).join("")}</select></label>
+      <label>What exactly<input id="pmNextN" maxlength="300" dir="auto" value="${esc(P.next_note||"")}" placeholder="New angle: look confident, same offer"></label></div></div>`;
+}
+function pmfBind(p){
+  const B=$("sideBody");
+  const save=async(col,patch,msg="Saved")=>{const val={...(p[col]||{}),...patch};const r=await sb.from("products").update({[col]:val,updated_at:new Date().toISOString()}).eq("id",p.id);
+    if(r.error)return toast("Couldn't save: "+r.error.message),false;p[col]=val;toast(msg);return true};
+  B.querySelectorAll("[data-rs]").forEach(t=>t.onchange=()=>save("research",{[t.dataset.rs]:t.value.trim()}).then(ok=>{if(ok){const r=p.research,d=PMF_L.filter(([k])=>(r[k]||"").trim()).length;const c=B.querySelector(".pmfc");if(c){c.textContent=d+"/5 written";c.classList.toggle("ok",d===5)}}}));
+  const re=async(patch,msg)=>{if(await save("pmf",patch,msg))openProduct(p.id)};
+  const on=(id,f)=>{const e=$(id);if(e)e.onchange=f};
+  on("pmVis",e=>re({visitors:num(e.target.value)},"Visitors saved"));
+  on("pmEng",e=>re({eng:e.target.value||null},"Engagement saved"));
+  on("pmEngN",e=>save("pmf",{eng_note:e.target.value.trim()}));
+  on("pmDec",e=>save("pmf",{decision:e.target.value.trim()},"Decision saved"));
+  B.querySelectorAll("[data-lev]").forEach(x=>x.onchange=()=>save("pmf",{lev:{...(pmfOf(p).lev||{}),[x.dataset.lev]:x.value||null}}));
+  B.querySelectorAll("input[name=pmLim]").forEach(x=>x.onchange=()=>re({limit:x.value},"Limiting lever saved"));
+  B.querySelectorAll("[data-sig]").forEach(x=>x.onchange=()=>re({sig:{...(pmfOf(p).sig||{}),[x.dataset.sig]:x.checked}},x.checked?"Signal checked":"Signal cleared"));
+  on("pmNext",e=>save("pmf",{next:e.target.value||null}));
+  on("pmNextN",e=>save("pmf",{next_note:e.target.value.trim()}));
+  const cs=$("pmChgSave");if(cs)cs.onclick=()=>{const t=$("pmChg").value.trim();if(!t){$("pmChg").focus();return}
+    re({log:[{d:new Date().toISOString(),t},...(pmfOf(p).log||[])].slice(0,20)},"Change logged")};
+}
 function gngSection(p,m,G){
   const be=m.margin;
   if(!G)return `<div class="sec"><h3>Go / No-Go</h3><p class="text" style="color:var(--muted)">Add cost and price first.</p></div>`;
@@ -1071,14 +1158,18 @@ function gngSection(p,m,G){
       <label>Test budget (DT)<input id="g-bud" type="number" min="0" step="1" value="${p.budget??""}"><small>Max money before you decide</small></label>
       <label>Test days<input id="g-days" type="number" min="1" max="30" step="1" value="${p.test_days??4}"></label>
       <label>Start<input id="g-start" type="date" value="${p.test_start??today}"></label>
+      <label>Target CVR (%)<input id="g-cvr" type="number" min="0" max="100" step="0.1" value="${pmfOf(p).cvr_t??""}"><small>Orders ÷ page visitors. First test: a rough guess (e.g. 2%).</small></label>
+      <label>Required margin (DT)<input id="g-mar" type="number" min="0" step="0.5" value="${pmfOf(p).margin_t??""}"><small>Profit per order you need to make it worth it</small></label>
+      <label style="grid-column:1/-1">Why these numbers<input id="g-why" maxlength="300" dir="auto" value="${esc(pmfOf(p).why||"")}" placeholder="CPA under break-even 32 · 20 DT profit pays my time"></label>
       <button class="btn primary sm" id="gSave" type="button">Save targets</button></div>`};
-  if(G.k==="plan")return `<div class="sec" id="gng"><h3>Go / No-Go</h3><p class="text">Write the targets <b>before</b> the test. After, the app tells you Go or No-Go, so we don't fool ourselves.</p>${form()}</div>`;
+  if(G.k==="plan")return `<div class="sec" id="gng"><h3>1.2 Targets · Go / No-Go</h3><p class="text">Write the targets <b>before</b> the test. After, the app tells you Go or No-Go, so we don't fool ourselves.</p>${form()}</div>`;
   const col={good:"var(--good-bg);color:var(--good)",bad:"var(--bad-bg);color:var(--bad)",warn:"var(--warn-bg);color:var(--warn)",info:"var(--info-bg);color:var(--info)",idle:"var(--idle-bg);color:var(--idle)"}[G.c];
-  return `<div class="sec" id="gng"><h3>Go / No-Go</h3>
+  return `<div class="sec" id="gng"><h3>1.2–1.4 Go / No-Go</h3>
+    ${pmfOf(p).why?`<p class="text" style="font-size:13px;color:var(--muted);margin:0 0 6px">Why these targets: ${esc(pmfOf(p).why)}</p>`:""}
     <div class="money"><div><span>Target / order</span><b>${fmt(num(p.target_cpa),1)}</b></div><div><span>Real / order</span><b class="${m.cpo==null?"":m.cpo<=num(p.target_cpa)?"pos":"neg"}">${fmt(m.cpo,1)}</b></div><div><span>Test</span><b>${p.test_days?p.test_days+" days":"—"}${p.budget!=null?" · "+fmt(num(p.budget),0)+" DT":""}</b></div></div>
     <p class="verdict" style="margin:10px 0 0;background:${col}"><b>${G.l}</b> · ${esc(G.t)}</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${G.k==="go"&&p.status!=="winner"?`<button class="btn primary sm" data-gst="winner">Mark as Winner</button>`:""}${G.k==="nogo"&&p.status!=="stopped"?`<button class="btn primary sm" data-gst="stopped">Stop this product</button>`:""}<button class="btn ghost sm" id="gEdit">Change targets</button></div>
-    <div id="gFormWrap" hidden>${form()}</div></div>`;
+    <div id="gFormWrap" hidden>${form()}</div>${pmfResults(p,m)}</div>`;
 }
 
 /* ---------- Products ---------- */
@@ -1111,6 +1202,7 @@ function openProduct(id){
   $("sideBody").innerHTML=`
     ${isUrl(p.image)?`<img class="hero" src="${esc(p.image)}" alt="">`:""}
     ${p.problem?`<div class="sec"><h3>Problem it solves</h3><p class="text">${esc(p.problem)}</p></div>`:""}
+    ${researchSec(p)}
     ${researchBox(comps.filter(c=>c.product_id===p.id||ideas.some(i=>i.product_id===p.id&&c.idea_id===i.id)),num(p.price))}
     <div class="sec"><h3>Money</h3>
       <div class="money">
@@ -1122,6 +1214,7 @@ function openProduct(id){
       ${m.margin!=null?`<p class="text" style="color:var(--muted);font-size:13px;margin-top:6px">${esc(beExplain(m.price,m.cost,p))}</p>`:""}
     </div>
     ${gngSection(p,m,G)}
+    ${pmfTracker(p,m)}
     ${p.mode!=="brand"&&p.status==="winner"?`<div class="sec upg"><h3>🚀 This one sells</h3><p class="text">Turn it into a brand: a stronger offer, real reviews, customers who come back.</p><button class="btn primary sm" style="margin-top:8px" id="toBrand">Upgrade to Brand →</button></div>`:""}
     ${p.script?`<div class="sec"><h3>Ad script</h3><p class="script" dir="auto">${esc(p.script)}</p><button class="btn ghost sm" style="margin-top:8px" id="copyScript">Copy script</button></div>`:""}
     ${p.notes?`<div class="sec"><h3>Notes</h3><p class="text">${esc(p.notes)}</p></div>`:""}
@@ -1135,8 +1228,9 @@ function openProduct(id){
     if(r.error){toast("Couldn't save: "+r.error.message);return}toast(msg);await loadAll();openProduct(p.id)};
   const gs=$("gSave");if(gs)gs.onclick=()=>{const t=num($("g-tgt").value),b=num($("g-bud").value),d=num($("g-days").value);
     if(t==null||t<=0){toast("Write the max ads per order");$("g-tgt").focus();return}
-    upd({target_cpa:t,budget:b,test_days:d==null?null:Math.round(d),test_start:$("g-start").value||null},"Targets saved")};
+    upd({target_cpa:t,budget:b,test_days:d==null?null:Math.round(d),test_start:$("g-start").value||null,pmf:{...pmfOf(p),cvr_t:num($("g-cvr").value),margin_t:num($("g-mar").value),why:$("g-why").value.trim()||null}},"Targets saved")};
   const ge=$("gEdit");if(ge)ge.onclick=()=>{$("gFormWrap").hidden=!$("gFormWrap").hidden};
+  pmfBind(p);
   $("sideBody").querySelectorAll("[data-gst]").forEach(b=>b.onclick=()=>upd({status:b.dataset.gst},b.dataset.gst==="winner"?"Marked as Winner":"Product stopped"));
   const cs=$("copyScript");if(cs)cs.onclick=()=>navigator.clipboard.writeText(p.script).then(()=>toast("Script copied"),()=>toast("Couldn't copy"));
   showSide();
@@ -2029,6 +2123,8 @@ function renderCourse(){
     <ul class="sli"><li><b>Format</b> = what you make (image, video, gif).</li><li><b>Concept</b> = the style of the ad (before & after, unboxing, testimonial).</li><li><b>Angle</b> = the benefit you push (beauty, fast results, ease of use).</li></ul>`+dz("Concept wa7ed, testih b barcha angles. Badel 7aja wa7da bark f kol test bech ta3ref chkoun 3mal el farq.")],
   ["🧩","Creative diversification","Not all ads the same kind",diversMap([],true)+`<ul class="sli"><li><b>Up</b> = Discovery: people who don't know you (unboxing, occasions, relatable problems).</li><li><b>Down</b> = Action: people ready to buy (offers, before & after).</li><li><b>Left</b> = functional (facts, results) · <b>Right</b> = emotional (feelings).</li><li>Per product, test at least <b>one ad up, one in the middle, one down</b>.</li></ul>`+dz("Ma t3melch el ads el kol « before & after + prix ». Farra9hom 3al map bech Meta yal9a clients jdod.")],
   ["🧱","Ad building blocks","Hook → Body → CTA",blockSchema()+`<ul class="sli"><li><b>Hook</b> = the first 3 seconds: makes people stop scrolling.</li><li><b>Body</b> = the blocks you film once: unboxing, demo, benefits, before & after…</li><li><b>CTA</b> = the end: why order now.</li><li>Film the blocks <b>once</b>, reorder them into <b>3 ads</b>. Mostly the hook changes.</li></ul>`+dz("Ta3mel tsawer mara wa7da, w t3awed tretbhom: 3 ads b 3 hooks mokhtalfin. El hook howa elli ywa99ef el scroll.")],
+  ["🧪","PMF validation","Validate before you scale",`<div class="ph2"><div class="sbox pu"><b>Phase 1 · before you spend</b><small>Protects your capital</small></div>`+st([["1.1 Research","N.T.P.M.A from US / EU"],["1.2 Targets","CPA · CVR · margin · budget"],["Minimum test","Simple page · 2–3 creatives · broad"],["1.3 Results","Target vs actual"],["1.4 Decision","GO / NO-GO + why","hl"]])+`<div class="sgrid2" style="margin-top:8px"><div class="sbox gr"><b>GO</b><small>Targets hit → buy first stock → build the brand</small></div><div class="sbox rd"><b>NO-GO</b><small>Diagnose one letter → tweak angle / offer and retest, or kill</small></div></div>
+    <div class="sbox pu" style="margin-top:14px"><b>Phase 2 · after you commit</b><small>Protects your growth</small></div>`+st([["2.1 Levers","N · T · P · M · A, which one limits?"],["2.2 Last change","What + why"],["2.3 Signals","3 warnings"],["2.4 Next","ONE lever","hl"]])+`<div class="ring" style="margin-top:8px">${PMF_SIG.map(([k,t,d],i)=>`<div class="rstep"><span>${i+1}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div></div>`+dz("Fil app: kol produit fih el worksheet. Section 1 l kol test. Section 2 tban ki el produit ywalli Winner walla 💎 Brand. COD: el CPA el s7i7 howa 3al commandes confirmées.")],
   ["💎","N.T.P.M.A","Brand ideas need 4 / 5",`<div class="slet">${[["N","Niche","We can name who buys it"],["T","Transformation","Clear before → after"],["P","Price","Sells for 3× its cost"],["M","Mechanism","A simple reason it works"],["A","Access","We can reach them with ads"]].map(([l,t,d])=>`<div class="sl"><span>${l}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div>`+dz("4–5 / 5 → testih. Ta7t 4 → badel el idea walla 7assenha.")],
   ["🚦","Go / No-Go","Targets before, verdict after",`<div class="sgrid2"><div class="sbox"><b>Before the test</b><small>Max ads / order (under break-even) · Test budget · Test days (usually 4)</small></div><div class="sbox"><b>After the test</b><small><span class="vg">🟢 GO</span> under target → winner<br><span class="vy">🟡 Almost</span> under break-even → fix hook, offer or page<br><span class="vr">🔴 NO-GO</span> over break-even → stop</small></div></div><div class="sbox rd" style="margin-top:8px"><b>🔴 Stop early</b><small>2× the target spent and 0 orders</small></div>`+dz("Nekteb el targets 9bal. Ba3d, el ar9am ya7kmou, mouch el feeling.")],
   ["💰","The real break-even (COD)","With your settings",`<div class="calcs"><div><span>Price − cost − delivery</span><b>${pr} − ${co} − ${fmt(DELIVERY,0)} = ${fmt(g,0)} DT</b></div><div><span>Orders confirmed</span><b>${CONFIRM}%</b></div><div><span>Packages returned</span><b>${RETURNS}%</b></div><div class="big"><span>Max ads / order</span><b>${fmt(be,1)} DT</b></div></div>`+dz(`Mouch ${fmt(g,0)} DT. Ba3d el confirmation w el retour, el ra9m el s7i7 howa ${fmt(be,1)} DT.`)],
