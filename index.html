@@ -384,6 +384,11 @@ h1{font-weight:400;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacin
 .btn.on-good{background:var(--good-bg);color:var(--good);border-color:var(--good)}.btn.on-bad{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
 .lnk{background:none;border:0;padding:0;color:var(--info);text-decoration:underline;cursor:pointer;font:inherit}
 .rline{display:grid;grid-template-columns:150px 1fr;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14px;line-height:1.45}.rline:first-of-type{border-top:0}.rline small{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding-top:2px}.rline em{color:var(--muted)}@media(max-width:480px){.rline{grid-template-columns:1fr;gap:2px}}
+.qm{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);font:600 11px/1 inherit;cursor:pointer;padding:0;vertical-align:1px;margin-left:4px}
+.qm:hover{color:var(--ink);border-color:var(--ink)}
+.tipbox{margin:0 0 4px;padding:8px 10px;border-radius:8px;background:var(--info-bg);color:var(--info);font-size:13px;line-height:1.45;font-weight:400}
+.fca{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0 2px}.fca span{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--soft)}.fca span i{color:var(--muted)}
+.fca span:nth-child(1)::before{content:"🎞 "}.fca span:nth-child(2)::before{content:"💡 "}.fca span:nth-child(3)::before{content:"🎯 "}
 .lgrp{margin-bottom:22px}.lgrp h2{font-size:17px;font-weight:600;margin:0 0 8px}
 .lrow{display:flex;gap:12px;background:var(--card,#fff);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid var(--line)}
 .lrow.lt{border-left-color:var(--good)}.lrow.lf{border-left-color:var(--bad)}
@@ -1948,10 +1953,10 @@ function editComp(c){
     {k:"price",label:"Their price (DT)",type:"number",full:false},
     {k:"running_since",label:"Ad running since",type:"date",full:false,hint:"The Ad Library shows 'Started running on…'"},
     {k:"offer",label:"Their offer",ph:"2 for 59 DT, free delivery"},
-    {k:"angle",label:"Their angle",ph:"Problem: dirt falls between stove and counter"},
-    {k:"format",label:"Format",type:"select",opts:[["","—"],["Video","Video"],["Image","Image"],["Carousel","Carousel"],["UGC video","UGC video"]],full:false},
-    {k:"engagement",label:"Engagement",type:"select",opts:[["","—"],...Object.entries(ENG)],full:false,hint:"From the comments and shares you see"},
-    {k:"trigger",label:"Emotional trigger",type:"select",opts:[["","—"],...Object.entries(TRIG)],full:false,hint:"Why do people buy from this ad?"},
+    {k:"angle",label:"Their angle",ph:"Problem: dirt falls between stove and counter",tip:"angle"},
+    {k:"format",label:"Format",type:"select",opts:[["","—"],["Video","Video"],["Image","Image"],["Carousel","Carousel"],["UGC video","UGC video"]],full:false,tip:"format"},
+    {k:"engagement",label:"Engagement",type:"select",opts:[["","—"],...Object.entries(ENG)],full:false,hint:"From the comments and shares you see",tip:"engagement"},
+    {k:"trigger",label:"Emotional trigger",type:"select",opts:[["","—"],...Object.entries(TRIG)],full:false,hint:"Why do people buy from this ad?",tip:"trigger"},
     {k:"notes",label:"What we learned",type:"textarea",ph:"Their hook, comments, what we can do better"}],
     c?{...c,for:c.product_id?"p"+c.product_id:c.idea_id?"i"+c.idea_id:""}:{country:"Tunisia"},
     async d=>{const f=d.for||"";delete d.for;d.product_id=f.startsWith("p")?f.slice(1):null;d.idea_id=f.startsWith("i")?f.slice(1):null;
@@ -2048,6 +2053,15 @@ $("vIdeas").onclick=()=>setIdeasView("ideas");$("vSources").onclick=()=>setIdeas
 
 /* ---------- Generic form ---------- */
 let gSave=null;
+/* Short darija help behind the "?" next to a field. */
+const TIP={
+  angle:"Angle = 3lech ychri. El reason elli t7ottha 9odem el client: back pain, cadeau, saves time… Kol ad set = angle wa7ed.",
+  concept:"Concept = el fekra mta3 el ad: kifech twarri el angle. Ex: before / after, problem → solution, POV story, unboxing, reaction.",
+  format:"Format = chnowa el support: UGC video (personne t7ki), video produit, image, carousel. Nafs el concept ynajem yetna3mal b formats mokhtalfin.",
+  triangle:"Format × Concept × Angle = ad wa7da. F kol test badel 7aja wa7da bark, bech ta3ref chkoun 3mal el farq.",
+  hypothesis:"Hypothesis = chnowa nesta7dhrou w 3lech. Ex: « Les mamans ychriw 3al back pain. Win ken cost / order ta7t 25 DT. » Ba3d el test t9oul ✅ walla ❌.",
+  trigger:"Trigger = el 7asis elli ykhalli el client ychri: wja3 / problem, khouf, status, wa9t, flous, cadeau, desire.",
+  engagement:"Chouf el comments w el shares 3al ad: barcha = High, chwaya = Low."};
 function gForm(title,fields,vals,onSave){
   $("gTitle").textContent=title;$("gMsg").textContent="";gSave=onSave;
   $("gFields").innerHTML=fields.map(f=>{
@@ -2055,7 +2069,9 @@ function gForm(title,fields,vals,onSave){
     const input=f.type==="textarea"?`<textarea id="${id}" maxlength="${f.max||3000}" dir="auto" placeholder="${esc(f.ph||"")}">${esc(v)}</textarea>`
       :f.type==="select"?`<select id="${id}">${f.opts.map(([k,l])=>`<option value="${esc(k)}" ${String(k)===String(v)?"selected":""}>${esc(l)}</option>`).join("")}</select>`
       :`<input id="${id}" type="${f.type||"text"}" value="${esc(v)}" ${f.type==="number"?'step="0.01" min="0" inputmode="decimal"':""} maxlength="${f.max||200}" placeholder="${esc(f.ph||"")}" dir="auto">`;
-    return `<div class="f ${f.full===false?"":"full"}"><label for="${id}">${esc(f.label)}</label>${input}${f.hint?`<small>${esc(f.hint)}</small>`:""}</div>`}).join("");
+    const tip=f.tip&&TIP[f.tip];
+    return `<div class="f ${f.full===false?"":"full"}"><label for="${id}">${esc(f.label)}${tip?` <button type="button" class="qm" data-tip="${f.k}" aria-label="What is this?">?</button>`:""}</label>${tip?`<p class="tipbox" id="tip-${f.k}" hidden dir="auto">${esc(tip)}</p>`:""}${input}${f.hint?`<small>${esc(f.hint)}</small>`:""}</div>`}).join("");
+  $("gFields").querySelectorAll(".qm").forEach(b=>b.onclick=e=>{e.preventDefault();const t=$("tip-"+b.dataset.tip);t.hidden=!t.hidden});
   $("gForm").dataset.fields=JSON.stringify(fields.map(f=>[f.k,f.type||"text",!!f.req]));
   $("gDlg").showModal();$("gFields").querySelector("input,textarea,select")?.focus();
 }
@@ -2143,6 +2159,7 @@ function renderPlanView(){
   </div>
   ${(BT=>`<div class="nstep" style="background:var(--${BT.tone}-bg)"><div><small>Budget · ABO or CBO</small><b style="color:var(--${BT.tone})">${esc(BT.t)}</b><p>${esc(BT.d)}</p></div></div>`)(budgetTip(c,prod,sets))}
   ${c.rules?`<div class="rules"><h3>Rules for this test</h3>${esc(c.rules)}</div>`:""}
+  <p class="tipbox" style="margin:0 0 12px" dir="auto"><b>🎞 Format × 💡 Concept × 🎯 Angle</b> = ad wa7da. F kol test badel 7aja wa7da bark, bech ta3ref chkoun 3mal el farq.</p>
   <div class="adsets">
     ${sets.map((s,i)=>{const sa=pa.filter(a=>a.adset_id===s.id);
       return `<div class="aset"><div class="aset-h"><div class="t"><h2>${esc(s.name)}</h2><p>${esc([s.angle&&"Angle: "+s.angle,s.audience&&"Audience: "+s.audience,s.daily_budget!=null&&fmt(s.daily_budget)+" DT/day"].filter(Boolean).join(" · "))}</p></div>
@@ -2153,6 +2170,7 @@ function renderPlanView(){
       <div class="aset-ads">${sa.map(a=>{const lib=ads.find(x=>x.id===a.ad_id);const th=lib&&(lib.poster||(lib.format==="image"?lib.media:""));
         return `<div class="pad"><div class="thumb">${isUrl(th)?`<img src="${esc(th)}" alt="">`:"To make"}</div><div class="pb">
         <b>${esc(a.name)}</b>
+        <div class="fca"><span title="Format">${a.format?esc(a.format):'<i>No format</i>'}</span><span title="Concept">${a.concept?esc(a.concept):'<i>No concept</i>'}</span><span title="Angle">${s.angle?esc(s.angle):'<i>No angle</i>'}</span></div>
         ${a.visual?`<div><div class="lbl">Video / image</div>${esc(a.visual)}</div>`:""}
         ${a.script?`<div><div class="lbl">Primary text</div><div class="sc" dir="auto">${esc(a.script)}</div></div>`:""}
         ${a.headline?`<div><div class="lbl">Headline</div><span dir="auto">${esc(a.headline)}</span></div>`:""}
@@ -2222,10 +2240,10 @@ function editPlan(c){
 function editSet(c,s,pos){
   gForm(s?"Edit ad set":"New ad set",[
     {k:"name",label:"Ad set name",req:true,ph:"A · Mum and the mess"},
-    {k:"angle",label:"Angle",ph:"Story: shoes all over the house"},
+    {k:"angle",label:"Angle",ph:"Story: shoes all over the house",tip:"angle"},
     {k:"audience",label:"Audience",ph:"Tunisia, women 25–50, broad"},
     {k:"daily_budget",label:"Daily budget (DT)",type:"number",full:false},
-    {k:"hypothesis",label:"Hypothesis (the brief)",type:"textarea",max:500,ph:"Moms will buy because of back pain from carrying the baby. Win if cost per order is under 25 DT.",hint:"Write it before launch: who buys, why, and what counts as a win."}],
+    {k:"hypothesis",label:"Hypothesis (the brief)",type:"textarea",max:500,tip:"hypothesis",ph:"Moms will buy because of back pain from carrying the baby. Win if cost per order is under 25 DT.",hint:"Write it before launch: who buys, why, and what counts as a win."}],
     s,async d=>{
       const r=s?await sb.from("adsets").update(d).eq("id",s.id):await sb.from("adsets").insert({...d,campaign_id:c.id,position:pos||0});
       if(r.error)return r.error.message;refreshPlans();
@@ -2235,13 +2253,15 @@ function editPlanAd(setId,a,c){
   const libOpts=[["","None, describe it below"],...ads.filter(x=>!c.product_id||x.product_id===c.product_id).map(x=>[x.id,x.name])];
   gForm(a?"Edit ad":"New ad",[
     {k:"name",label:"Ad name",req:true,ph:"Mum video"},
+    {k:"format",label:"Format",type:"select",opts:[["","—"],["UGC video","UGC video"],["Video","Video"],["Image","Image"],["Carousel","Carousel"]],full:false,tip:"format"},
+    {k:"concept",label:"Concept",max:300,full:false,ph:"Before / after",tip:"concept"},
     {k:"ad_id",label:"Use an ad from the library",type:"select",opts:libOpts,hint:"Pick an existing video or image, or leave empty if it still needs to be made"},
     {k:"visual",label:"Video / image to make",type:"textarea",max:1000,ph:"What the video shows, scene by scene"},
     {k:"script",label:"Primary text (ad copy)",type:"textarea",max:3000},
     {k:"headline",label:"Headline",full:false},
     {k:"cta",label:"Button",type:"select",opts:[["Shop now","Shop now"],["Order now","Order now"],["Learn more","Learn more"],["Send message","Send message"]],full:false}],
     a||{cta:"Shop now"},async d=>{
-      d.ad_id=d.ad_id||null;
+      d.ad_id=d.ad_id||null;d.format=d.format||null;
       const n=planAds.filter(x=>x.adset_id===setId).length;
       const r=a?await sb.from("plan_ads").update(d).eq("id",a.id):await sb.from("plan_ads").insert({...d,adset_id:setId,position:n});
       if(r.error)return r.error.message;refreshPlans();
